@@ -1,11 +1,3 @@
-void initScreen() {
-  //  HMISerial.setComponentValue("gStatus", g_sts);
-  //  HMISerial.setComponentValue("gMode", g_mode);
-  //  HMISerial.setComponentValue("gProg", g_prog);
-  //  HMISerial.setComponentValue("gLink", g_link);
-  //  HMISerial.sendCommand("vis pLink,0");
-}
-
 void refreshScreen() {
 
   boolean outout;
@@ -117,48 +109,81 @@ void setLightGroup(long int RxData[1]) {
   aGroups[0][2] = RxData[3]; //mood2
   aGroups[0][3] = RxData[4]; //mood3
   aGroups[0][4] = RxData[5]; //mood4
-  aGroups[0][5] = RxData[6]; //mood5
-  aGroups[0][6] = RxData[7]; //mood6
-  aGroups[0][7] = RxData[8]; //mood7
-  aGroups[0][8] = RxData[9]; //mood8
-  aGroups[0][9] = RxData[10]; //mood9
 }
 
 void pBit() {
-  //byte pic;
-  //if (g_bit == false) {
-  //  pic = 55;
-  //  g_bit = true;
-  //}
-  //else if (g_bit == true) {
-  //  pic = 54;
-  //  g_bit = false;
-  // }
-  //HMISerial.setComponentPic("pBit", pic);
   tone(9, 1500, 30);
   noTone;
-  //delay(10);
 }
 
 void getScreenTouch() {
 
   uint8_t* touch = HMISerial.listen(); //check for message
-  if (touch[0] != 0) {
-    //Serial.print(touch[0],HEX);
-    //Serial.print("-");
-    //Serial.println(touch[1],HEX);
-    //Serial.println(touch[2],HEX);
-    //if (touch[0] == NEX_RET_EVENT_TOUCH_HEAD) { // if a message is received...
-    pBit();
+  switch (touch[0]) {
+    case NEX_RET_ON:
+      pBit();
+      sendCommand(DEV_ON);
+      break;
+    case NEX_RET_OFF:
+      pBit();
+      sendCommand(DEV_OFF);
+      break;
+    case NEX_RET_DIMMER:
+      pBit();
+      sendCommand(DEV_DIMMER);
+      break;
+    case NEX_RET_COLOR1:
+      pBit();
+      sendCommand(DEV_COLOR1);
+      break;
+    case NEX_RET_COLOR2:
+      pBit();
+      sendCommand(DEV_COLOR2);
+      break;
+    case NEX_RET_COLOR3:
+      pBit();
+      sendCommand(DEV_COLOR3);
+      break;
+    case NEX_RET_COLOR4:
+      pBit();
+      sendCommand(DEV_COLOR4);
+      break;
+    case NEX_RET_COLOR5:
+      pBit();
+      sendCommand(DEV_COLOR5);
+      break;
+    case NEX_RET_COLOR6:
+      pBit();
+      sendCommand(DEV_COLOR6);
+      break;
+    case NEX_RET_COLORMONO1:
+      pBit();
+      sendCommand(DEV_COLORMONO1);
+      break;
+    case NEX_RET_COLORMONO2:
+      pBit();
+      sendCommand(DEV_COLORMONO2);
+      break;
+    case NEX_RET_COLORMONO3:
+      pBit();
+      sendCommand(DEV_COLORMONO3);
+      break;
+    case NEX_RET_MOOD1:
+      pBit();
+      sendCommand(DEV_MOOD1);
+      break;
+    case NEX_RET_MOOD2:
+      pBit();
+      sendCommand(DEV_MOOD2);
+      break;
+    case NEX_RET_MOOD3:
+      pBit();
+      sendCommand(DEV_MOOD3);
+      break;
+    case NEX_RET_MOOD4:
+      pBit();
+      sendCommand(DEV_MOOD4);
+      break;
   }
-}
-
-boolean isTouch(uint8_t* touch, uint8_t code) {
-
-  boolean res = false;
-  if (touch[0] == code || touch[1] == code || touch[2] == code || touch[3] == code || touch[4] == code || touch[5] == code) {
-    res = true;
-  }
-  return res;
 }
 

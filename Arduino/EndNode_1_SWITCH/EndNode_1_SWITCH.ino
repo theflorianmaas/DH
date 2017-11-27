@@ -1,6 +1,6 @@
 // ------------------------------------------------------------ //
 // EndNode_1_Switch
-// V. 1 22/10/2017
+// V.1 27/11/2017
 // First version
 //
 // ------------------------------------------------------------ //
@@ -10,8 +10,7 @@
 #include <SoftwareSerial.h>
 #include <Nextion.h>
 //#include <EEPROM.h>
-#include <Wire.h>
-#include <AM2322.h>
+
 
 // ------------------------------------------------------------ //
 //-----------------------------------------------------------
@@ -34,72 +33,51 @@ const int pinBattery PROGMEM = A0;
 #define ON  1
 #define OFF 0
 
-uint8_t g_sts = ON;
-uint8_t g_mode = 0;
-uint8_t g_prog = 0;
-uint8_t g_fire = OFF;
-uint8_t g_cpage = 0;
-boolean g_bit = false;
-uint8_t g_meteo = 0;
-uint8_t g_link = OFF;
-uint8_t c_timeline; //current timeline value (temp range)
-
-float t_intTemp = 0;
-float t_extTemp = 0;
-float t_adjust = 19.0;
-float h_intHum = 0;
-float h_extHum = 0;
-float p_extPre = 0;
-
 //--------------------------------------------//
-// field labels
+// Codes received from Nextion screen on serial
 //--------------------------------------------//
-#define NEX_RET_CMD_FINISHED            (0x01)
-#define NEX_RET_EVENT_LAUNCHED          (0x88)
-#define NEX_RET_EVENT_UPGRADED          (0x89)
-#define NEX_RET_EVENT_TOUCH_HEAD            (0x65)
-#define NEX_RET_EVENT_POSITION_HEAD         (0x67)
-#define NEX_RET_EVENT_SLEEP_POSITION_HEAD   (0x68)
-#define NEX_RET_CURRENT_PAGE_ID_HEAD        (0x66)
-#define NEX_RET_STRING_HEAD                 (0x70)
-#define NEX_RET_NUMBER_HEAD                 (0x71)
-#define NEX_RET_INVALID_CMD             (0x00)
-#define NEX_RET_INVALID_COMPONENT_ID    (0x02)
-#define NEX_RET_INVALID_PAGE_ID         (0x03)
-#define NEX_RET_INVALID_PICTURE_ID      (0x04)
-#define NEX_RET_INVALID_FONT_ID         (0x05)
-#define NEX_RET_INVALID_BAUD            (0x11)
-#define NEX_RET_INVALID_VARIABLE        (0x1A)
-#define NEX_RET_INVALID_OPERATION       (0x1B)
 
-//Codes received from Nextion screen on serial
-#define NEX_RET_ONFF  0x20 //on/off
-#define NEX_RET_MODE  0x21 //mode
-#define NEX_RET_PROG  0x22 //program
-#define NEX_RET_INCR  0x23 //manual temp increase
-#define NEX_RET_DECR  0x24 //manual temp decrease
-#define NEX_RET_SSAV  0x40 //Save
-#define NEX_RET_SPRO  0x41 //Save timeline
-#define NEX_RET_RSAV  0x50 //Save range
-#define NEX_RET_REST  0x48 //reset
-#define NEX_RET_TSAV  0x60 //Save time
+#define NEX_RET_ON    0x99 //on
+#define NEX_RET_OFF   0x88 //off
+#define NEX_RET_DIMMER   0x55 //dimmer value
+#define NEX_RET_COLOR1   0x31 //rgb color 1
+#define NEX_RET_COLOR2   0x32 //rgb color 2
+#define NEX_RET_COLOR3   0x33 //rgb color 3
+#define NEX_RET_COLOR4   0x34 //rgb color 4
+#define NEX_RET_COLOR5   0x35 //rgb color 5
+#define NEX_RET_COLOR6   0x36 //rgb color 6
+#define NEX_RET_COLORMONO1   0x41 //mono color 1
+#define NEX_RET_COLORMONO2   0x42 //mono color 2
+#define NEX_RET_COLORMONO3   0x43 //mono color 3
+#define NEX_RET_MOOD1   0x25 //mood 1
+#define NEX_RET_MOOD2   0x26 //mood 2
+#define NEX_RET_MOOD3   0x27 //mood 3
+#define NEX_RET_MOOD4   0x28 //mood 4
+
+#define DEV_ON      100 //on
+#define DEV_OFF     101 //off
+#define DEV_DIMMER  102 //dimmer value
+#define DEV_COLOR1  103 //rgb color 1
+#define DEV_COLOR2   104 //rgb color 2
+#define DEV_COLOR3   105 //rgb color 3
+#define DEV_COLOR4   106 //rgb color 4
+#define DEV_COLOR5   107 //rgb color 5
+#define DEV_COLOR6   108 //rgb color 6
+#define DEV_COLORMONO1  109 //mono color 1
+#define DEV_COLORMONO2  110 //mono color 2
+#define DEV_COLORMONO3  111 //mono color 3
+#define DEV_MOOD1   112 //mood 1
+#define DEV_MOOD2   113 //mood 2
+#define DEV_MOOD3   114 //mood 3
+#define DEV_MOOD4   115 //mood 4
 
 #define PAGE_MAIN 0
-#define PAGE_SETTINGS 1
-#define PAGE_RANGES 2
-#define PAGE_PROGRAMS 3
-#define PAGE_DEBUG 4
-#define PAGE_TIME 6
-#define PAGE_METEO 7
 
 SoftwareSerial nextion(NEXTION_RX, NEXTION_TX);// Nextion TX to pin 11 and RX to pin 10 of Arduino
 Nextion HMISerial(nextion, 57600); //create a Nextion object named myNextion using the nextion serial port @ 9600bps
 
 //-----------------------------------------------------------
 //-----------------------------------------------------------
-
-AM2322 am2322;  //Temp+Hum sensor instance
-// Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
 
 #define receivedOK 0
 #define noResponse 1
@@ -195,7 +173,6 @@ AM2322 am2322;  //Temp+Hum sensor instance
 #define TIMEt0 10000 //update sensor data
 #define TIMEt1 3000 //send data to coordinator
 #define TIMEt2 11000 //set time
-#define TIMEt3 2000 // check fire
 
 #define BAUD_RATE     115200  // Baud for both Xbee and serial monitor
 #define NUM_ACTU      1 //Insert here the (# of actuators x NUM_DATA_VAL)
@@ -204,14 +181,15 @@ AM2322 am2322;  //Temp+Hum sensor instance
 #define NUM_DATA_VAL  3 // number of values transmitted for each sensor: number, value, alarm status
 #define NUM_DATA_PTS  NUM_DATA*NUM_DATA_VAL
 #define NUM_ACTU_PTS  NUM_ACTU*NUM_DATA_VAL
-#define NUM_METH_PTS  NUM_METH*NUM_DATA_VAL
 #define NUM_BYTE_ARR  3 // Number of bytes of the array used to store long integers in the payload
 
 #define NUM_LIGHTS  7 //max number of lights available (# of lights+1) 
+#define NUM_LIGHT_PTS  NUM_LIGHTS*NUM_DATA_VAL
 
-#define SENSOR   0
+#define SENSOR 0
 #define ACTUATOR 1
-#define METHOD   2
+#define METHOD 2
+#define SMCMD 99
 
 #define RANGE_IN  1 //the actuator is in range 
 #define RANGE_OUT 0 //the actuator is out of range 
@@ -224,11 +202,7 @@ AM2322 am2322;  //Temp+Hum sensor instance
 #define PIN_RELE   8
 #define PIN_TONE   9
 
-#define ACT_STAT   0
-#define ACT_MODE   31
-#define ACT_PROG   32
-#define ACT_FIRE   33
-#define ACT_ADJU   34
+
 
 /* ACTUATORS
   //0=actuator number
@@ -238,7 +212,7 @@ AM2322 am2322;  //Temp+Hum sensor instance
 */
 int actuators[NUM_ACTU][4] = {{PINNODE, 0, 0, 0}};
 int aLights[NUM_LIGHTS][5]; //[x][0]=pin [x][1]=type [x][2]=status [x][3]=value [x][4]=color
-byte aGroups[1][10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; //current mood, mood1, mood2...
+byte aGroups[1][5] = {0, 0, 0, 0, 0}; //current mood, mood1, mood2...
 
 // --- Xbee section ----*/
 XBee xbee = XBee();
@@ -296,18 +270,13 @@ void setup()
   // start serial xbee
   Serial.begin(BAUD_RATE);
   xbee.setSerial(Serial);
-  //rtc.begin();
-  am2322.begin();
   HMISerial.init();
   HMISerial.sendCommand("bauds=57600");
   delay(1000);
   refreshScreen();
   pBit();
 
-  //updatePinValues(); // read sensor once
-
   startTasks();
-
 }  //setup()
 
 void loop(void)
@@ -324,20 +293,9 @@ void loop(void)
 // Functions                                              //
 // *******************************************************//
 void sendSensorData() {
-  //sendData(SENSOR); //send sensors
-  //getScreenTouch();
   sendData(ACTUATOR); //send actuators
-  //getScreenTouch();
-  sendData(METHOD); //send methods
-  //getScreenTouch();
-
+  getScreenTouch();
 }
-
-void updatePinValues()
-{
-  am2322.readTemperatureAndHumidity(t_intTemp, h_intHum);
-  t_intTemp = t_intTemp - 2; //compensate components heating
-} // updatePinValues()
 
 // ******************************************************* //
 // ******************************************************* //
@@ -361,31 +319,8 @@ void parseXbeeReceivedData(int x)
     {
       val = RxData[2];
     }
-    if (RxData[3] == THERMOSTAT)
-    {
-      // 2=value, 3=termostat 4=num method
-      setPIN(RxData[1], RxData[2], RxData[3], RxData[4], RxData[5]);
-      sendData(ACTUATOR);
-      sendData(METHOD);
-    }
-    else
-    {
-      setPIN(RxData[1], val, RxData[3], RxData[4], RxData[5]);
-      sendData(ACTUATOR); //send actuators value
-    }
-
   }
   //--------------------------------------------
-  if (x == TIME) //Set time
-  {
-    //rtc.adjust(DateTime(RxData[3], RxData[2], RxData[1], RxData[4], RxData[5], 0));
-  }
-  if (x == SMLIGHT_COMMAND) //get smartlight command
-  {
-    if (getPinIdx(RxData[1]) != -1)
-      execLightCommand(RxData[1], RxData[2], RxData[3], RxData[4]); // pin, status, value, color
-  }
-
   if (x == SMLIGHT_CONFIG) //set light in the array
   {
     setLightConfig(RxData[1], RxData[2], RxData[3]); // pin, type, mode
@@ -395,7 +330,6 @@ void parseXbeeReceivedData(int x)
   {
     setLightGroup(RxData);
   }
-
 
 }
 // ******************************************************* //
@@ -439,28 +373,15 @@ void getData()
       }
     }
   }
-  else if (xbee.getResponse().isError())
-  { // Got something, but not a packet
-    //null
-  }
-  else
-  {
-    // xbee not available and no error
-    //null
-  }
 }
 // ******************************************************* //
 
 // ******************************************************* //
-void sendData(int t) // t=0 = sensors 1 = actuators
+void sendData(int t) // t=0 = sensors 1 = actuators 2=method 3=light
 {
   int elements = 0;
-  if (t == SENSOR)
-  {
-    elements = (NUM_DATA_PTS + 1) * 2;
-  }
-  else if (t == METHOD) {
-    elements = (NUM_METH_PTS + 1) * 2;
+  if (t == SMCMD) {
+    elements = (NUM_LIGHT_PTS + 1) * 2;
   }
   else if (t == ACTUATOR) {
     elements = (NUM_ACTU_PTS + 1) * 2;
@@ -470,69 +391,25 @@ void sendData(int t) // t=0 = sensors 1 = actuators
   uint8_t payload[elements];
   int16_t xbeeData[NUM_DATA_PTS + 1]; // Array to hold integers that will be sent to other xbee [pari]=valore pin [dispari]=valore pin
   int16_t xbeeActu[NUM_ACTU_PTS + 1]; // Array to hold integers that will be sent to other xbee [pari]=valore pin [dispari]=valore pin
-  int16_t xbeeMeth[NUM_METH_PTS + 1]; // Array to hold integers that will be sent to other xbee [pari]=valore pin [dispari]=valore pin
+  int16_t xbeeLoad[NUM_LIGHT_PTS + 1]; // Array to hold integers that will be sent to other xbee [pari]=valore pin [dispari]=valore pin
   byte idx = 1;
   int response = 0;
   switch (t)
   {
-    case SENSOR:
-      // Sensors data
-      xbeeData[0] = SENSOR;
-      xbeeData[idx] = 24;
-      idx++;
-      xbeeData[idx] = (int)(t_intTemp * 100);
-      idx++;
-      xbeeData[idx] = 0;
-      idx++;
-      xbeeData[idx] = 25;
-      idx++;
-      xbeeData[idx] = (byte)(h_intHum);
-      idx++;
-      xbeeData[idx] = 0;
-      idx++;
+    case SMCMD:
+      xbeeLoad[0] = SMCMD;
+      for (int i = 1; i < NUM_LIGHTS; i++) {
+        xbeeLoad[idx] = aLights[i][0]; //pin
+        idx++;
+        xbeeLoad[idx] = aLights[i][2]; //status
+        idx++;
+        xbeeLoad[idx] = aLights[i][3]; //value
+        idx++;
+        xbeeLoad[idx] = aLights[i][4]; //color
+        idx++;
+      }
 
-      parseTxData(payload, xbeeData, idx);
-      break;
-
-    case METHOD:
-      xbeeMeth[0] = METHOD;
-
-      xbeeMeth[idx] = PINNODE;
-      idx++;
-      xbeeMeth[idx] = ACT_STAT;
-      idx++;
-      xbeeMeth[idx] = g_sts;
-      idx++;
-
-      xbeeMeth[idx] = PINNODE;
-      idx++;
-      xbeeMeth[idx] = ACT_MODE;
-      idx++;
-      xbeeMeth[idx] = g_mode;
-
-      idx++;
-      xbeeMeth[idx] = PINNODE;
-      idx++;
-      xbeeMeth[idx] = ACT_PROG;
-      idx++;
-      xbeeMeth[idx] = g_prog;
-
-      idx++;
-      xbeeMeth[idx] = PINNODE;
-      idx++;
-      xbeeMeth[idx] = ACT_FIRE;
-      idx++;
-      xbeeMeth[idx] = g_fire;
-
-      idx++;
-      xbeeMeth[idx] = PINNODE;
-      idx++;
-      xbeeMeth[idx] = ACT_ADJU;
-      idx++;
-      xbeeMeth[idx] = int(t_adjust);
-      idx++;
-
-      parseTxData(payload, xbeeMeth, idx);
+      parseTxData(payload, xbeeLoad, idx);
       break;
 
     /* ACTUATORS
@@ -568,34 +445,98 @@ void sendData(int t) // t=0 = sensors 1 = actuators
     response = getApiId();
     if (response == TX_RESPONSE) {
       TXStatusResponse(txStatus);
-      // got a response!
-      // should be a znet tx status
       if (getStatus() == SUCCESS) {
-        g_link = ON;
+        // g_link = ON;
       }
       else
       {
-        g_link = OFF;
+       // g_link = OFF;
       }
     }
     else if ((response == ZB_RX_RESPONSE))
     {
-      g_link = ON;
+      //g_link = ON;
       getData();
     }
   }
   else if (xbee.getResponse().isError())
   {
-    g_link = OFF;
+    //g_link = OFF;
   }
   else
   {
-    g_link = OFF;
+    //g_link = OFF;
   } // Finished waiting for XBee packet
 
 
 } // sendData()
 // ******************************************************* //
+
+
+// ******************************************************* //
+void sendCommand(byte type) // t=0 = sensors 1 = actuators 2=method 3=light
+{ //send single command of changed light
+  int elements = (4 + 1) * 2;
+  boolean readPacketResponse; //store the response of xbee.readPacket(timeout)
+  uint8_t payload[elements];
+  int16_t xbeeLoad[4 + 1]; // Array to hold integers that will be sent to other xbee [pari]=valore pin [dispari]=valore pin
+  int response = 0;
+  byte idx = HMISerial.getComponentValue("sys0");
+  xbeeLoad[0] = SMCMD;
+  if (idx != 0) { //light
+    aLights[idx][2] = HMISerial.getComponentValue("st" + String(idx)); //get status
+    aLights[idx][3] = HMISerial.getComponentValue("vl" + String(idx)); //get value
+    aLights[idx][4] = HMISerial.getComponentValue("cx" + String(idx)); //get color
+  } else { //group
+    aLights[idx][2] = HMISerial.getComponentValue("stg" + String(idx)); //get status
+    aLights[idx][3] = HMISerial.getComponentValue("vlg" + String(idx)); //get value
+    aLights[idx][4] = HMISerial.getComponentValue("cxg" + String(idx)); //get mood
+  }
+  xbeeLoad[1] = aLights[idx][0]; //pin
+  xbeeLoad[2] = aLights[idx][2]; //status
+  xbeeLoad[3] = aLights[idx][2]; //value
+  xbeeLoad[4] = aLights[idx][2]; //color/mood
+
+  parseTxData(payload, xbeeLoad, idx);
+
+  request(COORD_ADDR, payload, sizeof(payload));
+  /* begin the common part */
+  xbee.send(tx);
+
+  xbee.readPacket(50);
+  if (xbee.getResponse().isAvailable()) //got something
+  {
+    response = getApiId();
+    if (response == TX_RESPONSE) {
+      TXStatusResponse(txStatus);
+      if (getStatus() == SUCCESS) {
+        //g_link = ON;
+      }
+      else
+      {
+        //retry
+        xbee.send(tx);
+      }
+    }
+    else if ((response == ZB_RX_RESPONSE))
+    {
+      getData();
+    }
+  }
+  else if (xbee.getResponse().isError())
+  {
+    //retry
+    xbee.send(tx);
+  }
+  else
+  {
+    //retry
+    xbee.send(tx);
+  } // Finished waiting for XBee packet
+
+} // sendCommand()
+// ******************************************************* //
+
 
 
 // ******************************************************* //
