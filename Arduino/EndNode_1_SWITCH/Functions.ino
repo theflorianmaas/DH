@@ -119,6 +119,8 @@ void pBit() {
 void getScreenTouch() {
 
   uint8_t* touch = HMISerial.listen(); //check for message
+  if (touch[0] != 0)
+    Serial.println(touch[0], HEX);
   switch (touch[0]) {
     case NEX_RET_ON:
       pBit();

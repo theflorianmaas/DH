@@ -74,7 +74,7 @@ const int pinBattery PROGMEM = A0;
 #define PAGE_MAIN 0
 
 SoftwareSerial nextion(NEXTION_RX, NEXTION_TX);// Nextion TX to pin 11 and RX to pin 10 of Arduino
-Nextion HMISerial(nextion, 57600); //create a Nextion object named myNextion using the nextion serial port @ 9600bps
+Nextion HMISerial(nextion, 9600); //create a Nextion object named myNextion using the nextion serial port @ 9600bps
 
 //-----------------------------------------------------------
 //-----------------------------------------------------------
@@ -253,11 +253,11 @@ void setup()
     RxData[i] = 0;
   }
   //initialize light array. Set all pin to 999 (no light configured)
-  for (int i = 0; i < NUM_LIGHTS; i++)
+  for (int i = 1; i < NUM_LIGHTS; i++)
   {
     aLights[i][0] = NOLIGHT;
     aLights[i][1] = 0;
-    aLights[i][2] = 999;
+    aLights[i][2] = 0;
     aLights[i][3] = 0;
     aLights[i][4] = 1;
   }
@@ -269,24 +269,24 @@ void setup()
 
   // start serial xbee
   Serial.begin(BAUD_RATE);
-  xbee.setSerial(Serial);
+  //xbee.setSerial(Serial);
   HMISerial.init();
-  HMISerial.sendCommand("bauds=57600");
+  HMISerial.sendCommand("bauds=9600");
   delay(1000);
   refreshScreen();
   pBit();
 
-  startTasks();
+  //startTasks();
 }  //setup()
 
 void loop(void)
 {
   t0.update();
   getScreenTouch();
-  if (xbee.readPacket(1))
-  {
-    getData();
-  }
+  //if (xbee.readPacket(1))
+  //{
+    //getData();
+  //}
 }
 
 // *******************************************************//
@@ -450,7 +450,7 @@ void sendData(int t) // t=0 = sensors 1 = actuators 2=method 3=light
       }
       else
       {
-       // g_link = OFF;
+        // g_link = OFF;
       }
     }
     else if ((response == ZB_RX_RESPONSE))
@@ -476,6 +476,7 @@ void sendData(int t) // t=0 = sensors 1 = actuators 2=method 3=light
 // ******************************************************* //
 void sendCommand(byte type) // t=0 = sensors 1 = actuators 2=method 3=light
 { //send single command of changed light
+
   int elements = (4 + 1) * 2;
   boolean readPacketResponse; //store the response of xbee.readPacket(timeout)
   uint8_t payload[elements];
@@ -497,10 +498,17 @@ void sendCommand(byte type) // t=0 = sensors 1 = actuators 2=method 3=light
   xbeeLoad[3] = aLights[idx][2]; //value
   xbeeLoad[4] = aLights[idx][2]; //color/mood
 
+Serial.println(xbeeLoad[0]);
+Serial.println(xbeeLoad[1]);
+Serial.println(xbeeLoad[2]);
+Serial.println(xbeeLoad[3]);
+Serial.println(xbeeLoad[4]);
+
   parseTxData(payload, xbeeLoad, idx);
 
   request(COORD_ADDR, payload, sizeof(payload));
   /* begin the common part */
+  /*
   xbee.send(tx);
 
   xbee.readPacket(50);
@@ -533,7 +541,7 @@ void sendCommand(byte type) // t=0 = sensors 1 = actuators 2=method 3=light
     //retry
     xbee.send(tx);
   } // Finished waiting for XBee packet
-
+*/
 } // sendCommand()
 // ******************************************************* //
 
