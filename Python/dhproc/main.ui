@@ -1,0 +1,807 @@
+<?xml version='1.0' encoding='utf-8'?>
+<interface>
+  <object class="ttk.Frame" id="main">
+    <property name="height">400</property>
+    <property name="padding">10</property>
+    <property name="width">690</property>
+    <layout>
+      <property name="column">0</property>
+      <property name="propagate">True</property>
+      <property name="row">0</property>
+      <rows>
+        <row id="0">
+          <property name="minsize">0</property>
+          <property name="pad">0</property>
+          <property name="weight">0</property>
+        </row>
+        <row id="1">
+          <property name="weight">0</property>
+        </row>
+      </rows>
+    </layout>
+    <child>
+      <object class="ttk.Label" id="Label_2">
+        <property name="font">TkDefaultFont</property>
+        <property name="relief">flat</property>
+        <property name="text" translatable="yes">Last notification</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="columnspan">1</property>
+          <property name="ipadx">0</property>
+          <property name="padx">0</property>
+          <property name="propagate">True</property>
+          <property name="row">0</property>
+          <property name="rowspan">1</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Label" id="Label_1">
+        <property name="font">TkTextFont</property>
+        <property name="justify">left</property>
+        <property name="takefocus">false</property>
+        <property name="text" translatable="yes">Process</property>
+        <layout>
+          <property name="column">0</property>
+          <property name="columnspan">1</property>
+          <property name="ipadx">0</property>
+          <property name="padx">0</property>
+          <property name="pady">1</property>
+          <property name="propagate">True</property>
+          <property name="row">0</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Entry" id="proc_1">
+        <property name="font">TkTextFont</property>
+        <property name="justify">left</property>
+        <property name="state">normal</property>
+        <property name="validate">none</property>
+        <property name="width">25</property>
+        <layout>
+          <property name="column">0</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">10</property>
+          <property name="pady">0</property>
+          <property name="propagate">True</property>
+          <property name="row">1</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="tk.Canvas" id="proc_1_sts">
+        <property name="background">#ff0000</property>
+        <property name="closeenough">0</property>
+        <property name="height">16</property>
+        <property name="state">normal</property>
+        <property name="width">16</property>
+        <property name="xscrollincrement">0</property>
+        <property name="yscrollincrement">0</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="columnspan">1</property>
+          <property name="ipadx">0</property>
+          <property name="propagate">True</property>
+          <property name="row">1</property>
+          <property name="rowspan">1</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Button" id="btn_1">
+        <property name="command">exec_ss_1</property>
+        <property name="text" translatable="yes">Start/Stop</property>
+        <property name="underline">0</property>
+        <property name="width">9</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="columnspan">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">25</property>
+          <property name="propagate">True</property>
+          <property name="row">1</property>
+          <property name="rowspan">1</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Entry" id="proc_2">
+        <property name="font">TkTextFont</property>
+        <property name="justify">left</property>
+        <property name="state">normal</property>
+        <property name="validate">none</property>
+        <property name="width">25</property>
+        <layout>
+          <property name="column">0</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">0</property>
+          <property name="pady">0</property>
+          <property name="propagate">True</property>
+          <property name="row">2</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="tk.Canvas" id="proc_2_sts">
+        <property name="background">#ff0000</property>
+        <property name="closeenough">0</property>
+        <property name="height">16</property>
+        <property name="state">normal</property>
+        <property name="width">16</property>
+        <property name="xscrollincrement">0</property>
+        <property name="yscrollincrement">0</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="columnspan">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="propagate">True</property>
+          <property name="row">2</property>
+          <property name="rowspan">1</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Button" id="btn_2">
+        <property name="command">exec_ss_2</property>
+        <property name="default">normal</property>
+        <property name="state">normal</property>
+        <property name="text" translatable="yes">Start/Stop</property>
+        <property name="underline">0</property>
+        <property name="width">9</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">25</property>
+          <property name="propagate">True</property>
+          <property name="row">2</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Entry" id="proc_4">
+        <property name="font">TkTextFont</property>
+        <property name="justify">left</property>
+        <property name="state">normal</property>
+        <property name="validate">none</property>
+        <property name="width">25</property>
+        <layout>
+          <property name="column">0</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">0</property>
+          <property name="pady">0</property>
+          <property name="propagate">True</property>
+          <property name="row">4</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="tk.Canvas" id="proc_4_sts">
+        <property name="background">#ff0000</property>
+        <property name="closeenough">0</property>
+        <property name="height">16</property>
+        <property name="state">normal</property>
+        <property name="width">16</property>
+        <property name="xscrollincrement">0</property>
+        <property name="yscrollincrement">0</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="columnspan">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="pady">0</property>
+          <property name="propagate">True</property>
+          <property name="row">4</property>
+          <property name="rowspan">1</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Button" id="btn_4">
+        <property name="command">exec_ss_4</property>
+        <property name="default">normal</property>
+        <property name="state">normal</property>
+        <property name="text" translatable="yes">Start/Stop</property>
+        <property name="underline">0</property>
+        <property name="width">9</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">25</property>
+          <property name="propagate">True</property>
+          <property name="row">4</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Entry" id="proc_5">
+        <property name="font">TkTextFont</property>
+        <property name="justify">left</property>
+        <property name="state">normal</property>
+        <property name="validate">none</property>
+        <property name="width">25</property>
+        <layout>
+          <property name="column">0</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">0</property>
+          <property name="pady">0</property>
+          <property name="propagate">True</property>
+          <property name="row">5</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="tk.Canvas" id="proc_5_sts">
+        <property name="background">#ff0000</property>
+        <property name="closeenough">0</property>
+        <property name="height">16</property>
+        <property name="state">normal</property>
+        <property name="width">16</property>
+        <property name="xscrollincrement">0</property>
+        <property name="yscrollincrement">0</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="columnspan">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="pady">0</property>
+          <property name="propagate">True</property>
+          <property name="row">5</property>
+          <property name="rowspan">1</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Button" id="btn_5">
+        <property name="command">exec_ss_5</property>
+        <property name="default">normal</property>
+        <property name="state">normal</property>
+        <property name="text" translatable="yes">Start/Stop</property>
+        <property name="underline">0</property>
+        <property name="width">9</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">25</property>
+          <property name="propagate">True</property>
+          <property name="row">5</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Entry" id="proc_6">
+        <property name="font">TkTextFont</property>
+        <property name="justify">left</property>
+        <property name="state">normal</property>
+        <property name="validate">none</property>
+        <property name="width">25</property>
+        <layout>
+          <property name="column">0</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">0</property>
+          <property name="pady">0</property>
+          <property name="propagate">True</property>
+          <property name="row">6</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="tk.Canvas" id="proc_6_sts">
+        <property name="background">#ff0000</property>
+        <property name="closeenough">0</property>
+        <property name="height">16</property>
+        <property name="state">normal</property>
+        <property name="width">16</property>
+        <property name="xscrollincrement">0</property>
+        <property name="yscrollincrement">0</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="columnspan">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="pady">0</property>
+          <property name="propagate">True</property>
+          <property name="row">6</property>
+          <property name="rowspan">1</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Button" id="btn_6">
+        <property name="command">exec_ss_6</property>
+        <property name="default">normal</property>
+        <property name="state">normal</property>
+        <property name="text" translatable="yes">Start/Stop</property>
+        <property name="underline">0</property>
+        <property name="width">9</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">25</property>
+          <property name="propagate">True</property>
+          <property name="row">6</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Entry" id="proc_7">
+        <property name="font">TkTextFont</property>
+        <property name="justify">left</property>
+        <property name="state">normal</property>
+        <property name="validate">none</property>
+        <property name="width">25</property>
+        <layout>
+          <property name="column">0</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">0</property>
+          <property name="pady">0</property>
+          <property name="propagate">True</property>
+          <property name="row">7</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="tk.Canvas" id="proc_7_sts">
+        <property name="background">#ff0000</property>
+        <property name="closeenough">0</property>
+        <property name="height">16</property>
+        <property name="state">normal</property>
+        <property name="width">16</property>
+        <property name="xscrollincrement">0</property>
+        <property name="yscrollincrement">0</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="columnspan">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="pady">0</property>
+          <property name="propagate">True</property>
+          <property name="row">7</property>
+          <property name="rowspan">1</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Button" id="btn_7">
+        <property name="command">exec_ss_7</property>
+        <property name="default">normal</property>
+        <property name="state">normal</property>
+        <property name="text" translatable="yes">Start/Stop</property>
+        <property name="underline">0</property>
+        <property name="width">9</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">25</property>
+          <property name="propagate">True</property>
+          <property name="row">7</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Entry" id="proc_8">
+        <property name="font">TkTextFont</property>
+        <property name="justify">left</property>
+        <property name="state">normal</property>
+        <property name="validate">none</property>
+        <property name="width">25</property>
+        <layout>
+          <property name="column">0</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">0</property>
+          <property name="pady">0</property>
+          <property name="propagate">True</property>
+          <property name="row">8</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="tk.Canvas" id="proc_8_sts">
+        <property name="background">#ff0000</property>
+        <property name="closeenough">0</property>
+        <property name="height">16</property>
+        <property name="state">normal</property>
+        <property name="width">16</property>
+        <property name="xscrollincrement">0</property>
+        <property name="yscrollincrement">0</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="columnspan">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="pady">0</property>
+          <property name="propagate">True</property>
+          <property name="row">8</property>
+          <property name="rowspan">1</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Button" id="btn_8">
+        <property name="command">exec_ss_8</property>
+        <property name="default">normal</property>
+        <property name="state">normal</property>
+        <property name="text" translatable="yes">Start/Stop</property>
+        <property name="underline">0</property>
+        <property name="width">9</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="columnspan">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">25</property>
+          <property name="propagate">True</property>
+          <property name="row">8</property>
+          <property name="rowspan">1</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Entry" id="proc_3">
+        <property name="font">TkTextFont</property>
+        <property name="justify">left</property>
+        <property name="state">normal</property>
+        <property name="validate">none</property>
+        <property name="width">25</property>
+        <layout>
+          <property name="column">0</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">0</property>
+          <property name="pady">0</property>
+          <property name="propagate">True</property>
+          <property name="row">3</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="tk.Canvas" id="proc_3_sts">
+        <property name="background">#ff0000</property>
+        <property name="closeenough">0</property>
+        <property name="height">16</property>
+        <property name="state">normal</property>
+        <property name="width">16</property>
+        <property name="xscrollincrement">0</property>
+        <property name="yscrollincrement">0</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="columnspan">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="pady">0</property>
+          <property name="propagate">True</property>
+          <property name="row">3</property>
+          <property name="rowspan">1</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Button" id="btn_3">
+        <property name="command">exec_ss_3</property>
+        <property name="default">normal</property>
+        <property name="state">normal</property>
+        <property name="text" translatable="yes">Start/Stop</property>
+        <property name="underline">0</property>
+        <property name="width">9</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">25</property>
+          <property name="propagate">True</property>
+          <property name="row">3</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Entry" id="proc_9">
+        <property name="font">TkTextFont</property>
+        <property name="justify">left</property>
+        <property name="state">normal</property>
+        <property name="validate">none</property>
+        <property name="width">25</property>
+        <layout>
+          <property name="column">0</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">0</property>
+          <property name="pady">0</property>
+          <property name="propagate">True</property>
+          <property name="row">9</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="tk.Canvas" id="proc_9_sts">
+        <property name="background">#ff0000</property>
+        <property name="closeenough">0</property>
+        <property name="height">16</property>
+        <property name="state">normal</property>
+        <property name="width">16</property>
+        <property name="xscrollincrement">0</property>
+        <property name="yscrollincrement">0</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="columnspan">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="pady">0</property>
+          <property name="propagate">True</property>
+          <property name="row">9</property>
+          <property name="rowspan">1</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Button" id="btn_9">
+        <property name="command">exec_ss_9</property>
+        <property name="default">normal</property>
+        <property name="state">normal</property>
+        <property name="text" translatable="yes">Start/Stop</property>
+        <property name="underline">0</property>
+        <property name="width">9</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">25</property>
+          <property name="propagate">True</property>
+          <property name="row">9</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="tk.Text" id="statusbar">
+        <property name="background">#e8e8ea</property>
+        <property name="borderwidth">1</property>
+        <property name="font">TkFixedFont</property>
+        <property name="height">7</property>
+        <property name="width">60</property>
+        <property name="wrap">char</property>
+        <layout>
+          <property name="column">0</property>
+          <property name="columnspan">3</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">10</property>
+          <property name="pady">10</property>
+          <property name="propagate">True</property>
+          <property name="row">10</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Button" id="startall">
+        <property name="command">p_start_all</property>
+        <property name="default">normal</property>
+        <property name="text" translatable="yes">Start All</property>
+        <property name="width">10</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="columnspan">1</property>
+          <property name="ipadx">0</property>
+          <property name="padx">180</property>
+          <property name="pady">30</property>
+          <property name="propagate">True</property>
+          <property name="row">10</property>
+          <property name="rowspan">1</property>
+          <property name="sticky">n</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Button" id="stopall">
+        <property name="command">p_stop_all</property>
+        <property name="default">normal</property>
+        <property name="text" translatable="yes">Stop All</property>
+        <property name="width">10</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="columnspan">1</property>
+          <property name="ipadx">0</property>
+          <property name="padx">180</property>
+          <property name="pady">40</property>
+          <property name="propagate">True</property>
+          <property name="row">10</property>
+          <property name="rowspan">1</property>
+          <property name="sticky">s</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Entry" id="lstmsg1">
+        <property name="font">TkTextFont</property>
+        <property name="justify">left</property>
+        <property name="width">40</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="columnspan">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">115</property>
+          <property name="propagate">True</property>
+          <property name="row">1</property>
+          <property name="rowspan">1</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Entry" id="lstmsg2">
+        <property name="font">TkTextFont</property>
+        <property name="justify">left</property>
+        <property name="width">40</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="columnspan">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">115</property>
+          <property name="propagate">True</property>
+          <property name="row">2</property>
+          <property name="rowspan">1</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Entry" id="lstmsg3">
+        <property name="font">TkTextFont</property>
+        <property name="justify">left</property>
+        <property name="width">40</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="columnspan">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">115</property>
+          <property name="propagate">True</property>
+          <property name="row">3</property>
+          <property name="rowspan">1</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Entry" id="lstmsg4">
+        <property name="font">TkTextFont</property>
+        <property name="justify">left</property>
+        <property name="width">40</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="columnspan">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">115</property>
+          <property name="propagate">True</property>
+          <property name="row">4</property>
+          <property name="rowspan">1</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Entry" id="lstmsg5">
+        <property name="font">TkTextFont</property>
+        <property name="justify">left</property>
+        <property name="width">40</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="columnspan">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">115</property>
+          <property name="propagate">True</property>
+          <property name="row">5</property>
+          <property name="rowspan">1</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Entry" id="lstmsg6">
+        <property name="font">TkTextFont</property>
+        <property name="justify">left</property>
+        <property name="width">40</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="columnspan">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">115</property>
+          <property name="propagate">True</property>
+          <property name="row">6</property>
+          <property name="rowspan">1</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Entry" id="lstmsg7">
+        <property name="font">TkTextFont</property>
+        <property name="justify">left</property>
+        <property name="width">40</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="columnspan">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">115</property>
+          <property name="propagate">True</property>
+          <property name="row">7</property>
+          <property name="rowspan">1</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Entry" id="lstmsg8">
+        <property name="font">TkTextFont</property>
+        <property name="justify">left</property>
+        <property name="width">40</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="columnspan">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">115</property>
+          <property name="propagate">True</property>
+          <property name="row">8</property>
+          <property name="rowspan">1</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Entry" id="lstmsg9">
+        <property name="font">TkTextFont</property>
+        <property name="justify">left</property>
+        <property name="width">40</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="columnspan">1</property>
+          <property name="ipadx">0</property>
+          <property name="ipady">0</property>
+          <property name="padx">115</property>
+          <property name="propagate">True</property>
+          <property name="row">9</property>
+          <property name="rowspan">1</property>
+          <property name="sticky">w</property>
+        </layout>
+      </object>
+    </child>
+  </object>
+</interface>
