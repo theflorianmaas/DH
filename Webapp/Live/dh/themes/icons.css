@@ -1,0 +1,2010 @@
+#main #rightpanel.ui-panel {width: 6em;};
+#main #leftpanel.ui-panel {width: 15em;};
+
+.ui-panel  {
+	width: 10em;
+	overflow: scroll;
+	-webkit-overflow-scrolling: auto;
+};
+
+
+.wrapper {
+	position  : relative;
+	width     : 320px;
+	margin    : 0 auto;
+	padding   : 0;
+	font-size : 0; 
+	}
+
+.icon {
+	position           : relative;
+	display            : inline-block;
+	width              : 60px;
+	height             : 60px;
+	margin             : 0px;
+	border-radius      : 0px;
+	-webkit-box-sizing : border-box;
+	-moz-box-sizing    : border-box;
+	box-sizing         : border-box; }
+
+.iconbig {
+	position           : absolute;
+	display            : inline-block;
+	width              : 30px;
+	height             : 30px;
+	margin             : 0px;
+	top: -50px;
+	border-radius      : 0px;
+	-webkit-box-sizing : border-box;
+	-moz-box-sizing    : border-box;
+	box-sizing         : border-box; }
+
+.canvas {
+	width              : 100px;
+	height             : 60px;
+	position           : relative;
+	top                : 5px;
+	left               : 0px;}	
+	
+.canvasbig {
+	width              : 120px;
+	height             : 120px;
+	position           : absolute;
+	left               : 0px;
+	top               :  60px;
+	border: 0px solid ;
+	//border-color: rgba(155,255,255,0.5);}
+
+	
+.valueframe {	
+width: 120px;
+float: right;
+top: 170px;
+left: 0px;
+position: absolute;
+border: 0px solid ;
+//background: rgba(83,21,132,0.1);
+}
+
+.mainframe {	
+width: 190px;
+height: 170px;
+float: right;
+top: 80px;
+right: 5px;
+position: absolute;
+border: 0px solid ;
+//background: rgba(83,21,132,0.1);
+}
+
+.timerframe {	
+width: 175px;
+height: 12px;
+right: 0px;
+position: absolute;
+border: 0px solid ;
+background: rgba(83,21,132,0.1);
+}
+
+.eventframe {	
+width: 175px;
+height: 12px;
+float: right;
+top: 140px;
+right: 0px;
+position: absolute;
+border: 0px solid ;
+background: rgba(83,21,132,0.1);
+}
+
+.eventlogicframe {	
+width: 160px;
+height: 12px;
+float: right;
+top: 140px;
+right: 0px;
+position: absolute;
+border: 0px solid ;
+background: rgba(83,21,132,0);
+}	
+
+.triggerframe {	
+width: 175px;
+height: 12px;
+float: right;
+top: 140px;
+right: 0px;
+position: absolute;
+border: 0px solid ;
+background: rgba(83,21,132,0.1);
+}
+
+.actionframe {	
+width: 160px;
+height: 12px;
+float: right;
+top: 140px;
+right: 0px;
+position: absolute;
+border: 0px solid ;
+background: rgba(83,21,132,0);
+}
+
+.actiondetailframe {	
+width: 60px;
+height: 12px;
+float: right;
+top: 140px;
+right: 0px;
+position: absolute;
+border: 0px solid ;
+background: rgba(83,21,132,0.3);
+}
+
+.eventt {
+	top: 0px;
+	font-size: 9px;
+	font-family: -apple-system-font;
+	font-weight: 200;
+	position: absolute;
+	border: 0px solid ;
+}
+
+	
+.detail {
+	position           : relative;
+	display            : inline-block;
+	width              : 90%;
+	height             : 120px;
+	margin             : 7px;
+	border-radius      : 0px;
+	-webkit-box-sizing : border-box;
+	-moz-box-sizing    : border-box;
+	box-sizing         : border-box; 
+	 }	
+
+.footericon {
+	position           : relative;
+	display            : inline-block;
+	width              : 50px;
+	height             : 50px;
+	margin             : 5px;
+	border-radius      : 10px;
+	-webkit-box-sizing : border-box;
+	-moz-box-sizing    : border-box;
+	box-sizing         : border-box;
+	 }
+ 	 
+.navbutton {
+	position           : relative;
+	display            : inline-block;
+	width              : 30px;
+	height             : 30px;
+	margin             : 5px;
+	border-radius      : 10px;
+	-webkit-box-sizing : border-box;
+	-moz-box-sizing    : border-box;
+	box-sizing         : border-box;
+	 }
+
+
+.value {
+	top : 34px;
+	right : 66%;
+	font-size: 30px;
+	font-family: -apple-system-font;
+	font-weight: 200;
+	position: absolute;
+	color: rgba(83,21,132,1);
+	float:right;
+}
+
+.um {
+	top : 52px;
+	right : -82px;
+	font-size: 12px;
+	font-family: -apple-system-font;
+	font-weight: 200;
+	position: relative;
+	color: rgba(83,21,132,1);
+	float:left;
+}
+
+.valuebig {
+	top : 0px;
+	right : 0px;
+	font-size: 40px;
+	font-family: -apple-system-font;
+	font-weight: 200;
+	position: relative;
+	color: rgba(83,21,132,1);
+	float:right;
+}
+
+.umbig {
+	top : 25px;
+	right : 0px;	
+	font-size: 18px;
+	font-family: -apple-system-font;
+	font-weight: 200;
+	position: relative;
+	color: rgba(83,21,132,1);
+	float:right;
+}	
+
+.eventtitle {
+	top : 140px;
+	right : 70px;	
+	font-size: 10px;
+	font-family: -apple-system-font;
+	font-weight: 200;
+	position: absolute;
+	color: rgba(83,21,132,1);
+	float:left;
+}
+
+.triggertitle {
+	top : 160px;
+	right : 70px;	
+	font-size: 10px;
+	font-family: -apple-system-font;
+	font-weight: 200;
+	position: absolute;
+	color: rgba(83,21,132,1);
+	float:left;
+}
+
+.eventitem {
+	right :2em;	
+	font-size: 10px;
+	font-family: -apple-system-font;
+	font-weight: 200;
+	position: absolute;
+	color: rgba(83,21,132,1);
+	border: 0px solid ;
+	float:left;
+}
+
+.pin {
+	top : 42px;
+	right : -75px;
+	font-size: 10px;
+	font-family: -apple-system-font;
+	font-weight: 200;
+	position: relative;
+	color: rgba(83,21,132,1);
+	float:right;
+	display: inline-block;
+}	
+
+.popup {
+	top : 0px;
+	left : 0px;
+	font-size: 12px;
+	font-family: -apple-system-font;
+	position: relative;
+	color: rgba(100,0,255,1);
+	white-space: normal !important;
+}	
+
+
+.valmin {
+	top : 50%;
+	left : 0%;
+	font-size: 26px;
+	font-family: -apple-system-font;
+	font-weight: 100;
+	width: 100px;
+	text-align: center;
+	z-index: 4;
+	position: absolute;
+	/*background: rgba(255,255,255,0);*/
+	border-color: rgba(255,255,255,0);
+}	
+
+
+.resetButton {
+	position           : relative;
+	display            : inline-block;
+	width              : 100px;
+	height             : 30px;
+	margin             : 0px;
+	left			   : 10em;
+	top				   : -7em;
+	-webkit-box-sizing : border-box;
+	-moz-box-sizing    : border-box;
+	box-sizing         : border-box;
+	border: 1px solid #cc5333;
+    border-radius: 10px;
+}
+
+
+.resetButton .icon { position: relative; }
+.resetButton .icon:before {
+    content: "\f128";
+    font-family: Ionicons;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    top: -121px;
+    left: 200px;
+    color: #fff;
+}
+
+.resetButton .inactive{ color: #FFF;  }
+.resetButton .active{ color: #F00; }
+
+
+
+.subtitle { 
+	font: 12px "Arial";
+	text-align: center;
+	position: relative;
+	color: #FFF;
+	top: 0px;
+} 
+
+#navbar .ui-btn { 
+height: 30px; 
+}
+
+.act {
+	right: -170px;
+    top: -60px;
+	font: 16px -apple-system-font;
+	position: relative;
+	color: #fff;
+	height: 100px;
+	width: 200px;
+	display: inline-block;
+}	
+
+
+.optiontimerframe {	
+width: 270px;
+right: 80px;
+position: relative;
+border: 0px solid ;
+background: rgba(83,21,132,0.0);
+}
+
+.optionsensorframe {	
+width: 240px;
+right: 50px;
+position: relative;
+border: 0px solid ;
+background: rgba(83,21,132,0.0);
+}
+
+.optiontimerframeon {	
+width: 90px;
+right: 120px;
+margin-top: -10px;
+position: relative;
+border: 0px solid ;
+background: rgba(83,21,132,0.0);
+float: right;
+}
+
+.optiontimerframeoff {	
+width: 90px;
+right: -90px;
+margin-top: -10px;
+position: relative;
+border: 0px solid ;
+background: rgba(83,21,132,0.0);
+float: right;
+}
+
+.optionbuttonframe {	
+width: 250px;
+right: 0px;
+position: relative;
+border: 0px solid ;
+background: rgba(83,21,132,0.0);
+}
+
+.optionleftpanelbuttonframe {	
+width: 230px;
+right: 0px;
+position: relative;
+border: 0px solid ;
+background: rgba(83,21,132,0.0);
+}
+
+.optionleftpanelframe {	
+width: 230px;
+right: 60px;
+position: relative;
+border: 0px solid ;
+background: rgba(83,21,132,0);
+}
+
+.menuitem {
+	top : 10px;
+	margin-left : -45%;
+	font-size: 28px;
+	font-family: -apple-system-font;
+	font-weight: 200;
+	position: absolute;
+	color: rgba(83,21,132,1);
+	float:left;
+}
+
+.inactive{ color: rgba(229,229,229,1);}
+.active{ color: rgba(255,0,0,0.8); }
+
+.menulist { position: absolute; }
+.menulist:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+ 	font-size: 34px;
+   	margin-left: 0px;
+   	margin-top: 5px;
+  	float: left;
+}
+
+/* ---------------- */
+/* -- Node icons -- */
+/* ---------------- */
+.room { position: absolute; }
+.room:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+ 	font-size: 36px;
+	margin-left: 5px;
+	margin-top: 16px;
+	float: left;
+}
+
+.roomsensor { position: absolute; }
+.roomsensor:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+ 	font-size: 16px;
+	margin-left: 290px;
+	margin-top: -3px;
+	float: left;
+}
+
+
+.node { position: absolute; }
+.node:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+ 	font-size: 16px;
+	margin-left: 40px;
+	margin-top: 14px;
+	float: left;
+}
+/* ------------------ */
+/* -- Sensor icons -- */
+/* ------------------ */
+.sensor { position: absolute; }
+.sensor:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+     position: absolute;
+    top: 0px;
+	left: 0px;
+	font-size: 36px;
+	width: 30px;
+	text-align: center;
+}
+
+.sensorbig { position: absolute; }
+.sensorbig:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+/*--adjust as necessary--*/ 
+  	font-size: 34px;
+	margin-top: -116px;
+	margin-left: 43px;	
+	float: left;	
+}
+
+.sensortiny { position: absolute; } /* lamp */
+.sensortiny:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 14px;
+   	margin-left: -15px;
+   	margin-top: -5px;
+  	float: left;
+}
+
+.sensortiny2 { position: absolute; } /* lamp */
+.sensortiny2:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 30px;
+   	margin-left: -30px;
+   	margin-top: -45px;
+  	float: left;
+}
+
+.chart { position: absolute; }
+.chart:before {
+ 
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 40px;
+    padding-right: 0em;
+    position: relative;
+    top: -0px;
+    left: 20px;
+}
+
+/*--- icons for actuators ---------*/
+
+.actuatorname {
+	top : 8px;
+	left : 15px;
+	font-size: 12px;
+	font-family: -apple-system-font;
+	position: relative;
+	color: rgba(100,0,255,1);
+}
+
+.actuator { position: absolute; } 
+.actuator:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+  	font-size: 30px;
+  	margin-left: 5px;
+  	margin-top: 0px;
+  	float: left;
+}
+ 
+.actuatortiny { position: absolute; } /* lamp */
+.actuatortiny:before {
+ 
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 17px;
+   	margin-left: -29px;
+   	margin-top: -5px;
+  	float: left;
+}
+  
+/* ---------------------------------*/
+.triggertime { position: absolute; } 
+.triggertime:before {
+    content: "\f156";
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+ 	font-size: 12x;
+   	margin-left: -18px;
+   	margin-top: -5px;
+  	float: left;
+}
+
+.triggertime2 { position: absolute; } /* buzzer */
+.triggertime2:before {
+    content: "\f156";
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 26px;
+   	margin-left: -32px;
+   	margin-top: -40px;
+  	float: left;
+}
+
+.eventicon { position: absolute; }
+.eventicon:before {
+    content: "\f117";
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+ 	font-size: 12px;
+   	margin-left: -14px;
+   	margin-top: -0px;
+  	float: left;
+}
+
+
+.eventicon2 { position: absolute; }
+.eventicon2:before {
+    content: "\f117";
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+ 	font-size: 26px;
+   	margin-left: -30px;
+   	margin-top: -40px;
+  	float: left;
+}
+
+.triggertiny { position: absolute; } 
+.triggertiny:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 14px;
+   	margin-left: -15px;
+   	margin-top: -4px;
+  	float: left;
+}
+
+.triggertiny2 { position: absolute; } 
+.triggertiny2:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 27px;
+   	margin-left: -30px;
+   	margin-top: -40px;
+  	float: left;
+}
+
+.actuatortiny { position: absolute; } 
+.actuatortiny:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 14px;
+   	margin-left: -15px;
+   	margin-top: -4px;
+  	float: left;
+}
+
+.actuatortiny2 { position: absolute; } 
+.actuatortiny2:before {
+ 
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 27px;
+   	margin-left: -30px;
+   	margin-top: -40px;
+  	float: left;
+}
+
+.inrange { position: absolute; } /* buzzer */
+.inrange:before {
+    content: "\f164";
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 14px;
+   	margin-left: -17px;
+   	margin-top: -4px;
+  	float: left;
+}
+
+.outrange { position: absolute; } /* buzzer */
+.outrange:before {
+    content: "\f13b";
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 14px;
+   	margin-left: -17px;
+   	margin-top: -2px;
+  	float: left;
+}
+
+.inrange2 { position: absolute; } /* buzzer */
+.inrange2:before {
+    content: "\f164";
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 24px;
+   	margin-left: -26px;
+   	margin-top: -42px;
+  	float: left;
+}
+
+.outrange2 { position: absolute; } /* buzzer */
+.outrange2:before {
+    content: "\f13b";
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 24px;
+   	margin-left: -26px;
+   	margin-top: -36px;
+  	float: left;
+}
+
+.actu1:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: absolute;
+	top:12px;
+	margin-left: 0px;
+}
+
+.actu2:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: absolute;
+	top:12px;
+	margin-left: 30px;
+}
+
+.actu3:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: absolute;
+	top:12px;
+	margin-left: 60px;
+}
+
+
+.actu4:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: relative;
+    position: absolute;
+	top:12px;
+	margin-left: 90px;
+}
+
+.actu5:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+   font-size: 22px;
+    position: relative;
+    position: absolute;
+	top:40px;
+	margin-left: 0px;
+}
+ 
+ .actu6:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+   font-size: 22px;
+    position: relative;
+    position: absolute;
+	top:40px;
+	margin-left: 30px;
+
+}
+ 
+ .actu7:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+   font-size: 22px;
+    position: relative;
+    position: absolute;
+	top:40px;
+	margin-left: 60px;
+
+}
+ 
+ .actu8:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+   font-size: 22px;
+    position: relative;
+    position: absolute;
+	top:40px;
+	margin-left: 90px;
+}
+
+.reset1:before {
+    content: "\f11e";
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 16px;
+    position: absolute;
+	top:8px;
+	margin-left: 10px;
+}
+
+.reset2:before {
+    content: "\f11e";
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 16px;
+    position: absolute;
+	top:8px;
+	margin-left: 40px;
+}
+
+.reset3:before {
+    content: "\f11e";
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 16px;
+    position: absolute;
+	top:8px;
+	margin-left: 70px;
+}
+
+.reset4:before {
+    content: "\f11e";
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 16px;
+    position: absolute;
+	top:8px;
+	margin-left: 100px;
+}
+
+.reset5:before {
+    content: "\f11e";
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 16px;
+    position: absolute;
+	top:36px;
+	margin-left: 10px;
+}
+
+.reset6:before {
+    content: "\f11e";
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 16px;
+    position: absolute;
+	top:36px;
+	margin-left: 40px;
+}
+
+.reset7:before {
+    content: "\f11e";
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 16px;
+    position: absolute;
+	top:36px;
+	margin-left: 70px;
+}
+
+.reset8:before {
+    content: "\f11e";
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 16px;
+    position: absolute;
+	top:36px;
+	margin-left: 100px;
+}
+
+.room1:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: absolute;
+	top:30px;
+	margin-left: 0px;
+}
+
+
+.room2:after {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: absolute;
+	top:30px;
+	margin-left: 30px;
+}
+
+.room3:after {
+  
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: absolute;
+	top:30px;
+	margin-left: 60px;
+}
+
+
+.room4:after {
+ 
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: relative;
+    position: absolute;
+	top:30px;
+	margin-left: 90px;
+}
+
+
+.headericon { position: relative; }
+.headericon:before {
+  
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 28px;
+	text-shadow: 0px 0px 0px #fff;
+	/*background-color: rgba(0, 0, 0, 0.5);*/
+	color: rgba(83,21,132,0.7);
+	font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+}
+
+.name {
+	top : -9px;
+	margin-left : 40px;
+	font-size: 10px;
+	font-family: -apple-system-font;
+	position: relative;
+	color: rgba(83,21,132,1);
+}	
+
+.nodename {
+	top : -9px;
+	margin-left : 5px;
+	font-size: 10px;
+	font-family: -apple-system-font;
+	position: relative;
+	color: rgba(83,21,132,1);
+}	
+
+.timer {
+	top : -9px;
+	margin-left : 35px;
+	font-size: 10px;
+	font-family: -apple-system-font;
+	position: relative;
+	color: rgba(83,21,132,1);
+}
+
+.evento { 
+ 	top : -9px;
+	margin-left : 20px;
+	font-size: 10px;
+	font-family: -apple-system-font;
+	position: relative;
+	color: rgba(83,21,132,1);
+}
+
+.setfunction { 
+ 	top : 11px;
+	margin-left : 30px;
+	font-size: 10px;
+	font-family: -apple-system-font;
+	position: relative;
+}
+
+.chartbox {
+	width: 100%;
+	height: 200px;
+	left: 0px;
+	position: absolute;
+	top: 240px;
+}
+
+.chartboxbig {
+	width: 100%;
+	height: 250px;
+	left: -30px;
+	position: relative;
+	top: 75px;
+}
+
+.method-on-off {
+	top : -0px;
+	right : 10px;
+	position: absolute;
+}
+
+.method-slider {
+	top : 30px;
+	right : 10px;
+	position: absolute;
+	width:100%;
+}
+
+.method-slider input {
+	display: none;
+}
+
+/* air contitioner icons section */
+
+@font-face {
+	font-family: "ACfont";
+	src: url("acfont/Flaticon.eot");
+	src: url("acfont/Flaticon.eot#iefix") format("embedded-opentype"),
+	url("acfont/Flaticon.woff") format("woff"),
+	url("acfont/Flaticon.ttf") format("truetype"),
+	url("acfont/flaticon.svg") format("svg");
+	font-weight: normal;
+	font-style: normal;
+}
+
+.fan1:before {
+    font-family: ACfont;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 18px;
+    position: absolute;
+	top:82px;
+	left: 18px;
+	content: "\f105";
+}
+
+.fan2:before {
+    font-family: ACfont;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 20px;
+    position: absolute;
+	top:80px;
+	left: 38px;
+	content: "\f105";
+}
+
+.fan3:before {
+    font-family: ACfont;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: absolute;
+	top:78px;
+	left: 60px;
+	content: "\f105";
+}
+
+
+.fanauto:before {
+    font-family: ACfont;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: absolute;
+	top:78px;
+	left: 85px;
+	content: "\f102";
+}
+
+.cool:before {
+    font-family: ACfont;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: absolute;
+	top:78px;
+	left: 250px;
+	content: "\f103";
+}
+
+.dry:before {
+    font-family: ACfont;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: absolute;
+	top:78px;
+	left: 230px;
+	content: "\f104";
+}
+
+.heat:before {
+    font-family: ACfont;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: absolute;
+	top:78px;
+	left: 210px;
+	content: "\f106";
+}
+
+.auto:before {
+    font-family: ACfont;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: absolute;
+	top:78px;
+	left: 185px;
+	content: "\f101";
+}
+
+.swing:before {
+    font-family: ACfont;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: absolute;
+	top:48px;
+	left: 18px;
+	content: "\f107";
+}
+
+div.tempbox  {
+ position: absolute;
+ top: 25px;
+ left: 116px;
+
+}
+
+.ui-input-text.ui-custom {
+    border: none;
+    box-shadow: none;
+}
+
+input.input_temp  {
+    color: rgba(100,0,255,1);
+    font-size: 32px;
+    width: 62px;
+    background: trasparent;
+    text-align: center; 
+    outline:none;  
+    padding: -10px;
+}
+
+.plus {
+    color: rgba(100,0,255,1);
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 30px;
+    position: absolute;
+	top:45px;
+	left: 167px;
+}
+
+.minus {
+	color: rgba(100,0,255,1);
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 34px;
+    position: absolute;
+	top:44px;
+	left: 112px;
+}
+
+.switch:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 30px;
+    position: absolute;
+	top:5px;
+	right: -0px;
+	content: "\f166";
+	color: rgba(83,21,132,0.8);
+}
+
+.switchtemp:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 30px;
+    position: absolute;
+	top:5px;
+	right: -0px;
+	content: "\f167";
+	color: rgba(83,21,132,0.8);
+}
+
+@keyframes icon-animation {
+	0% { opacity: 1; }
+	50% { opacity: .1; }
+	100% { opacity: 1; }
+}
+
+.run-animation {
+	animation: icon-animation linear 1s 2; 
+}
+
+/* TV section */
+.pup:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    position: absolute;
+	top:15px;
+	left: 165px;
+	content: "\f172";
+	z-index: 1;
+}
+
+.pdown:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    position: absolute;
+	top:85px;
+	left: 165px;
+	content: "\f16b";
+	z-index: 1;
+}
+
+.pleft:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    position: absolute;
+	top:50px;
+	left: 130px;
+	content: "\f16d";
+	z-index: 1;
+}
+
+.pright:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    position: absolute;
+	top:50px;
+	left: 200px;
+	content: "\f170";
+	z-index: 1;
+}
+
+.pmute:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: absolute;
+	top:58px;
+	left: 173px;
+	content: "\f16e";
+	z-index: 1;
+}
+
+.psource:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: absolute;
+	top:80px;
+	left: 245px;
+	content: "\f171";
+	z-index: 1;
+}
+
+.pred:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 30px;
+    position: absolute;
+	top:105px;
+	left: 95px;
+	content: "\f16f";
+	color: rgba(255,0,0,1);
+	z-index: 1;
+}
+
+.pgreen:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 30px;
+    position: absolute;
+	top:105px;
+	left: 135px;
+	content: "\f16f";
+	color: rgba(0,255,0,1);
+	z-index: 1;
+}
+
+.pyellow:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 30px;
+    position: absolute;
+	top:105px;
+	left: 200px;
+	content: "\f16f";
+	color: rgba(255,255,0,1);
+	z-index: 1;
+}
+
+.pblue:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 30px;
+    position: absolute;
+	top:105px;
+	left: 240px;
+	content: "\f16f";
+	color: rgba(0,0,255,1);
+	z-index: 1;
+}
+
+.pkeyup:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 30px;
+    position: absolute;
+	top:35px;
+	left: 57px;
+	content: "\f177";
+	z-index: 1;
+}
+
+.pkeydown:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 30px;
+    position: absolute;
+	top:90px;
+	left: 57px;
+	content: "\f174";
+	z-index: 1;
+}
+
+.pkeyleft:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 30px;
+    position: absolute;
+	top:63px;
+	left: 29px;
+	content: "\f175";
+	z-index: 1;
+}
+
+.pkeyright:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 30px;
+    position: absolute;
+	top:63px;
+	left: 85px;
+	content: "\f176";
+	z-index: 1;
+}
+
+.pkeyok:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 24px;
+    position: absolute;
+	top:67px;
+	left: 60px;
+	content: "\f178";
+	z-index: 1;
+}
+
+.phome:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: absolute;
+	top:38px;
+	left: 95px;
+	content: "\f168";
+	z-index: 1;
+}
+
+.pkeyreturn:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 24px;
+    position: absolute;
+	top:101px;
+	left: 26px;
+	content: "\f179";
+	z-index: 1;
+}
+
+.rgb {
+	position           : relative;
+	top                : 10px;
+	left			   : 10px;
+}	
+
+.statsd {
+	position           : absolute;
+	top                : 195px;
+	left			   : 190px;
+	border			   : none;
+	padding			   : 0px 0px;
+    text-align		   : center;
+    text-decoration	   : none;
+    display			   : inline-block;
+    font-size          : 8px;
+    margin             : 0px 0px;
+    cursor             : pointer;
+	z-index            : 10;
+}	
+
+.statsm {
+	position           : absolute;
+	top                : 195px;
+	left			   : 224px;
+	border			   : none;
+	padding			   : 0px 0px;
+    text-align		   : center;
+    text-decoration	   : none;
+    display			   : inline-block;
+    font-size          : 8px;
+    margin             : 0px 0px;
+    cursor             : pointer;
+	z-index            : 10;
+}	
+
+.statsy {
+	position           : absolute;
+	top                : 195px;
+	left			   : 275px;
+	border			   : none;
+	padding			   : 0px 0px;
+    text-align		   : center;
+    text-decoration	   : none;
+    display			   : inline-block;
+    font-size          : 8px;
+    margin             : 0px 0px;
+    cursor             : pointer;
+	z-index            : 10;
+}	
+
+.statscd {
+	position           : absolute;
+	top                : 78px;
+	left			   : 190px;
+	border			   : none;
+	padding			   : 0px 0px;
+    text-align		   : center;
+    text-decoration	   : none;
+    display			   : inline-block;
+    font-size          : 8px;
+    margin             : 0px 0px;
+    cursor             : pointer;
+	z-index            : 10;
+}	
+
+.statscm {
+	position           : absolute;
+	top                : 78px;
+	left			   : 224px;
+	border			   : none;
+	padding			   : 0px 0px;
+    text-align		   : center;
+    text-decoration	   : none;
+    display			   : inline-block;
+    font-size          : 8px;
+    margin             : 0px 0px;
+    cursor             : pointer;
+	z-index            : 10;
+}	
+
+.statscy {
+	position           : absolute;
+	top                : 78px;
+	left			   : 275px;
+	border			   : none;
+	padding			   : 0px 0px;
+    text-align		   : center;
+    text-decoration	   : none;
+    display			   : inline-block;
+    font-size          : 8px;
+    margin             : 0px 0px;
+    cursor             : pointer;
+	z-index            : 10;
+}	
+
+/*--Thermostat section -----*/
+.tmodeauto:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: absolute;
+	top:53px;
+	left: 25px;
+	content: "\f183";
+}
+
+.tmodeautoprog:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: absolute;
+	top:53px;
+	left: 25px;
+	content: "\f189";
+}
+
+.tmodemanual:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: absolute;
+	top:53px;
+	left: 25px;
+	content: "\f12b";
+}
+
+.tmodehub:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: absolute;
+	top:53px;
+	left: 25px;
+	content: "\f184";
+}
+
+.tprogdaily:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: absolute;
+	top:53px;
+	left: 65px;
+	content: "\f186";
+}
+
+.tprogwdays:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: absolute;
+	top:53px;
+	left: 65px;
+	content: "\f185";
+}
+
+.tprogwend:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: absolute;
+	top:53px;
+	left: 65px;
+	content: "\f187";
+}
+
+.tfire:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 22px;
+    position: absolute;
+	top:53px;
+	left: 105px;
+	content: "\f181";
+}
+
+input.input_temp_t  {
+    color: rgba(100,0,255,1);
+    font-size: 32px;
+    width: 82px;
+    background: trasparent;
+    text-align: center; 
+    outline:none;  
+    padding: -10px;
+	position: absolute;
+	left: 40px;
+}
+
+.tplus {
+    color: rgba(100,0,255,1);
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 30px;
+    position: absolute;
+	top:49px;
+	left: 220px;
+}
+
+.tminus {
+	color: rgba(100,0,255,1);
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 34px;
+    position: absolute;
+	top:44px;
+	left: 162px;
+}
+
+.tempcolor_cold_off {
+	background: rgba(255,255,255,1);
+	height: 42px;
+	width: 42px;
+    position: absolute;
+	top:80px;
+	left: 62px;
+	border: 1px solid;
+}
+
+.tempcolor_warm_off {
+	background: rgba(242,232,159,1);
+	height: 42px;
+	width: 42px;
+    position: absolute;
+	top:80px;
+	left: 122px;
+	border: 1px solid;
+}
+
+.tempcolor_morewarm_off {
+	background: rgba(255,211,137,1);
+	height: 42px;
+	width: 42px;
+    position: absolute;
+	top:80px;
+	left: 182px;
+	border: 1px solid;
+}
+
+.tempcolor_cold_on {
+	background: rgba(255,255,255,1);
+	height: 42px;
+	width: 42px;
+    position: absolute;
+	top:80px;
+	left: 62px;
+	border: 3px solid;
+	border-color: rgba(255,0,0,1);
+}
+
+.tempcolor_warm_on {
+	background: rgba(242,232,159,1);
+	height: 42px;
+	width: 42px;
+    position: absolute;
+	top:80px;
+	left: 122px;
+	border: 3px solid;
+	border-color: rgba(255,0,0,1);
+}
+
+.tempcolor_morewarm_on {
+	background: rgba(255,211,137,1);
+	height: 42px;
+	width: 42px;
+    position: absolute;
+	top:80px;
+	left: 182px;
+	border: 3px solid;
+	border-color: rgba(255,0,0,1);
+}
+
+
+.tempcolor_1_on {
+	background: rgba(245,250,246,1);
+	height: 42px;
+	width: 32px;
+    position: absolute;
+	top:80px;
+	left: 20px;
+	border: 3px solid;
+	border-color: rgba(255,0,0,1);
+}
+
+.tempcolor_2_on {
+	background: rgba(169,214,43,1);
+	height: 42px;
+	width: 32px;
+    position: absolute;
+	top:80px;
+	left: 62px;
+	border: 3px solid;
+	border-color: rgba(255,0,0,1);
+}
+
+.tempcolor_3_on {
+	background: rgba(235,182,62,1);
+	height: 42px;
+	width: 32px;
+    position: absolute;
+	top:80px;
+	left: 104px;
+	border: 3px solid;
+	border-color: rgba(255,0,0,1);
+}
+
+.tempcolor_4_on {
+	background: rgba(220,75,49,1);
+	height: 42px;
+	width: 32px;
+    position: absolute;
+	top:80px;
+	left: 146px;
+	border: 3px solid;
+	border-color: rgba(255,0,0,1);
+}	
+
+.tempcolor_5_on {
+	background: rgba(143,38,134,1);
+	height: 42px;
+	width: 32px;
+    position: absolute;
+	top:80px;
+	left: 188px;
+	border: 3px solid;
+	border-color: rgba(255,0,0,1);
+}
+
+.tempcolor_6_on {
+	background: rgba(108,131,186,1);
+	height: 42px;
+	width: 32px;
+    position: absolute;
+	top:80px;
+	left: 230px;
+	border: 3px solid;
+	border-color: rgba(255,0,0,1);
+}
+
+.tempcolor_1_off {
+	background: rgba(245,250,246,1);
+	height: 42px;
+	width: 32px;
+    position: absolute;
+	top:80px;
+	left: 20px;
+	border: 3px solid;
+}
+
+.tempcolor_2_off {
+	background: rgba(169,214,43,1);
+	height: 42px;
+	width: 32px;
+    position: absolute;
+	top:80px;
+	left: 62px;
+	border: 3px solid;
+}
+
+.tempcolor_3_off {
+	background: rgba(235,182,62,1);
+	height: 42px;
+	width: 32px;
+    position: absolute;
+	top:80px;
+	left: 104px;
+	border: 3px solid;
+}
+
+.tempcolor_4_off {
+	background: rgba(220,75,49,1);
+	height: 42px;
+	width: 32px;
+    position: absolute;
+	top:80px;
+	left: 146px;
+	border: 3px solid;
+}	
+
+.tempcolor_5_off {
+	background: rgba(143,38,134,1);
+	height: 42px;
+	width: 32px;
+    position: absolute;
+	top:80px;
+	left: 188px;
+	border: 3px solid;
+}
+
+.tempcolor_6_off {
+	background: rgba(108,131,186,1);
+	height: 42px;
+	width: 32px;
+    position: absolute;
+	top:80px;
+	left: 230px;
+	border: 3px solid;
+}
+
