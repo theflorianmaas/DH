@@ -1,0 +1,18 @@
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+AM2322	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+readTemperatureAndHumidity	KEYWORD2
+readTemperature	KEYWORD2
+readHumidity	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
