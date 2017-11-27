@@ -1,0 +1,173 @@
+	/*
+  	Flaticon icon font: Flaticon
+  	Creation date: 04/06/2017 10:53
+  	*/
+
+@font-face {
+  font-family: "Dhicon";
+  src: url("./dhicon.eot");
+  src: url("./dhicon.eot?#iefix") format("embedded-opentype"),
+       url("./dhicon.woff") format("woff"),
+       url("./dhicon.ttf") format("truetype"),
+       url("./dhicon.svg#Dhicon") format("svg");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  @font-face {
+    font-family: "Dhicon";
+    src: url("./dhicon.svg#Dhicon") format("svg");
+  }
+}
+
+.dh-100:before { content: "\f100"; }
+.dh-101:before { content: "\f101"; }
+.dh-102:before { content: "\f102"; }
+.dh-103:before { content: "\f103"; }
+.dh-104:before { content: "\f104"; }
+.dh-105:before { content: "\f105"; }
+.dh-106:before { content: "\f106"; }
+.dh-107:before { content: "\f107"; }
+.dh-108:before { content: "\f108"; }
+.dh-109:before { content: "\f109"; }
+.dh-10a:before { content: "\f10a"; }
+.dh-10b:before { content: "\f10b"; }
+.dh-10c:before { content: "\f10c"; }
+.dh-10d:before { content: "\f10d"; }
+.dh-10e:before { content: "\f10e"; }
+.dh-10f:before { content: "\f10f"; }
+.dh-110:before { content: "\f110"; }
+.dh-111:before { content: "\f111"; }
+.dh-112:before { content: "\f112"; }
+.dh-113:before { content: "\f113"; }
+.dh-114:before { content: "\f114"; }
+.dh-115:before { content: "\f115"; }
+.dh-116:before { content: "\f116"; }
+.dh-117:before { content: "\f117"; }
+.dh-118:before { content: "\f118"; }
+.dh-119:before { content: "\f119"; }
+.dh-11a:before { content: "\f11a"; }
+.dh-11b:before { content: "\f11b"; }
+.dh-11c:before { content: "\f11c"; }
+.dh-11d:before { content: "\f11d"; }
+.dh-11e:before { content: "\f11e"; }
+.dh-11f:before { content: "\f11f"; }
+.dh-120:before { content: "\f120"; }
+.dh-121:before { content: "\f121"; }
+.dh-122:before { content: "\f122"; }
+.dh-123:before { content: "\f123"; }
+.dh-124:before { content: "\f124"; }
+.dh-125:before { content: "\f125"; }
+.dh-126:before { content: "\f126"; }
+.dh-127:before { content: "\f127"; }
+.dh-128:before { content: "\f128"; }
+.dh-12a:before { content: "\f129"; }
+.dh-129:before { content: "\f12a"; }
+.dh-12b:before { content: "\f12b"; }
+.dh-12c:before { content: "\f12c"; }
+.dh-12d:before { content: "\f12d"; }
+.dh-13d:before { content: "\f12e"; }
+.dh-12e:before { content: "\f12f"; }
+.dh-130:before { content: "\f130"; }
+.dh-131:before { content: "\f131"; }
+.dh-132:before { content: "\f132"; }
+.dh-133:before { content: "\f133"; }
+.dh-134:before { content: "\f134"; }
+.dh-135:before { content: "\f135"; }
+.dh-136:before { content: "\f136"; }
+.dh-137:before { content: "\f137"; }
+.dh-138:before { content: "\f138"; }
+.dh-139:before { content: "\f139"; }
+.dh-13a:before { content: "\f13a"; }
+.dh-13b:before { content: "\f13b"; }
+.dh-13c:before { content: "\f13c"; }
+.dh-12f:before { content: "\f13d"; }
+.dh-13e:before { content: "\f13e"; }
+.dh-13f:before { content: "\f13f"; }
+.dh-140:before { content: "\f140"; }
+.dh-141:before { content: "\f141"; }
+.dh-142:before { content: "\f142"; }
+.dh-143:before { content: "\f143"; }
+.dh-144:before { content: "\f144"; }
+.dh-145:before { content: "\f145"; }
+.dh-146:before { content: "\f146"; }
+.dh-147:before { content: "\f147"; }
+.dh-148:before { content: "\f148"; }
+.dh-149:before { content: "\f149"; }
+.dh-14a:before { content: "\f14a"; }
+.dh-14b:before { content: "\f14b"; }
+.dh-14c:before { content: "\f14c"; }
+.dh-14d:before { content: "\f14d"; }
+.dh-14e:before { content: "\f14e"; }
+.dh-14f:before { content: "\f14f"; }
+.dh-150:before { content: "\f150"; }
+.dh-151:before { content: "\f151"; }
+.dh-152:before { content: "\f152"; }
+.dh-153:before { content: "\f153"; }
+.dh-154:before { content: "\f154"; }
+.dh-155:before { content: "\f155"; }
+.dh-156:before { content: "\f156"; }
+.dh-157:before { content: "\f157"; }
+.dh-158:before { content: "\f158"; }
+.dh-159:before { content: "\f159"; }
+.dh-15a:before { content: "\f15a"; }
+.dh-15b:before { content: "\f15b"; }
+.dh-15c:before { content: "\f15c"; }
+.dh-15d:before { content: "\f15d"; }
+.dh-15e:before { content: "\f15e"; }
+.dh-15f:before { content: "\f15f"; }
+.dh-160:before { content: "\f160"; }
+.dh-161:before { content: "\f161"; }
+.dh-162:before { content: "\f162"; }
+.dh-163:before { content: "\f163"; }
+.dh-164:before { content: "\f164"; }
+.dh-165:before { content: "\f165"; }
+.dh-166:before { content: "\f166"; }
+.dh-167:before { content: "\f167"; }
+.dh-168:before { content: "\f168"; }
+.dh-169:before { content: "\f169"; }
+.dh-16a:before { content: "\f16a"; }
+.dh-16b:before { content: "\f16b"; }
+.dh-16c:before { content: "\f16c"; }
+.dh-16d:before { content: "\f16d"; }
+.dh-16e:before { content: "\f16e"; }
+.dh-16f:before { content: "\f16f"; }
+.dh-170:before { content: "\f170"; }
+.dh-171:before { content: "\f171"; }
+.dh-172:before { content: "\f172"; }
+.dh-173:before { content: "\f173"; }
+.dh-174:before { content: "\f174"; }
+.dh-175:before { content: "\f175"; }
+.dh-176:before { content: "\f176"; }
+.dh-177:before { content: "\f177"; }
+.dh-178:before { content: "\f178"; }
+.dh-179:before { content: "\f179"; }
+.dh-17a:before { content: "\f17a"; }
+.dh-17b:before { content: "\f17b"; }
+.dh-17c:before { content: "\f17c"; }
+.dh-17d:before { content: "\f17d"; }
+.dh-17e:before { content: "\f17e"; }
+.dh-17f:before { content: "\f17f"; }
+.dh-180:before { content: "\f180"; }
+.dh-181:before { content: "\f181"; }
+.dh-182:before { content: "\f182"; }
+.dh-183:before { content: "\f183"; }
+.dh-184:before { content: "\f184"; }
+.dh-185:before { content: "\f185"; }
+.dh-186:before { content: "\f186"; }
+.dh-187:before { content: "\f187"; }
+.dh-188:before { content: "\f188"; }
+.dh-189:before { content: "\f189"; }
+.dh-18a:before { content: "\f18a"; }
+.dh-18b:before { content: "\f18b"; }
+.dh-18c:before { content: "\f18c"; }
+.dh-18d:before { content: "\f18d"; }
+.dh-18e:before { content: "\f18e"; }
+.dh-18f:before { content: "\f18f"; }
+.dh-190:before { content: "\f190"; }
+.dh-191:before { content: "\f191"; }
+.dh-192:before { content: "\f192"; }
+.dh-193:before { content: "\f193"; }
+.dh-194:before { content: "\f194"; }
+.dh-195:before { content: "\f195"; }
