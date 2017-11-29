@@ -285,10 +285,14 @@ def AUTOreceiveDataFromCoordinator(receivedData):  # CR0=sensors CR1=nodes CR3=A
 			sts = str(parseint(arrayData[3]))
 			dim = str(parseint(arrayData[4]))
 			color = str(parseint(arrayData[5]))
-			sql = "SELECT smartlight_id, type, tbactuator_id , tbnode_id, pinnumber FROM vwsmartlight WHERE tbnode_id = "  
-			sql = sql + node + "AND pinnumber = " + pin
+			dev_type = 0
+			if pin != 0: #it is a light 0 = group
+				dev_type = 1
+			sql = "SELECT smartlight_id, type, tbactuator_id, tbnode_id FROM vwsmartlight WHERE tbnode_id = "  
+			sql = sql + node + " AND pinnumber = " + pin
+			print (sql)
 			cur.execute(sql)
-			for (smartlight_id, type, actuator_id, tbnode_id) in cur:
+			for (smartlight_id, type, tbactuator_id, tbnode_id) in cur:
 				smartlight_id = parseint("{}".format(smartlight_id))
 				actuator_id = parseint("{}".format(tbactuator_id))
 				node_id = "{}".format(tbnode_id)
@@ -305,32 +309,31 @@ def AUTOreceiveDataFromCoordinator(receivedData):  # CR0=sensors CR1=nodes CR3=A
 			#V5=0
 			#smartlight_id
 			#type
-			sql = "insert into tbdataoutsmartlight (timekey,type,V0,V1,V2,V3,V4,V5,smartlight_id,type) values "  
+			sql = "insert into tbdataoutsmartlight (timekey,type,V0,V1,V2,V3,V4,V5,V6,V7) values "  
 			# create Value part of insert statement
-			sql = sql+ "(millis(),'0'" # action type 0 ON/OFF
-			sql = sql+ ",'" + str(actuator_id) + "'"
-			sql = sql+ ",'0','0','0'"
-			sql = sql+ ",'" + sts + "'"
-			sql = sql+ ",'0'"
-			sql = sql+ ",'" + str(smartlight_id) + "'"
-			sql = sql+ ",'" + str(action_type) + "'),"
+			sql = sql+ "(millis(),0" # action type 0 ON/OFF
+			sql = sql+ "," + str(actuator_id) 
+			sql = sql+ ",0,0,0"
+			sql = sql+ "," + sts 
+			sql = sql+ ",0"
+			sql = sql+ "," + str(smartlight_id) 
+			sql = sql+ "," + str(dev_type) + "),"
 			
-			sql = sql+ "(millis(),'1'" # action type 1 set color
-			sql = sql+ ",'" + str(actuator_id) + "'"
-			sql = sql+ ",'0','0','0'"
-			sql = sql+ ",'" + color + "'"
-			sql = sql+ ",'0'"
-			sql = sql+ ",'" + str(smartlight_id) + "'"
-			sql = sql+ ",'" + str(action_type) + "'),"
+			sql = sql+ "(millis(),1" # action type 1 set color
+			sql = sql+ "," + str(actuator_id) 
+			sql = sql+ ",0,0,0"
+			sql = sql+ "," + color 
+			sql = sql+ ",0"
+			sql = sql+ "," + str(smartlight_id) 
+			sql = sql+ "," + str(dev_type) + "),"
 
-			sql = sql+ "(millis(),'2'" # action type 2 set dimmer value
-			sql = sql+ ",'" + str(actuator_id) + "'"
-			sql = sql+ ",'0','0','0'"
-			sql = sql+ ",'" + dim + "'"
-			sql = sql+ ",'0'"
-			sql = sql+ ",'" + str(smartlight_id) + "'"
-			sql = sql+ ",'" + str(action_type) + "')"
-										
+			sql = sql+ "(millis(),2" # action type 2 set dimmer value
+			sql = sql+ "," + str(actuator_id) 
+			sql = sql+ ",0,0,0"
+			sql = sql+ "," + dim 
+			sql = sql+ ",0"
+			sql = sql+ "," + str(smartlight_id) 
+			sql = sql+ "," + str(dev_type) + ")"										
 		try:
 			inssql = "UPDATE tbqueue SET timekey = millis(), code = '" + sql + "'"
 			cur.execute(inssql)
