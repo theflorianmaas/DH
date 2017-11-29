@@ -40,41 +40,32 @@ const int pinBattery PROGMEM = A0;
 #define NEX_RET_ON    0x99 //on
 #define NEX_RET_OFF   0x88 //off
 #define NEX_RET_DIMMER   0x55 //dimmer value
-#define NEX_RET_COLOR1   0x31 //rgb color 1
-#define NEX_RET_COLOR2   0x32 //rgb color 2
-#define NEX_RET_COLOR3   0x33 //rgb color 3
-#define NEX_RET_COLOR4   0x34 //rgb color 4
-#define NEX_RET_COLOR5   0x35 //rgb color 5
-#define NEX_RET_COLOR6   0x36 //rgb color 6
-#define NEX_RET_COLORMONO1   0x41 //mono color 1
-#define NEX_RET_COLORMONO2   0x42 //mono color 2
-#define NEX_RET_COLORMONO3   0x43 //mono color 3
-#define NEX_RET_MOOD1   0x25 //mood 1
-#define NEX_RET_MOOD2   0x26 //mood 2
-#define NEX_RET_MOOD3   0x27 //mood 3
-#define NEX_RET_MOOD4   0x28 //mood 4
-
-#define DEV_ON      100 //on
-#define DEV_OFF     101 //off
-#define DEV_DIMMER  102 //dimmer value
-#define DEV_COLOR1  103 //rgb color 1
-#define DEV_COLOR2   104 //rgb color 2
-#define DEV_COLOR3   105 //rgb color 3
-#define DEV_COLOR4   106 //rgb color 4
-#define DEV_COLOR5   107 //rgb color 5
-#define DEV_COLOR6   108 //rgb color 6
-#define DEV_COLORMONO1  109 //mono color 1
-#define DEV_COLORMONO2  110 //mono color 2
-#define DEV_COLORMONO3  111 //mono color 3
-#define DEV_MOOD1   112 //mood 1
-#define DEV_MOOD2   113 //mood 2
-#define DEV_MOOD3   114 //mood 3
-#define DEV_MOOD4   115 //mood 4
+#define NEX_RET_COLOR1   0x25 //rgb color 1
+#define NEX_RET_COLOR2   0x26 //rgb color 2
+#define NEX_RET_COLOR3   0x27 //rgb color 3
+#define NEX_RET_COLOR4   0x28 //rgb color 4
+#define NEX_RET_COLOR5   0x29 //rgb color 5
+#define NEX_RET_COLOR6   0x2a //rgb color 6
+#define NEX_RET_COLORMONO1   0x14 //mono color 1
+#define NEX_RET_COLORMONO2   0x15 //mono color 2
+#define NEX_RET_COLORMONO3   0x16 //mono color 3
+#define NEX_RET_MOOD1   0x3c //mood 1
+#define NEX_RET_MOOD2   0x3b //mood 2
+#define NEX_RET_MOOD3   0x3d //mood 3
+#define NEX_RET_MOOD4   0x3e //mood 4
+#define NEX_RET_MOOD4   0x3e //mood 4
+#define NEX_RET_GROUP   0x70 //group
+#define NEX_RET_LIGHT1  0x71 //light 1
+#define NEX_RET_LIGHT2  0x72 //light 2
+#define NEX_RET_LIGHT3  0x73 //light 3
+#define NEX_RET_LIGHT4  0x74 //light 4
+#define NEX_RET_LIGHT5  0x75 //light 5
+#define NEX_RET_LIGHT6  0x76 //light 6
 
 #define PAGE_MAIN 0
 
 SoftwareSerial nextion(NEXTION_RX, NEXTION_TX);// Nextion TX to pin 11 and RX to pin 10 of Arduino
-Nextion HMISerial(nextion, 9600); //create a Nextion object named myNextion using the nextion serial port @ 9600bps
+Nextion HMISerial(nextion, 57600); //create a Nextion object named myNextion using the nextion serial port @ 9600bps
 
 //-----------------------------------------------------------
 //-----------------------------------------------------------
@@ -213,7 +204,7 @@ Nextion HMISerial(nextion, 9600); //create a Nextion object named myNextion usin
 int actuators[NUM_ACTU][4] = {{PINNODE, 0, 0, 0}};
 int aLights[NUM_LIGHTS][5]; //[x][0]=pin [x][1]=type [x][2]=status [x][3]=value [x][4]=color
 byte aGroups[1][5] = {0, 0, 0, 0, 0}; //current mood, mood1, mood2...
-
+byte c_light;
 // --- Xbee section ----*/
 XBee xbee = XBee();
 #define TX_RESPONSE ZB_TX_STATUS_RESPONSE
@@ -257,7 +248,7 @@ void setup()
   {
     aLights[i][0] = NOLIGHT;
     aLights[i][1] = 0;
-    aLights[i][2] = 0;
+    aLights[i][2] = 999;
     aLights[i][3] = 0;
     aLights[i][4] = 1;
   }
@@ -269,24 +260,23 @@ void setup()
 
   // start serial xbee
   Serial.begin(BAUD_RATE);
-  //xbee.setSerial(Serial);
+  xbee.setSerial(Serial);
   HMISerial.init();
-  HMISerial.sendCommand("bauds=9600");
+  //HMISerial.sendCommand("bauds=57600");
   delay(1000);
   refreshScreen();
   pBit();
-
-  //startTasks();
+  startTasks();
 }  //setup()
 
 void loop(void)
 {
   t0.update();
   getScreenTouch();
-  //if (xbee.readPacket(1))
-  //{
-    //getData();
-  //}
+  if (xbee.readPacket(1))
+  {
+    getData();
+  }
 }
 
 // *******************************************************//
@@ -474,43 +464,36 @@ void sendData(int t) // t=0 = sensors 1 = actuators 2=method 3=light
 
 
 // ******************************************************* //
-void sendCommand(byte type) // t=0 = sensors 1 = actuators 2=method 3=light
+void sendCommand(byte cmd)
 { //send single command of changed light
-
-  int elements = (4 + 1) * 2;
+  pBit();
+  delay(100);
+  //read light or group data to transmit
+  if (c_light != 0) { //light
+    aLights[c_light][2] = HMISerial.getComponentValue("st" + String(c_light)); //get status
+    aLights[c_light][3] = HMISerial.getComponentValue("vl" + String(c_light)); //get value
+    aLights[c_light][4] = HMISerial.getComponentValue("cx" + String(c_light)); //get color
+  } else { //group
+    aLights[c_light][2] = HMISerial.getComponentValue("stg" + String(c_light)); //get status
+    aLights[c_light][3] = HMISerial.getComponentValue("vlg" + String(c_light)); //get value
+    aLights[c_light][4] = HMISerial.getComponentValue("cxg" + String(c_light)); //get mood
+  }
+  byte array_size = 5;
+  int elements = array_size * 2;
   boolean readPacketResponse; //store the response of xbee.readPacket(timeout)
   uint8_t payload[elements];
-  int16_t xbeeLoad[4 + 1]; // Array to hold integers that will be sent to other xbee [pari]=valore pin [dispari]=valore pin
+  int16_t xbeeLoad[array_size]; // Array to hold integers that will be sent
   int response = 0;
-  byte idx = HMISerial.getComponentValue("sys0");
-  xbeeLoad[0] = SMCMD;
-  if (idx != 0) { //light
-    aLights[idx][2] = HMISerial.getComponentValue("st" + String(idx)); //get status
-    aLights[idx][3] = HMISerial.getComponentValue("vl" + String(idx)); //get value
-    aLights[idx][4] = HMISerial.getComponentValue("cx" + String(idx)); //get color
-  } else { //group
-    aLights[idx][2] = HMISerial.getComponentValue("stg" + String(idx)); //get status
-    aLights[idx][3] = HMISerial.getComponentValue("vlg" + String(idx)); //get value
-    aLights[idx][4] = HMISerial.getComponentValue("cxg" + String(idx)); //get mood
-  }
-  xbeeLoad[1] = aLights[idx][0]; //pin
-  xbeeLoad[2] = aLights[idx][2]; //status
-  xbeeLoad[3] = aLights[idx][2]; //value
-  xbeeLoad[4] = aLights[idx][2]; //color/mood
 
-Serial.println(xbeeLoad[0]);
-Serial.println(xbeeLoad[1]);
-Serial.println(xbeeLoad[2]);
-Serial.println(xbeeLoad[3]);
-Serial.println(xbeeLoad[4]);
-
-  parseTxData(payload, xbeeLoad, idx);
-
+  xbeeLoad[0] = SMCMD; //it is a command
+  xbeeLoad[1] = aLights[c_light][0]; //pin
+  xbeeLoad[2] = aLights[c_light][2]; //status
+  xbeeLoad[3] = aLights[c_light][3]; //value
+  xbeeLoad[4] = aLights[c_light][4]; //color/mood
+  parseTxData(payload, xbeeLoad, array_size);
   request(COORD_ADDR, payload, sizeof(payload));
   /* begin the common part */
-  /*
   xbee.send(tx);
-
   xbee.readPacket(50);
   if (xbee.getResponse().isAvailable()) //got something
   {
@@ -518,7 +501,8 @@ Serial.println(xbeeLoad[4]);
     if (response == TX_RESPONSE) {
       TXStatusResponse(txStatus);
       if (getStatus() == SUCCESS) {
-        //g_link = ON;
+          pBit();
+          pBit();
       }
       else
       {
@@ -541,7 +525,7 @@ Serial.println(xbeeLoad[4]);
     //retry
     xbee.send(tx);
   } // Finished waiting for XBee packet
-*/
+
 } // sendCommand()
 // ******************************************************* //
 

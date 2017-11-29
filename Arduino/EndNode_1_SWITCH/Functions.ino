@@ -117,75 +117,38 @@ void pBit() {
 }
 
 void getScreenTouch() {
-
   uint8_t* touch = HMISerial.listen(); //check for message
-  if (touch[0] != 0)
-    Serial.println(touch[0], HEX);
-  switch (touch[0]) {
-    case NEX_RET_ON:
+  byte cmd;
+  if (touch[0] != 0) {
+    if (touch[2] == NEX_RET_GROUP || touch[2] == NEX_RET_LIGHT1 || touch[2] == NEX_RET_LIGHT2 || touch[2] == NEX_RET_LIGHT3 || touch[2] == NEX_RET_LIGHT4 || touch[2] == NEX_RET_LIGHT5 || touch[2] == NEX_RET_LIGHT6)
+    {
       pBit();
-      sendCommand(DEV_ON);
-      break;
-    case NEX_RET_OFF:
-      pBit();
-      sendCommand(DEV_OFF);
-      break;
-    case NEX_RET_DIMMER:
-      pBit();
-      sendCommand(DEV_DIMMER);
-      break;
-    case NEX_RET_COLOR1:
-      pBit();
-      sendCommand(DEV_COLOR1);
-      break;
-    case NEX_RET_COLOR2:
-      pBit();
-      sendCommand(DEV_COLOR2);
-      break;
-    case NEX_RET_COLOR3:
-      pBit();
-      sendCommand(DEV_COLOR3);
-      break;
-    case NEX_RET_COLOR4:
-      pBit();
-      sendCommand(DEV_COLOR4);
-      break;
-    case NEX_RET_COLOR5:
-      pBit();
-      sendCommand(DEV_COLOR5);
-      break;
-    case NEX_RET_COLOR6:
-      pBit();
-      sendCommand(DEV_COLOR6);
-      break;
-    case NEX_RET_COLORMONO1:
-      pBit();
-      sendCommand(DEV_COLORMONO1);
-      break;
-    case NEX_RET_COLORMONO2:
-      pBit();
-      sendCommand(DEV_COLORMONO2);
-      break;
-    case NEX_RET_COLORMONO3:
-      pBit();
-      sendCommand(DEV_COLORMONO3);
-      break;
-    case NEX_RET_MOOD1:
-      pBit();
-      sendCommand(DEV_MOOD1);
-      break;
-    case NEX_RET_MOOD2:
-      pBit();
-      sendCommand(DEV_MOOD2);
-      break;
-    case NEX_RET_MOOD3:
-      pBit();
-      sendCommand(DEV_MOOD3);
-      break;
-    case NEX_RET_MOOD4:
-      pBit();
-      sendCommand(DEV_MOOD4);
-      break;
+       switch (touch[2]) {
+        case NEX_RET_GROUP:
+          c_light = 0;
+          break;
+        case NEX_RET_LIGHT1:
+          c_light = 1;
+          break;
+        case NEX_RET_LIGHT2:
+          c_light = 2;
+          break;
+        case NEX_RET_LIGHT3:
+          c_light = 3;
+          break;
+        case NEX_RET_LIGHT4:
+          c_light = 4;
+          break;
+        case NEX_RET_LIGHT5:
+          c_light = 5;
+          break;
+        case NEX_RET_LIGHT6:
+          c_light = 6;
+          break;
+      }
+    }
+    else
+      sendCommand(touch[2]);
   }
 }
 
