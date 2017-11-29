@@ -137,10 +137,15 @@ while True:
 				meteoid = id[0]
 			sql = "SELECT id FROM tbnode WHERE sendmeteo = 1"
 			cur.execute(sql)
+			if int(temp_c) < 0:
+				temp_c_fixed = (int(temp_c) + 900) * -1
+			else: 	
+				temp_c_fixed = int(temp_c*100)
 			for (id) in cur:
 				id = id[0]
-				temp_c = int(temp_c*100)
-				sql = "INSERT INTO tbdataout (timekey,type,v0,v1,v2,v3,v4) VALUES (millis(),7,%s,%s,%s,%s,%s)" % (id, temp_c, relative_humidity, pressure, meteoid)
+				#temp_c = int(temp_c*100)
+				print (temp_c_fixed)
+				sql = "INSERT INTO tbdataout (timekey,type,v0,v1,v2,v3,v4) VALUES (millis(),7,%s,%s,%s,%s,%s)" % (id, temp_c_fixed, relative_humidity, pressure, meteoid)
 				cur2.execute(sql)
 				db.commit()	
 			output ("Meteo corrente "+str(meteo))			

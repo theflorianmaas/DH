@@ -215,9 +215,9 @@ def sendCommand():
 	#2=set dimmer 
 	#3=rgb color
 	#output ("Checking commands...")	
-	sql = ("select timekey,tbdataoutsmartlight.type,V0,V1,V2,V3,V4,V5,smartlight_id,tbsmartlight.type as sltype "
+	sql = ("select timekey,tbdataoutsmartlight.type,V0,V1,V2,V3,V4,V5,V6 as smartlight_id,V7 as sltype "
 		   "from tbdataoutsmartlight, tbsmartlight "
-		   "where tbdataoutsmartlight.V1 = tbsmartlight.tbactuator_id "
+		   "where tbdataoutsmartlight.V0 = tbsmartlight.tbactuator_id "
 		   "order by timekey asc")
 	#V0 = Node
 	#V1 = actuator_id
@@ -225,6 +225,8 @@ def sendCommand():
 	#V3 = output type id
 	#V4	= value
 	#V5 = not used
+	#V6 = smartlight_id
+	#V7 = type group=0 light=1
 	curUno.execute(sql)
 	lista = list(curUno.fetchall())
 	for (timekey,type,V0,V1,V2,V3,V4,V5,smartlight_id,sltype) in lista:
@@ -234,7 +236,7 @@ def sendCommand():
 		light_type = "{}".format(sltype) #G=Group L=Light
 		if action_type == 0: #0=on/off 1=set color 2=dimmer
 			output("Switching light...")			
-			if light_type == "bytearray(b'G')": #group
+			if light_type == "0": #group
 				x = get_index("{}".format(smartlight_id), groups)
 				cmd2 = groups[x].set_state(status)
 				api(cmd2)
@@ -243,29 +245,29 @@ def sendCommand():
 					x = get_index(s, lights)	
 					cmd2 = lights[x].light_control.set_state(status)
 					api(cmd2)						
-			if light_type == "bytearray(b'L')": #light
+			if light_type == "1": #light
 				x = get_index("{}".format(smartlight_id), lights)
 				cmd2 = lights[x].light_control.set_state(status)
 				api(cmd2)		
 		if action_type == 1: #smart light color temperature
 			output("Setting light color")
-			if light_type == "bytearray(b'G')": #groups
+			if light_type == "0": #groups
 				# setting mood
 				x = get_index("{}".format(smartlight_id), groups)
 				#cmd = groups[x].set_dimmer(int("{}".format(V4)))	
 				#api(cmd)
-			if light_type == "bytearray(b'L')": #light
+			if light_type == "1": #light
 				x = get_index("{}".format(smartlight_id), lights)
 				color = get_color_temp(int("{}".format(V4)))
 				cmd = lights[x].light_control.set_hex_color(color)	
 				api(cmd)
 		if action_type == 2: #Smartlight dimmer
 			output("Setting dimmer")
-			if light_type == "bytearray(b'G')": #groups
+			if light_type == "0": #groups
 				x = get_index("{}".format(smartlight_id), groups)
 				cmd = groups[x].set_dimmer(int("{}".format(V4)))	
 				api(cmd)
-			if "{}".format(sltype) == "bytearray(b'L')": #light
+			if "{}".format(sltype) == "1": #light
 				x = get_index("{}".format(smartlight_id), lights)
 				cmd = lights[x].light_control.set_dimmer(int("{}".format(V4)))	
 				api(cmd)	
