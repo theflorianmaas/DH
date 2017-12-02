@@ -467,7 +467,6 @@ void sendData(int t) // t=0 = sensors 1 = actuators 2=method 3=light
 void sendCommand(byte cmd)
 { //send single command of changed light
   pBit();
-  delay(100);
   //read light or group data to transmit
   if (c_light != 0) { //light
     aLights[c_light][2] = HMISerial.getComponentValue("st" + String(c_light)); //get status
@@ -488,43 +487,42 @@ void sendCommand(byte cmd)
   xbeeLoad[0] = SMCMD; //it is a command
   xbeeLoad[1] = aLights[c_light][0]; //pin
   xbeeLoad[2] = aLights[c_light][2]; //status
-  xbeeLoad[3] = aLights[c_light][3]; //value
+  xbeeLoad[3] = map(aLights[c_light][3], 0, 100, 0, 254);
   xbeeLoad[4] = aLights[c_light][4]; //color/mood
   parseTxData(payload, xbeeLoad, array_size);
   request(COORD_ADDR, payload, sizeof(payload));
   /* begin the common part */
-  xbee.send(tx);
-  xbee.readPacket(50);
-  if (xbee.getResponse().isAvailable()) //got something
-  {
-    response = getApiId();
-    if (response == TX_RESPONSE) {
-      TXStatusResponse(txStatus);
-      if (getStatus() == SUCCESS) {
-          pBit();
-          pBit();
+
+  //for (int attempts = 0; attempts < 5; attempts++) {
+    xbee.send(tx);
+    xbee.readPacket(50);
+    if (xbee.getResponse().isAvailable()) //got something
+    {
+      response = getApiId();
+      HMISerial.setComponentText("t0", String(response));
+      if (response == TX_RESPONSE || response == ZB_TX_STATUS_RESPONSE) {
+        TXStatusResponse(txStatus);
+        if (getStatus() == SUCCESS) {
+          HMISerial.setComponentText("t0", "Ok");
+        }
+        else
+        {
+          HMISerial.setComponentText("t0", "Errore");
+        }
       }
-      else
+      else if ((response == ZB_RX_RESPONSE))
       {
-        //retry
+        getData();
         xbee.send(tx);
       }
     }
-    else if ((response == ZB_RX_RESPONSE))
+    else
     {
-      getData();
+      HMISerial.setComponentText("t0", "No response");
+      //break;
     }
-  }
-  else if (xbee.getResponse().isError())
-  {
-    //retry
-    xbee.send(tx);
-  }
-  else
-  {
-    //retry
-    xbee.send(tx);
-  } // Finished waiting for XBee packet
+    delay(100);
+  //}
 
 } // sendCommand()
 // ******************************************************* //
