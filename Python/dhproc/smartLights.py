@@ -81,6 +81,8 @@ groups_command = gateway.get_groups()
 groups_commands = api(groups_command)
 groups = api(groups_commands)
 
+command_sent = False #token to enable/disable setStatus to the switch
+
 #----------------------------- 
 # End Global Variable declaration  
 #-----------------------------  
@@ -214,69 +216,80 @@ def sendCommand():
 	#1=set color temperature
 	#2=set dimmer 
 	#3=rgb color
-	#output ("Checking commands...")	
-	sql = ("select timekey,tbdataoutsmartlight.type,V0,V1,V2,V3,V4,V5,V6 as smartlight_id,V7 as sltype "
+	#output ("Checking commands...")
+	global command_sent	
+	sql = ("select timekey,tbdataoutsmartlight.type,V0 as pin,V1 as status,V2 as value,V3 as color,V4 as actuator_id, V5 as smartlight_id, V6 as sltype, IFNULL(V7,0) as origin "
 		   "from tbdataoutsmartlight, tbsmartlight "
-		   "where tbdataoutsmartlight.V0 = tbsmartlight.tbactuator_id "
+		   "where tbdataoutsmartlight.V4 = tbsmartlight.tbactuator_id "
 		   "order by timekey asc")
-	#V0 = Node
-	#V1 = actuator_id
-	#V2 = method id
-	#V3 = output type id
-	#V4	= value
-	#V5 = not used
-	#V6 = smartlight_id
-	#V7 = type group=0 light=1
+	#V0 = pin
+	#V1 = status
+	#V2 = value
+	#V3 = color
+	#V4	= actuator_id
+	#V5 = smartlight_id
+	#V6 = type group=0 light=1
+	#V7 = origin 99=switch (not used)
 	curUno.execute(sql)
 	lista = list(curUno.fetchall())
-	for (timekey,type,V0,V1,V2,V3,V4,V5,smartlight_id,sltype) in lista:
+	for (timekey,type,pin,status,value,color,actuator_id,smartlight_id,sltype,origin) in lista:
 		output ("Executing command...")	
-		action_type = int("{}".format(type))
-		status = int("{}".format(V4))
-		light_type = "{}".format(sltype) #G=Group L=Light
-		if action_type == 0: #0=on/off 1=set color 2=dimmer
-			output("Switching light...")			
-			if light_type == "0": #group
-				x = get_index("{}".format(smartlight_id), groups)
-				cmd2 = groups[x].set_state(status)
-				api(cmd2)
-				group_members = groups[x].member_ids				
+		#action_type = int("{}".format(type))
+		status = int("{}".format(status))
+		value = int("{}".format(value))
+		color = int("{}".format(color))
+		light_type = int("{}".format(sltype)) #0=Group 1=Light
+		smartlight_id = int("{}".format(smartlight_id))
+		origin = int("{}".format(origin))
+		print(status)
+		print(value)
+		print(color)
+		print(light_type)
+		print(smartlight_id)
+		output("Switching light...")			
+		if light_type == 0: #group
+			output("Switching group...")
+			x = get_index(smartlight_id, groups)
+			print(groups)
+			print(x)
+			cmd2 = groups[x].set_state(status)
+			api(cmd2)
+			group_members = groups[x].member_ids	
+			print(group_members)			
+			for i, s in enumerate(group_members):
+				x = get_index(s, lights)	
+				cmd2 = lights[x].light_control.set_state(status)
+				api(cmd2)				
+			if status == 1:	#if active
+				# setting mood
+				x = get_index(smartlight_id, groups)
+				#cmd = groups[x].set_dimmer(int("{}".format(value)))	
+				#api(cmd)
+				x = get_index(smartlight_id, groups)
+				cmd = groups[x].set_dimmer(value)	
+				api(cmd)
+				group_members = groups[x].member_ids
 				for i, s in enumerate(group_members):
 					x = get_index(s, lights)	
-					cmd2 = lights[x].light_control.set_state(status)
-					api(cmd2)						
-			if light_type == "1": #light
-				x = get_index("{}".format(smartlight_id), lights)
-				cmd2 = lights[x].light_control.set_state(status)
-				api(cmd2)		
-		if action_type == 1: #smart light color temperature
-			output("Setting light color")
-			if light_type == "0": #groups
-				# setting mood
-				x = get_index("{}".format(smartlight_id), groups)
-				#cmd = groups[x].set_dimmer(int("{}".format(V4)))	
-				#api(cmd)
-			if light_type == "1": #light
-				x = get_index("{}".format(smartlight_id), lights)
-				color = get_color_temp(int("{}".format(V4)))
-				cmd = lights[x].light_control.set_hex_color(color)	
+					cmd2 = lights[x].light_control.set_dimmer(value)	
+					api(cmd2)								
+		if light_type == 1: #light
+			x = get_index(smartlight_id, lights)
+			cmd2 = lights[x].light_control.set_state(status)
+			api(cmd2)
+			if status == 1: #if active
+				output("Setting light color")
+				#x = get_index("{}".format(smartlight_id), lights)
+				colorHex = get_color_temp(color)
+				print(colorHex)
+				cmd = lights[x].light_control.set_hex_color(colorHex)	
 				api(cmd)
-		if action_type == 2: #Smartlight dimmer
-			output("Setting dimmer")
-			if light_type == "0": #groups
-				x = get_index("{}".format(smartlight_id), groups)
-				cmd = groups[x].set_dimmer(int("{}".format(V4)))	
-				api(cmd)
-			if "{}".format(sltype) == "1": #light
-				x = get_index("{}".format(smartlight_id), lights)
-				cmd = lights[x].light_control.set_dimmer(int("{}".format(V4)))	
-				api(cmd)	
-		if action_type == 3: #Smartlight rgb color picker 
-			output("Setting light rgb color")
-			
-		#-- common part --#			
+				output("Setting dimmer")
+				x = get_index(smartlight_id, lights)
+				cmd = lights[x].light_control.set_dimmer(value)	
+				api(cmd)				
+		#-- common part --#	
 		sql = "delete from tbdataoutsmartlight where timekey = " + "{}".format(timekey)
-		#print(sql)
 		try:	
 			curUpd.execute(sql)
 			output ("Ok")
@@ -450,8 +463,7 @@ def setStatus():
 				sql = sql + str(color) + ")"
 				print("Insert....", id)
 				print("Node....", node)
-				print("Pin....", pin)
-				
+				print("Pin....", pin)					
 				curObs.execute(sql)
 			else: #if some records already exist, update
 				sql = "update tbdataout set V2 = " + str(sts) + ",V3 = " + str(dim) + ",V4 = " + str(color) 
@@ -462,7 +474,6 @@ def setStatus():
 				curObs.execute(sql)	
 		else:
 			print("Not exists or Off:", id)		
-		
 
 #------- Main section ----------------------------#
 init()

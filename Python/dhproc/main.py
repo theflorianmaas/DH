@@ -228,22 +228,21 @@ def initCoordinator():
 #--------------------------------------------------------------------------------------------------------#
 #---- Receive data from coordinator ---------------------------------------------------------------------#
 #--------------------------------------------------------------------------------------------------------#
-def checkDataOnSerial():
-	output("Waiting for data on serial")
+def Controller():
 	global endSerialChars
-	serCoord.timeout = 1
-	readSerial = serCoord.readline()
-	readSerial.rstrip(endSerialChars)
-	output("Data received: ")	
-	cur.execute("SELECT count(*) as cnt from tbdataout;") # check if there is NOT any command to send
-	for (cnt) in cur:
-		cnt = parseint("{}".format(cnt))
-	if cnt == 0:	
-		serCoord.timeout = 10	
+	output("Waiting for data on serial")
+	if serCoord.inWaiting() > 0: #data available on serial
+		#serCoord.timeout = 1
+		readSerial = serCoord.readline()
+		readSerial.rstrip(endSerialChars)
+		output("Data received")	
+		#serCoord.timeout = 2
 		AUTOreceiveDataFromCoordinator(readSerial)
-
+	else:	
+		sendCommand()
+		
 def AUTOreceiveDataFromCoordinator(receivedData):  # CR0=sensors CR1=nodes CR3=Actuators CR5=All CommExecutedTrue = "CX1" CommExecutedFalse = "CX0"
-	output("Receiving data...")
+	output("Parsing received data...")
 	arrayData = str(receivedData).split(',')
 	dNum = int((len(arrayData)-1)/(pnum+1))
 	if dNum != 0: #if data received on serial
@@ -286,7 +285,7 @@ def AUTOreceiveDataFromCoordinator(receivedData):  # CR0=sensors CR1=nodes CR3=A
 			dim = str(parseint(arrayData[4]))
 			color = str(parseint(arrayData[5]))
 			dev_type = 0
-			if pin != 0: #it is a light 0 = group
+			if pin != "0": #it is a light 0 = group
 				dev_type = 1
 			sql = "SELECT smartlight_id, type, tbactuator_id, tbnode_id FROM vwsmartlight WHERE tbnode_id = "  
 			sql = sql + node + " AND pinnumber = " + pin
@@ -298,42 +297,27 @@ def AUTOreceiveDataFromCoordinator(receivedData):  # CR0=sensors CR1=nodes CR3=A
 				node_id = "{}".format(tbnode_id)
 				action_type = "{}".format(type)
 			
-			#insert 3 records: 0=ON/OFF 1=set color 2=dimmer
 			#millis
-			#type 0=ON/OFF 1=Color 2=Value (dimmer)
-			#V0=account id
-			#V1=0
-			#V2=0
-			#V3=0
-			#V4=value
-			#V5=0
-			#smartlight_id
-			#type
+			#type always=0, for future use
+			#V0=pin
+			#V1=status
+			#V2=value
+			#V3=color/mood
+			#V4=actuator_id
+			#V5=smartlight_id
+			#V6=type
+			#V7=command origin 99=switch
 			sql = "insert into tbdataoutsmartlight (timekey,type,V0,V1,V2,V3,V4,V5,V6,V7) values "  
-			# create Value part of insert statement
-			sql = sql+ "(millis(),0" # action type 0 ON/OFF
-			sql = sql+ "," + str(actuator_id) 
-			sql = sql+ ",0,0,0"
-			sql = sql+ "," + sts 
-			sql = sql+ ",0"
+			# create Value part of insert statement		
+			sql = sql+ "(millis(),0" # action type 1 set color
+			sql = sql+ "," + str(pin) 
+			sql = sql+ "," + sts
+			sql = sql+ "," + dim
+			sql = sql+ "," + color #color/mood	
+			sql = sql+ "," + str(actuator_id)	 
 			sql = sql+ "," + str(smartlight_id) 
-			sql = sql+ "," + str(dev_type) + "),"
-			
-			sql = sql+ "(millis(),1" # action type 1 set color
-			sql = sql+ "," + str(actuator_id) 
-			sql = sql+ ",0,0,0"
-			sql = sql+ "," + color 
-			sql = sql+ ",0"
-			sql = sql+ "," + str(smartlight_id) 
-			sql = sql+ "," + str(dev_type) + "),"
-
-			sql = sql+ "(millis(),2" # action type 2 set dimmer value
-			sql = sql+ "," + str(actuator_id) 
-			sql = sql+ ",0,0,0"
-			sql = sql+ "," + dim 
-			sql = sql+ ",0"
-			sql = sql+ "," + str(smartlight_id) 
-			sql = sql+ "," + str(dev_type) + ")"										
+			sql = sql+ "," + str(dev_type) + ",99)"
+			print(sql)										
 		try:
 			inssql = "UPDATE tbqueue SET timekey = millis(), code = '" + sql + "'"
 			cur.execute(inssql)
@@ -383,8 +367,7 @@ def sendCommand():
 	#7=set meteo
 	#8=set meteo forecast
 	#9=set meteo forecast temp
-	#10=set smartlight
-	output ("Sending command...")	
+	#10=set smartlight	
 	sql = "select timekey,type,V0,V1,V2,V3,V4,V5,V6,V7,V8,V9,V10 from tbdataout order by timekey asc"
 	cur.execute(sql)
 	for (timekey,type,V0,V1,V2,V3,V4,V5,V6,V7,V8,V9,V10) in cur:
@@ -458,9 +441,13 @@ def sendCommand():
 		output("String: " + stg)
 		readSerial = CommNotExecuted
 		initTime = time.time() + 3 #set timeout for the next loop
-		while ((readSerial != CommExecutedTrue or readSerial != CommExecutedTrue) and initTime > time.time()): 
-			#loop until a valid response is not received and timeout not reached
-			readSerial = serCoord.readline()			
+		while initTime > time.time(): #data available on serial
+			serialBuff = serCoord.inWaiting()
+			if serialBuff == 5: #if there is the response code 
+				readSerial = serCoord.readline()
+				break
+			elif serialBuff > 5:
+				return					
 		if readSerial == CommExecutedTrue:
 			sql = "delete from tbdataout where timekey = " + "{}".format(timekey)
 			try:	
@@ -495,9 +482,8 @@ log("I", "Start main loop")
 #------- Start main loop -------------------------#
 while True:
     # controllo se ci sono segnalazioni da arduino
-	checkInit()
-	checkDataOnSerial()
-	sendCommand()
+	#checkInit()
+	Controller()
 	time.sleep(0.1)
 #------- End main loop -------------------------#
   
