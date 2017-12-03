@@ -232,11 +232,11 @@ def Controller():
 	global endSerialChars
 	output("Waiting for data on serial")
 	if serCoord.inWaiting() > 0: #data available on serial
-		#serCoord.timeout = 1
+		serCoord.timeout = 1
 		readSerial = serCoord.readline()
 		readSerial.rstrip(endSerialChars)
 		output("Data received")	
-		#serCoord.timeout = 2
+		serCoord.timeout = 2
 		AUTOreceiveDataFromCoordinator(readSerial)
 	else:	
 		sendCommand()
@@ -255,8 +255,7 @@ def AUTOreceiveDataFromCoordinator(receivedData):  # CR0=sensors CR1=nodes CR3=A
 				x = x+1
 			else:	
 				sql = sql+ "V" + str(x)	+ ") values "	
-			# create Value part of insert statement
-		
+			# create Value part of insert statement	
 			for i in range(0, dNum):	
 				if (parseint(arrayData[i*(pnum+1)])) == 0:
 					sql = sql+ "(millis(),1" # sensor
@@ -274,6 +273,7 @@ def AUTOreceiveDataFromCoordinator(receivedData):  # CR0=sensors CR1=nodes CR3=A
 			try:
 				inssql = "UPDATE tbqueue SET timekey = millis(), code = '" + sql + "'"
 				cur.execute(inssql)
+				db.commit()
 			except mysql.connector.Error as err:
 				output("SQL error: {}".format(err))	
 				
@@ -318,11 +318,12 @@ def AUTOreceiveDataFromCoordinator(receivedData):  # CR0=sensors CR1=nodes CR3=A
 			sql = sql+ "," + str(smartlight_id) 
 			sql = sql+ "," + str(dev_type) + ",99)"
 			print(sql)										
-		try:
-			inssql = "UPDATE tbqueue SET timekey = millis(), code = '" + sql + "'"
-			cur.execute(inssql)
-		except mysql.connector.Error as err:
-			output("SQL error: {}".format(err))	
+			try:
+				#inssql = "UPDATE tbqueue SET timekey = millis(), code = '" + sql + "'"
+				cur.execute(sql)
+				db.commit()
+			except mysql.connector.Error as err:
+				output("SQL error: {}".format(err))	
 						
 	return 1
 #--------------------------------------------------------------------------------------------------------#
