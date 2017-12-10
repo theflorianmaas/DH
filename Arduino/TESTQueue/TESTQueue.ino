@@ -17,8 +17,8 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-String Queue[10];
-int QueueIndex = 0;
+String Queue[3][10];
+int QueueIndex[3] = {0,0,0};
 
 // declare string messages.
 String msgA = "1,1,1,1,1,6,111,78,34,111";
@@ -38,21 +38,21 @@ void setup ()
   //queue.setPrinter (Serial);
   Serial.begin(115200);
   // push all the string messages to the queue.
-  QueueInsert(msgA);
-  QueueInsert(msgB);
-  QueueInsert(msg2);
-  QueueInsert(msg3);
+  QueueInsert(0, msgA);
+  QueueInsert(0,msgB);
+  QueueInsert(0,msg2);
+  QueueInsert(0,msg3);
   //queue.push (msgA);
   //queue.push (msg2.c_str());
  Serial.print("Ok: ");
- Serial.println(QueueCount());
+ Serial.println(QueueCount(0));
   // pop all the string messages from the queue.
-  while (QueueIsEmpty() == false){
+  while (QueueIsEmpty(0) == false){
     Serial.print("Coda: ");
-    Serial.println(QueueCount());
+    Serial.println(QueueCount(0));
     //Serial.println (QueuePop());
      Serial.println("--------------------------------");
-    run(QueuePop());
+    run(QueuePop(0));
     }
    
 }
@@ -110,42 +110,39 @@ void parseIntRx(String data, int aRxData[]) {
     //return aRxData;
 }
 
-void QueueInsert(String x){
-  if (QueueIsFull() == false){
-      Queue[QueueIndex] = x; 
-      //Serial.println(Queue[QueueIndex]);
-      QueueIndex++;
-      //Serial.println(QueueIndex);
-      
+void QueueInsert(int id, String x){
+  if (QueueIsFull(id) == false){
+      Queue[id][QueueIndex[id]] = x; 
+      QueueIndex[id]++;      
   }
 }
 
-String QueuePop(){
-  if (QueueIsEmpty() == false){ //not empty
-    String value = Queue[0];
+String QueuePop(int id){
+  if (QueueIsEmpty(id) == false){ //not empty
+    String value = Queue[id][0];
     for (int i =1;i<10;i++){
-        Queue[i-1] = Queue[i];
+        Queue[id][i-1] = Queue[id][i];
     }
-    QueueIndex--; 
+    QueueIndex[id]--; 
     return value;
   }
   else
     return "";
 }
 
-int QueueCount(){
-  return QueueIndex+1; 
+int QueueCount(int id){
+  return QueueIndex[id]+1; 
 }
 
-boolean QueueIsEmpty(){
-  if (QueueIndex == 0)
+boolean QueueIsEmpty(int id){
+  if (QueueIndex[id] == 0)
     return true;
   else
     return false;  
 }
 
-boolean QueueIsFull(){
-  if (QueueIndex == 9)
+boolean QueueIsFull(int id){
+  if (QueueIndex[id] == 9)
     return true;
   else
     return false;  
