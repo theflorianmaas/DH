@@ -42,7 +42,7 @@
   CG2,10,20,11,21,12,22,13,23 //set meteo forecast temperature //tmin1, tmax1, tmin2, tmax2, tmin3, tmax3, tmin4, tmax4
   CD2,10,1,23,0 //Setup smartlight configuration (all device type)
   CE2,10,0,1,2,3,4,5,0,0,0,0 setup smartlight configuration group MOODs
-  CC2,10,0,1,183,12 //smartlight command
+  CC7,1,1,1,183 //smartlight command
 
 */
 
@@ -143,7 +143,7 @@ int delayXbeeS = 1; //set the delay to receive actuators data after sensors
 int delayXbeeAfterSent = 10;
 int timeoutXbeeResponse = 5; //Xbee nodes timeout. Returns error after this interval
 const unsigned long nodeTimeOut = 6000UL;
-const unsigned long receiveResponseTimeout = 2000UL; //receive response after a command is sent
+const unsigned long receiveResponseTimeout = 5000UL; //receive response after a command is sent
 int readInt[1024]; //variable to receive data from serial
 
 //define array to store node,sensor,actuators data
@@ -207,6 +207,7 @@ ModemStatusResponse msr = ModemStatusResponse();
 ZBTxStatusResponse txStatus = ZBTxStatusResponse();
 #define setFrameId() tx.setFrameId(xbee.getNextFrameId())
 ZBRxResponse rx = ZBRxResponse();
+FrameIdResponse frame=FrameIdResponse();
 #define RXStatusResponse(rx) xbee.getResponse().getZBRxResponse(rx)
 #define getApiId() xbee.getResponse().getApiId()
 #define getFrameIdRx() txStatus.getFrameId()
@@ -331,6 +332,8 @@ int getXbeeData()
   {
     int resXbee = getApiId();
     // got a Rx packet
+    Serial.print("ApiID: ");
+    Serial.println(resXbee,HEX);
     if (resXbee == RX_RESPONSE)
     {
             if (debug == 1) {
@@ -373,7 +376,7 @@ int getXbeeData()
 			aNodeTable[node][4] = nodeStatusOk;
 			aNodeLastUpdate[node] = millis();
 			String str = createString(node, RxData, sizeof(RxData)/2);
-Serial.print("Inserisco responso");	
+Serial.print("Inserisco responso ");	
 Serial.println(str);		
                         qRXResponse.push(str);
 		}
@@ -381,23 +384,36 @@ Serial.println(str);
     }
 	else if (resXbee == TX_RESPONSE)// if the response in not RX_64_RESPONSE
     {
+      Serial.println("TX response available ");
       if (debug == 1) {
       Serial.print("TX response available ");
       Serial.println(getApiId(), HEX);
       }
-	  
-      TXStatusResponse(txStatus);	
+      //Serial.print(getApiId());
+      xbee.getResponse().getZBTxStatusResponse(txStatus);  
+      //TXStatusResponse(txStatus); //da errore verificare
+       Serial.println("1");	
       // get the delivery status, 0 = OK, 1 = Error, 2 = Invalid Command, 3 = Invalid Parameter
-      if (getStatusTx() == SUCCESS)
+      //if (getStatusTx() == SUCCESS)
+      if (txStatus.getDeliveryStatus() == SUCCESS)
       {
+         Serial.println("2");
         // success.  time to celebrate
         nStatus = getStatusTx();
+         Serial.println("3");
         setErrorLed(node, OFF);
         setLED(ERRLed, OFF);
-	qTXResponse.push(getFrameIdRx());
+          Serial.println("4");
+          uint8_t fid=frame.getFrameId();
+          Serial.println("5");
+        Serial.print("Frame id: ");
+        Serial.println(fid);
+	//qTXResponse.push(getFrameIdRx());
+        qTXResponse.push(fid);
       }
       else
       {
+         Serial.print("Error");
         setErrorLed(node, ON);
         setLED(ERRLed, ON);
         // the remote XBee did not receive our packet. is it powered on?
@@ -405,9 +421,8 @@ Serial.println(str);
     }
   }
 }
+
 //---------------------------------------------------
-
-
 void readXbeeData()  {
   uint8_t option;            // Should return zero, not sure how to use this
   uint8_t dataLength;        // number of bytes of data being sent to xbee
@@ -506,15 +521,17 @@ int sendRemoteCommand(int node) // n=node
       }
     }
   }
-  
+Serial.println("Comando");  
   uint8_t frameid = 8;
   request(addr64, payload, sizeof(payload));
   setFrameId();
   uint16_t senderLongAddress;
-  
+Serial.println("Sto per inviare");     
   //  serialFlush(); //clean the xbee serial buffer before sending data
   xbee.send(tx);
   frameid = getFrameIdTx();
+  Serial.print("SENT: "); 
+  Serial.println(frameid); 
   if (debug == 1) {
     Serial.print("trasmesso - ");
   }
@@ -525,7 +542,7 @@ int sendRemoteCommand(int node) // n=node
   while (receiveResponseInitTime >= millis()) { // && readPacketResponse == false //);  
     if (!qTXResponse.isEmpty()) { 
       uint8_t zz =  qTXResponse.pop();
-        Serial.print("FrameidTX:");
+        Serial.print("FrameidTXXXX:");
         Serial.println(zz);
       if(zz == frameid){
         nStatus = sentOK;
