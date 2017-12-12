@@ -143,7 +143,8 @@ int delayXbeeS = 1; //set the delay to receive actuators data after sensors
 int delayXbeeAfterSent = 10;
 int timeoutXbeeResponse = 5; //Xbee nodes timeout. Returns error after this interval
 const unsigned long nodeTimeOut = 6000UL;
-const unsigned long receiveResponseTimeout = 5000UL; //receive response after a command is sent
+const unsigned long receiveResponseTimeout = 5L; //receive response after a command is sent
+unsigned long startResponseWaitingTime;
 int readInt[1024]; //variable to receive data from serial
 
 //define array to store node,sensor,actuators data
@@ -207,11 +208,11 @@ ModemStatusResponse msr = ModemStatusResponse();
 ZBTxStatusResponse txStatus = ZBTxStatusResponse();
 #define setFrameId() tx.setFrameId(xbee.getNextFrameId())
 ZBRxResponse rx = ZBRxResponse();
-FrameIdResponse frame=FrameIdResponse();
 #define RXStatusResponse(rx) xbee.getResponse().getZBRxResponse(rx)
 #define getApiId() xbee.getResponse().getApiId()
 #define getFrameIdRx() txStatus.getFrameId()
-#define getFrameIdTx() tx.getFrameId()
+FrameIdResponse frame = FrameIdResponse();
+#define getFrameIdTx() frame.getFrameId()
 #define getRssi() 100
 ModemStatusResponse msr = ModemStatusResponse();
 #define getModemStatusResponse() xbee.getResponse().getModemStatusResponse(msr)
@@ -233,7 +234,9 @@ XBeeAddress64 RCV_ADDR = XBeeAddress64(0xFF, 0xFF);
 uint32_t aXbeeAddressTable[NUMNODS][2]; //0=High 1=Low
 uint8_t signalStrength;
 QueueList <String> qRXResponse; //queue to collect the RX responses
-QueueList <uint8_t> qTXResponse; //queue to collect the RX responses
+QueueList <uint8_t> qTXResponse; //queue to collect the TX responses
+QueueList <int> qCommands; //queue to collect the commands to send out
+
 #define NODE_NOT_FOUND 9999
 //------------------------------------------------------
 //------------------------------------------------------
@@ -376,7 +379,6 @@ int getXbeeData()
 			aNodeTable[node][4] = nodeStatusOk;
 			aNodeLastUpdate[node] = millis();
 			String str = createString(node, RxData, sizeof(RxData)/2);
-Serial.print("Inserisco responso ");	
 Serial.println(str);		
                         qRXResponse.push(str);
 		}
@@ -397,19 +399,15 @@ Serial.println(str);
       //if (getStatusTx() == SUCCESS)
       if (txStatus.getDeliveryStatus() == SUCCESS)
       {
-         Serial.println("2");
         // success.  time to celebrate
         nStatus = getStatusTx();
-         Serial.println("3");
         setErrorLed(node, OFF);
         setLED(ERRLed, OFF);
-          Serial.println("4");
-          uint8_t fid=frame.getFrameId();
-          Serial.println("5");
-        Serial.print("Frame id: ");
-        Serial.println(fid);
-	//qTXResponse.push(getFrameIdRx());
-        qTXResponse.push(fid);
+        //uint8_t fid=frame.getFrameId();
+        //Serial.print("Frame id: ");
+        //Serial.println(fid);
+	qTXResponse.push(0);
+        //qTXResponse.push(fid);
       }
       else
       {
@@ -529,27 +527,26 @@ Serial.println("Comando");
 Serial.println("Sto per inviare");     
   //  serialFlush(); //clean the xbee serial buffer before sending data
   xbee.send(tx);
-  frameid = getFrameIdTx();
-  Serial.print("SENT: "); 
-  Serial.println(frameid); 
+  startResponseWaitingTime = millis();
+
   if (debug == 1) {
     Serial.print("trasmesso - ");
   }
-  delay(10);
   Serial.print("FrameidTX:");
   Serial.println(frameid);
   receiveResponseInitTime = millis() + receiveResponseTimeout; // set the init time to count the timeout
   while (receiveResponseInitTime >= millis()) { // && readPacketResponse == false //);  
     if (!qTXResponse.isEmpty()) { 
       uint8_t zz =  qTXResponse.pop();
-        Serial.print("FrameidTXXXX:");
-        Serial.println(zz);
-      if(zz == frameid){
+       // Serial.print("FrameidTXXXX:");
+       // Serial.println(zz);
+      //if(zz == frameid){
         nStatus = sentOK;
         Serial.println("Trovato!!!!!!!!");
         break;
-       }
+       //}
     }
+    yield;
   } 
   return nStatus; // return the transmition status 0=Ok 1=not responding
 } // sendRemoteCommand()

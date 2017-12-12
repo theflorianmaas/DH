@@ -605,23 +605,6 @@ void getSerialData() {
           xbeeData[10] = 0; //spare
           xbeeData[11] = 0; //spare
           nodeType = getNodeType(nodeTemp);
-          if (nodeType == nXbee) {   // If it is a Xbee node
-            ret = sendRemoteCommand(nodeTemp); //send command to the remote node
-            if (ret == sentOK) { //if 0=Ok command sent
-              Serial.println("CX1");  //send on serial to confirm the command is sent
-              updActuator(nodeTemp, xbeeData[1], xbeeData[2]);
-              setNodeStatus(getNodeIndex(nodeTemp), nodeStatusOk);
-            }
-            else {
-              Serial.println("CX0");  //send on serial to confirm the command is NOT sent
-            }
-          }
-          else if (nodeType == nLocal) //if it the local node (for sensors and actuator directly connected to th HUB)
-          {
-            //insert code here
-            Serial.println("CX1");  //send on serial to confirm the command is sent
-          }
-          // insert here other node types
         }
         else if (inChar == SETALARM) {  // A set alarm
           /*
@@ -643,24 +626,6 @@ void getSerialData() {
           xbeeData[10] = Serial.parseInt(); //timer time
           xbeeData[11] = Serial.parseInt(); //dimmer time
           nodeType = getNodeType(nodeTemp);
-          if (nodeType == nXbee) {   // If it is a Xbee node
-            ret = sendRemoteCommand(nodeTemp); //send command to the remote node
-            if (ret == sentOK) { //if 0=Ok command sent
-              setNodeStatus(getNodeIndex(nodeTemp), nodeStatusOk); //setta lo status del nodo 0=ok 1=non raggiungibile
-              Serial.println("CX1");   //send on serial to confirm the command is sent
-            }
-            else
-            {
-              //aNodeTable[nodeTemp][4] = nodeStatusNotOk; //setta lo status del nodo 0=ok 1=non raggiungibile
-              Serial.println("CX0");   //send on serial to confirm the command is NOT sent
-            }
-          }
-          else if (nodeType == nLocal) //if it the local node (for sensors and actuator directly connected to th HUB)
-          {
-            //insert code here
-            Serial.println("CX1");  //send on serial to confirm the command is sent
-          }
-          // insert here other node types
         }
         else if (inChar == SETTIME) {  // T Set Time
           /*
@@ -680,24 +645,6 @@ void getSerialData() {
           xbeeData[10] = 0; //not used
           xbeeData[11] = 0; //not used
           nodeType = getNodeType(nodeTemp);
-          if (nodeType == nXbee) {   // If it is a Xbee node
-            ret = sendRemoteCommand(nodeTemp); //send command to the remote node
-            if (ret == sentOK) { //if 0=Ok command sent
-              setNodeStatus(getNodeIndex(nodeTemp), nodeStatusOk); //setta lo status del nodo 0=ok 1=non raggiungibile
-              Serial.println("CX1");   //send on serial to confirm the command is sent
-            }
-            else
-            {
-              //aNodeTable[nodeTemp][4] = nodeStatusNotOk; //setta lo status del nodo 0=ok 1=non raggiungibile
-              Serial.println("CX0");   //send on serial to confirm the command is NOT sent
-            }
-          }
-          else if (nodeType == nLocal) //if it the local node (for sensors and actuator directly connected to th HUB)
-          {
-            //insert code here
-            Serial.println("CX1");  //send on serial to confirm the command is sent
-          }
-          // insert here other node types
         }
         else if (inChar == METEO) {  // M meteo
           /*
@@ -717,24 +664,6 @@ void getSerialData() {
           xbeeData[10] = 0; //not used
           xbeeData[11] = 0; //not used
           nodeType = getNodeType(nodeTemp);
-          if (nodeType == nXbee) {   // If it is a Xbee node
-            ret = sendRemoteCommand(nodeTemp); //send command to the remote node
-            if (ret == sentOK) { //if 0=Ok command sent
-              setNodeStatus(getNodeIndex(nodeTemp), nodeStatusOk); //setta lo status del nodo 0=ok 1=non raggiungibile
-              Serial.println("CX1");   //send on serial to confirm the command is sent
-            }
-            else
-            {
-              //aNodeTable[nodeTemp][4] = nodeStatusNotOk; //setta lo status del nodo 0=ok 1=non raggiungibile
-              Serial.println("CX0");   //send on serial to confirm the command is NOT sent
-            }
-          }
-          else if (nodeType == nLocal) //if it the local node (for sensors and actuator directly connected to th HUB)
-          {
-            //insert code here
-            Serial.println("CX1");  //send on serial to confirm the command is sent
-          }
-          // insert here other node types
         }
         else if (inChar == FORECAST) {  // F meteo forecast
           /*
@@ -754,24 +683,6 @@ void getSerialData() {
           xbeeData[10] = 0; //not used
           xbeeData[11] = 0; //not used
           nodeType = getNodeType(nodeTemp);
-          if (nodeType == nXbee) {   // If it is a Xbee node
-            ret = sendRemoteCommand(nodeTemp); //send command to the remote node
-            if (ret == sentOK) { //if 0=Ok command sent
-              setNodeStatus(getNodeIndex(nodeTemp), nodeStatusOk); //setta lo status del nodo 0=ok 1=non raggiungibile
-              Serial.println("CX1");   //send on serial to confirm the command is sent
-            }
-            else
-            {
-              //aNodeTable[nodeTemp][4] = nodeStatusNotOk; //setta lo status del nodo 0=ok 1=non raggiungibile
-              Serial.println("CX0");   //send on serial to confirm the command is NOT sent
-            }
-          }
-          else if (nodeType == nLocal) //if it the local node (for sensors and actuator directly connected to th HUB)
-          {
-            //insert code here
-            Serial.println("CX1");  //send on serial to confirm the command is sent
-          }
-          // insert here other node types
         }
         else if (inChar == FORECASTEMP) {  // G meteo forecast tempurature
           /*
@@ -791,24 +702,6 @@ void getSerialData() {
           xbeeData[10] = 0; //not used
           xbeeData[11] = 0; //not used
           nodeType = getNodeType(nodeTemp);
-          if (nodeType == nXbee) {   // If it is a Xbee node
-            ret = sendRemoteCommand(nodeTemp); //send command to the remote node
-            if (ret == sentOK) { //if 0=Ok command sent
-              setNodeStatus(getNodeIndex(nodeTemp), nodeStatusOk); //setta lo status del nodo 0=ok 1=non raggiungibile
-              Serial.println("CX1");   //send on serial to confirm the command is sent
-            }
-            else
-            {
-              //aNodeTable[nodeTemp][4] = nodeStatusNotOk; //setta lo status del nodo 0=ok 1=non raggiungibile
-              Serial.println("CX0");   //send on serial to confirm the command is NOT sent
-            }
-          }
-          else if (nodeType == nLocal) //if it the local node (for sensors and actuator directly connected to th HUB)
-          {
-            //insert code here
-            Serial.println("CX1");  //send on serial to confirm the command is sent
-          }
-          // insert here other node types
         }
         else if (inChar == COMMAND) {  // smartlight Command
           /*
@@ -828,24 +721,6 @@ void getSerialData() {
           xbeeData[10] = 0; //not used
           xbeeData[11] = 0; //not used
           nodeType = getNodeType(nodeTemp);
-          if (nodeType == nXbee) {   // If it is a Xbee node
-            ret = sendRemoteCommand(nodeTemp); //send command to the remote node
-            if (ret == sentOK) { //if 0=Ok command sent
-              setNodeStatus(getNodeIndex(nodeTemp), nodeStatusOk); //setta lo status del nodo 0=ok 1=non raggiungibile
-              Serial.println("CX1");   //send on serial to confirm the command is sent
-            }
-            else
-            {
-              //aNodeTable[nodeTemp][4] = nodeStatusNotOk; //setta lo status del nodo 0=ok 1=non raggiungibile
-              Serial.println("CX0");   //send on serial to confirm the command is NOT sent
-            }
-          }
-          else if (nodeType == nLocal) //if it the local node (for sensors and actuator directly connected to th HUB)
-          {
-            //insert code here
-            Serial.println("CX1");  //send on serial to confirm the command is sent
-          }
-          // insert here other node types
         }
         else if (inChar == SMSETUP) {  // D Setup smartlight configuration (all device type)
           /*
@@ -865,24 +740,6 @@ void getSerialData() {
           xbeeData[10] = 0; //not used
           xbeeData[11] = 0; //not used
           nodeType = getNodeType(nodeTemp);
-          if (nodeType == nXbee) {   // If it is a Xbee node
-            ret = sendRemoteCommand(nodeTemp); //send command to the remote node
-            if (ret == sentOK) { //if 0=Ok command sent
-              setNodeStatus(getNodeIndex(nodeTemp), nodeStatusOk); //setta lo status del nodo 0=ok 1=non raggiungibile
-              Serial.println("CX1");   //send on serial to confirm the command is sent
-            }
-            else
-            {
-              //aNodeTable[nodeTemp][4] = nodeStatusNotOk; //setta lo status del nodo 0=ok 1=non raggiungibile
-              Serial.println("CX0");   //send on serial to confirm the command is NOT sent
-            }
-          }
-          else if (nodeType == nLocal) //if it the local node (for sensors and actuator directly connected to th HUB)
-          {
-            //insert code here
-            Serial.println("CX1");  //send on serial to confirm the command is sent
-          }
-          // insert here other node types
         }
         else if (inChar == SMGROUP) {  // E setup smartlight configuration group MOODs
           /*
@@ -902,17 +759,20 @@ void getSerialData() {
           xbeeData[10] = Serial.parseInt(); //mood9
           xbeeData[11] = Serial.parseInt(); //mood10
           nodeType = getNodeType(nodeTemp);
+        }
+        //COMMON SECTION TO EXECUTE THE COMMAND       
           if (nodeType == nXbee) {   // If it is a Xbee node
+            
             ret = sendRemoteCommand(nodeTemp); //send command to the remote node
             if (ret == sentOK) { //if 0=Ok command sent
-              setNodeStatus(getNodeIndex(nodeTemp), nodeStatusOk); //setta lo status del nodo 0=ok 1=non raggiungibile
-              Serial.println("CX1");   //send on serial to confirm the command is sent
+              Serial.println("CX1");  //send on serial to confirm the command is sent
+              updActuator(nodeTemp, xbeeData[1], xbeeData[2]);
+              setNodeStatus(getNodeIndex(nodeTemp), nodeStatusOk);
             }
-            else
-            {
-              //aNodeTable[nodeTemp][4] = nodeStatusNotOk; //setta lo status del nodo 0=ok 1=non raggiungibile
-              Serial.println("CX0");   //send on serial to confirm the command is NOT sent
+            else {
+              Serial.println("CX0");  //send on serial to confirm the command is NOT sent
             }
+
           }
           else if (nodeType == nLocal) //if it the local node (for sensors and actuator directly connected to th HUB)
           {
@@ -920,8 +780,9 @@ void getSerialData() {
             Serial.println("CX1");  //send on serial to confirm the command is sent
           }
           // insert here other node types
-        }
+ 
         setLED(SERLed, OFF);
+        //END COMMON SECTION
         break;
     }
     //------------------------------------------------
