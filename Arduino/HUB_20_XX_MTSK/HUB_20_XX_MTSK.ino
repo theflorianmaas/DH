@@ -9,7 +9,7 @@
   Author: Franco Parenti
 
   Rel. 20 XX
-  10/12/2017
+  12/12/2017
 
   Before compiling:
   Set the Serial Buffer to 2048 in the Arduino IDE
@@ -143,7 +143,7 @@ int delayXbeeS = 1; //set the delay to receive actuators data after sensors
 int delayXbeeAfterSent = 10;
 int timeoutXbeeResponse = 5; //Xbee nodes timeout. Returns error after this interval
 const unsigned long nodeTimeOut = 6000UL;
-const unsigned long receiveResponseTimeout = 5L; //receive response after a command is sent
+const unsigned long receiveResponseTimeout = 2000L; //receive response after a command is sent
 unsigned long startResponseWaitingTime;
 int readInt[1024]; //variable to receive data from serial
 
@@ -268,9 +268,10 @@ void setup() {
 
   t0.every(TIMEt0, sendAllData); //set time interval to read data from remote nodes millis
 
-  Scheduler.startLoop(loop1); //start loop 1. Read data from remote nodes
-  Scheduler.startLoop(loop2); //start loop 2. Update status of remote nodes
-  Scheduler.startLoop(loop3); //start loop 2. Update status of remote nodes
+  Scheduler.startLoop(loop1); //start loop 1. Execute commands
+  Scheduler.startLoop(loop2); //start loop 2. Read data and responses from Xbee nodes
+  Scheduler.startLoop(loop3); //start loop 3. Apply data from xbee nodes
+  //Scheduler.startLoop(loop4); //start loop 3. Update status of remote nodes
 
 }
 
@@ -281,28 +282,39 @@ void loop() {
   getSerialData();
   t0.update();
   delay(10);
-  
 }
 
 void loop1() {
-  getXbeeData();
+  sendRemoteCommand();
   setLED(SERLed, OFF);
   delay(50);
   yield;
 }
 
 void loop2() {
-  readXbeeData();
-  //setLED(SERLed, OFF);
-  delay(10);
+  getXbeeData();
+  setLED(SERLed, OFF);
+  delay(50);
   yield;
 }
 
 void loop3() {
+  readXbeeData();
   updateNodeStatus();
+  //setLED(SERLed, OFF);
   delay(50);
+  yield;
+}
+
+/*
+void loop4() {
+  Serial.println("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+  updateNodeStatus();
+  delay(5);
   yield();
 }
+*/
+
 // -------- End Mail loop ----------- //
 // -------- End Mail loop ----------- //
 // -------- End Mail loop ----------- //
@@ -335,87 +347,88 @@ int getXbeeData()
   {
     int resXbee = getApiId();
     // got a Rx packet
-    Serial.print("ApiID: ");
-    Serial.println(resXbee,HEX);
     if (resXbee == RX_RESPONSE)
     {
-            if (debug == 1) {
-                Serial.print("RX response available ");
-                Serial.println(getApiId(), HEX);
-            }
-                int16_t RxData[(dataLength/2) + 1];
-		nStatus = receivedOK;
-		for (int i = 0; i < dataLength; i = i + 2)
-		{
-			RxData[i / 2]  = rx.getData(i) << 8;
-			RxData[i / 2] |= rx.getData(i + 1);
-			if (debug == 1) {
-			Serial.print(RxData[i / 2]);
-			Serial.print("-");
-			}
-		}
-
-		if (debug == 1) {
-			Serial.println("");
-		}
-
-		//Look for the node number from an Xbee address
-                int nodeid = getNodeByAddress(RCV_ADDR.getLsb(), RCV_ADDR.getMsb());
-		node = getNodeIndex(nodeid);
- 
-		  if (debug == 1) {
-			Serial.print("NodeX: ");
-                        Serial.println(nodeid);
-			Serial.println(node);
-                        Serial.println(RCV_ADDR.getLsb(),DEC);
-                        //Serial.print(RCV_ADDR.getMsb(),DEC);
-			//Serial.print("Node numberX: ");
-			//Serial.println(getNodeNumber(node));
-		  }
-
-		if (node != NODE_NOT_FOUND) //if the node number has been found
-		{
-			aNodeTable[node][3] = signalStrength;
-			aNodeTable[node][4] = nodeStatusOk;
-			aNodeLastUpdate[node] = millis();
-			String str = createString(node, RxData, sizeof(RxData)/2);
-Serial.println(str);		
-                        qRXResponse.push(str);
-		}
-     
-    }
-	else if (resXbee == TX_RESPONSE)// if the response in not RX_64_RESPONSE
-    {
-      Serial.println("TX response available ");
       if (debug == 1) {
-      Serial.print("TX response available ");
-      Serial.println(getApiId(), HEX);
+        Serial.print("RX response available ");
+        Serial.println(getApiId(), HEX);
+      }
+      int16_t RxData[(dataLength / 2) + 1];
+      nStatus = receivedOK;
+      for (int i = 0; i < dataLength; i = i + 2)
+      {
+        RxData[i / 2]  = rx.getData(i) << 8;
+        RxData[i / 2] |= rx.getData(i + 1);
+        if (debug == 1) {
+          Serial.print(RxData[i / 2]);
+          Serial.print("-");
+        }
+      }
+
+      if (debug == 1) {
+        Serial.println("");
+      }
+
+      //Look for the node number from an Xbee address
+      int nodeid = getNodeByAddress(RCV_ADDR.getLsb(), RCV_ADDR.getMsb());
+      node = getNodeIndex(nodeid);
+
+      if (debug == 1) {
+        Serial.print("NodeX: ");
+        Serial.println(nodeid);
+        Serial.println(node);
+        Serial.println(RCV_ADDR.getLsb(), DEC);
+        //Serial.print(RCV_ADDR.getMsb(),DEC);
+        //Serial.print("Node numberX: ");
+        //Serial.println(getNodeNumber(node));
+      }
+
+      if (node != NODE_NOT_FOUND) //if the node number has been found
+      {
+        aNodeTable[node][3] = signalStrength;
+        aNodeTable[node][4] = nodeStatusOk;
+        aNodeLastUpdate[node] = millis();
+        String str = createString(node, RxData, sizeof(RxData) / 2);
+        qRXResponse.push(str);
+      }
+    }
+    else if (resXbee == TX_RESPONSE)// if the response in not RX_64_RESPONSE
+    {
+      if (debug == 1) {
+        Serial.print("TX response available ");
+        Serial.println(getApiId(), HEX);
       }
       //Serial.print(getApiId());
-      xbee.getResponse().getZBTxStatusResponse(txStatus);  
-      //TXStatusResponse(txStatus); //da errore verificare
-       Serial.println("1");	
+      xbee.getResponse().getZBTxStatusResponse(txStatus);
+      //TXStatusResponse(txStatus); //dà errore verificare
       // get the delivery status, 0 = OK, 1 = Error, 2 = Invalid Command, 3 = Invalid Parameter
-      //if (getStatusTx() == SUCCESS)
-      if (txStatus.getDeliveryStatus() == SUCCESS)
+      if (getStatusTx() == SUCCESS)
       {
         // success.  time to celebrate
         nStatus = getStatusTx();
         setErrorLed(node, OFF);
         setLED(ERRLed, OFF);
-        //uint8_t fid=frame.getFrameId();
-        //Serial.print("Frame id: ");
-        //Serial.println(fid);
-	qTXResponse.push(0);
-        //qTXResponse.push(fid);
+        if (!qTXResponse.isEmpty()) {
+          qTXResponse.pop();
+          Serial.println("CX1");
+        }
       }
       else
       {
-         Serial.print("Error");
+        //an invalid packet is received
+        //Serial.print("Error");
         setErrorLed(node, ON);
         setLED(ERRLed, ON);
-        // the remote XBee did not receive our packet. is it powered on?
       }
+  
+      //check if there is an expired response
+      if (startResponseWaitingTime + receiveResponseTimeout < millis()) { //if response timeout expired
+        if (!qTXResponse.isEmpty()) {
+          qTXResponse.pop();
+          Serial.println("CX0");
+        }
+      }
+      
     }
   }
 }
@@ -430,15 +443,14 @@ void readXbeeData()  {
   dataLength = rx.getDataLength();
   RCV_ADDR = rx.getRemoteAddress64(); // Serial of Tx (remember MY is set as a hex number.  Useful if you have multiple transmitters
   signalStrength = getRssi();
-  
+
   while (!qRXResponse.isEmpty())
   {
-   String x = qRXResponse.pop();
-   int valueCnt = parseIntRxCount(x);
-   int16_t aRxData[valueCnt]; 
-   parseIntRx(x, aRxData);
-   int node = aRxData[0];
-    
+    String x = qRXResponse.pop();
+    int valueCnt = parseIntRxCount(x);
+    int16_t aRxData[valueCnt];
+    parseIntRx(x, aRxData);
+    int node = aRxData[0];
     switch (aRxData[1]) {
 
       case SENSOR: //update the Sensors Array with remote data
@@ -492,63 +504,57 @@ void readXbeeData()  {
 //---------------------------------------------------
 // inizio sezione Xbee ------------------------------
 //---------------------------------------------------
-int sendRemoteCommand(int node) // n=node
+void sendRemoteCommand() // n=node
 {
-  unsigned long receiveResponseInitTime = millis();
-  boolean readPacketResponse; //store the response of xbee.readPacket(timeout)
-  //if the node is inactive returns immediately and not execute the command
-  if (getNodeStatus(node) ==  nodeStatusNotOk) return nodeStatusNotOk;
-  // if the node is active goes ahead
+  if (!qCommands.isEmpty()) { //if there is a command to send
+    int node = qCommands.pop(); //get the node id
 
-  int nStatus = 999; //set node status to no response
-  int x;
-  XBeeAddress64 addr64 = XBeeAddress64(aXbeeAddressTable[node][0], aXbeeAddressTable[node][1]);
+    //boolean readPacketResponse; //store the response of xbee.readPacket(timeout)
+    //if the node is inactive returns immediately and not execute the command
+    if (getNodeStatus(node) ==  nodeStatusOk) { //if the node is active execute the command
 
-  // break down integers into two bytes and build the payload
-  // break down integers into n (NUM_BYTE_ARR) bytes and build the payload
-  for (int i = 0; i < NUM_DATA_PTS; i++)
-  {
-    for (int k = 0; k < NUM_BYTE_ARR; k++)
-    {
-      if (k == 0) {
-        payload[(i * NUM_BYTE_ARR) + (NUM_BYTE_ARR - 1)] = xbeeData[i] & 0xff;
-      }
-      else
+      int nStatus = 999; //set node status to no response
+      int x;
+      XBeeAddress64 addr64 = XBeeAddress64(aXbeeAddressTable[node][0], aXbeeAddressTable[node][1]); //node Xbee Address
+
+      // Create the payload
+      for (int i = 0; i < NUM_DATA_PTS; i++)
       {
-        payload[(i * NUM_BYTE_ARR) + (NUM_BYTE_ARR - 1 - k)] = xbeeData[i] >> 8 * k & 0xff;
+        for (int k = 0; k < NUM_BYTE_ARR; k++)
+        {
+          if (k == 0) {
+            payload[(i * NUM_BYTE_ARR) + (NUM_BYTE_ARR - 1)] = xbeeData[i] & 0xff;
+          }
+          else
+          {
+            payload[(i * NUM_BYTE_ARR) + (NUM_BYTE_ARR - 1 - k)] = xbeeData[i] >> 8 * k & 0xff;
+          }
+        }
       }
+      request(addr64, payload, sizeof(payload));
+      setFrameId();
+      xbee.send(tx); //send the command
+      startResponseWaitingTime = millis();
+      qTXResponse.push(node);
+      //updActuator(node, xbeeData[1], xbeeData[2]); //update the actuator
+      //setNodeStatus(getNodeIndex(node), nodeStatusOk); //update the node status
     }
   }
-Serial.println("Comando");  
-  uint8_t frameid = 8;
-  request(addr64, payload, sizeof(payload));
-  setFrameId();
-  uint16_t senderLongAddress;
-Serial.println("Sto per inviare");     
-  //  serialFlush(); //clean the xbee serial buffer before sending data
-  xbee.send(tx);
-  startResponseWaitingTime = millis();
-
-  if (debug == 1) {
-    Serial.print("trasmesso - ");
-  }
-  Serial.print("FrameidTX:");
-  Serial.println(frameid);
-  receiveResponseInitTime = millis() + receiveResponseTimeout; // set the init time to count the timeout
-  while (receiveResponseInitTime >= millis()) { // && readPacketResponse == false //);  
-    if (!qTXResponse.isEmpty()) { 
-      uint8_t zz =  qTXResponse.pop();
-       // Serial.print("FrameidTXXXX:");
-       // Serial.println(zz);
-      //if(zz == frameid){
-        nStatus = sentOK;
-        Serial.println("Trovato!!!!!!!!");
-        break;
-       //}
-    }
-    yield;
-  } 
-  return nStatus; // return the transmition status 0=Ok 1=not responding
 } // sendRemoteCommand()
 
+/*
+void checkTxResponses() // loop on received TX responses
+{
+  if (qCommands.isEmpty()) {
+    ret = sendRemoteCommand(nodeTemp); //send command to the remote node
+    if (ret == sentOK) { //if 0=Ok command sent
+      Serial.println("CX1");  //send on serial to confirm the command is sent
+      updActuator(nodeTemp, xbeeData[1], xbeeData[2]);
+      setNodeStatus(getNodeIndex(nodeTemp), nodeStatusOk);
+    }
+    else {
+      Serial.println("CX0");  //send on serial to confirm the command is NOT sent
+    }
 
+  }
+*/  

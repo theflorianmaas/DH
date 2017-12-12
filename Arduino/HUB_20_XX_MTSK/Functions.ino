@@ -531,7 +531,6 @@ void getSerialData() {
           procStarted = false; //stop sending data on serial
           intNum = Serial.parseInt();
           readSerialData(intNum);
-          Serial.println("Ok");
           initTable(inChar, intNum);
           Serial.println("CX1");
         }
@@ -762,17 +761,7 @@ void getSerialData() {
         }
         //COMMON SECTION TO EXECUTE THE COMMAND       
           if (nodeType == nXbee) {   // If it is a Xbee node
-            
-            ret = sendRemoteCommand(nodeTemp); //send command to the remote node
-            if (ret == sentOK) { //if 0=Ok command sent
-              Serial.println("CX1");  //send on serial to confirm the command is sent
-              updActuator(nodeTemp, xbeeData[1], xbeeData[2]);
-              setNodeStatus(getNodeIndex(nodeTemp), nodeStatusOk);
-            }
-            else {
-              Serial.println("CX0");  //send on serial to confirm the command is NOT sent
-            }
-
+            qCommands.push(nodeTemp);
           }
           else if (nodeType == nLocal) //if it the local node (for sensors and actuator directly connected to th HUB)
           {
