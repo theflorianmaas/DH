@@ -526,7 +526,7 @@ void getSerialData() {
           readSerialData(intNum);
           initTable(inChar, intNum);
           Serial.println("CX1");
-        }
+         }
         else if (inChar == NODES) {  // N nodes
           procStarted = false; //stop sending data on serial
           intNum = Serial.parseInt();
@@ -774,6 +774,8 @@ void getSerialData() {
         //END COMMON SECTION
         break;
     }
+     //Serial.println("X3");
+     //Serial.println(millis());
     //------------------------------------------------
     // End Commands section
     //------------------------------------------------

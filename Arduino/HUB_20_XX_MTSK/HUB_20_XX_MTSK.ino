@@ -268,9 +268,9 @@ void setup() {
 
   t0.every(TIMEt0, sendAllData); //set time interval to read data from remote nodes millis
 
-  Scheduler.startLoop(loop1); //start loop 1. Execute commands
-  Scheduler.startLoop(loop2); //start loop 2. Read data and responses from Xbee nodes
   Scheduler.startLoop(loop3); //start loop 3. Apply data from xbee nodes
+  Scheduler.startLoop(loop2); //start loop 2. Read data and responses from Xbee nodes
+  Scheduler.startLoop(loop1); //start loop 1. Execute commands
   //Scheduler.startLoop(loop4); //start loop 3. Update status of remote nodes
 
 }
@@ -279,31 +279,32 @@ void setup() {
 // ---------- Main loop ------------- //
 // ---------- Main loop ------------- //
 void loop() {
+  //Serial.println("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
   getSerialData();
   t0.update();
-  delay(10);
+  delay(20);
 }
 
 void loop1() {
+  //Serial.println("111111111111111111111111111111111");
   sendRemoteCommand();
   setLED(SERLed, OFF);
-  delay(50);
-  yield;
+  delay(20);
 }
 
 void loop2() {
+  //Serial.println("222222222222222222222222222222222");
   getXbeeData();
   setLED(SERLed, OFF);
-  delay(50);
-  yield;
-}
+  delay(20);
+ }
 
 void loop3() {
+  //Serial.println("333333333333333333333333333333333");
   readXbeeData();
   updateNodeStatus();
   //setLED(SERLed, OFF);
-  delay(50);
-  yield;
+  delay(20);
 }
 
 /*
@@ -398,29 +399,30 @@ int getXbeeData()
         Serial.print("TX response available ");
         Serial.println(getApiId(), HEX);
       }
-      //Serial.print(getApiId());
+
+      //Serial.println("x");
       xbee.getResponse().getZBTxStatusResponse(txStatus);
+      //Serial.println("z");
       //TXStatusResponse(txStatus); //dà errore verificare
       // get the delivery status, 0 = OK, 1 = Error, 2 = Invalid Command, 3 = Invalid Parameter
       if (getStatusTx() == SUCCESS)
       {
-        // success.  time to celebrate
-        nStatus = getStatusTx();
-        setErrorLed(node, OFF);
-        setLED(ERRLed, OFF);
+  //Serial.println("55");
+        //setErrorLed(node, OFF);
+        //setLED(ERRLed, OFF);
+        //Serial.println(qTXResponse.isEmpty());
+        // Serial.println("77");
         if (!qTXResponse.isEmpty()) {
           qTXResponse.pop();
           Serial.println("CX1");
-        }
-      }
+         }
+       }
       else
       {
         //an invalid packet is received
-        //Serial.print("Error");
         setErrorLed(node, ON);
         setLED(ERRLed, ON);
       }
-  
       //check if there is an expired response
       if (startResponseWaitingTime + receiveResponseTimeout < millis()) { //if response timeout expired
         if (!qTXResponse.isEmpty()) {
@@ -428,7 +430,6 @@ int getXbeeData()
           Serial.println("CX0");
         }
       }
-      
     }
   }
 }
@@ -531,11 +532,16 @@ void sendRemoteCommand() // n=node
           }
         }
       }
+      //Serial.println("1");
       request(addr64, payload, sizeof(payload));
-      setFrameId();
+      //setFrameId();
+      //Serial.println("2");
       xbee.send(tx); //send the command
+      //Serial.println("3");
       startResponseWaitingTime = millis();
+      //Serial.println("4");
       qTXResponse.push(node);
+      //Serial.println("5");
       //updActuator(node, xbeeData[1], xbeeData[2]); //update the actuator
       //setNodeStatus(getNodeIndex(node), nodeStatusOk); //update the node status
     }
