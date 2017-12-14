@@ -399,19 +399,11 @@ int getXbeeData()
         Serial.print("TX response available ");
         Serial.println(getApiId(), HEX);
       }
-
-      //Serial.println("x");
       xbee.getResponse().getZBTxStatusResponse(txStatus);
-      //Serial.println("z");
       //TXStatusResponse(txStatus); //dà errore verificare
       // get the delivery status, 0 = OK, 1 = Error, 2 = Invalid Command, 3 = Invalid Parameter
       if (getStatusTx() == SUCCESS)
       {
-  //Serial.println("55");
-        //setErrorLed(node, OFF);
-        //setLED(ERRLed, OFF);
-        //Serial.println(qTXResponse.isEmpty());
-        // Serial.println("77");
         if (!qTXResponse.isEmpty()) {
           qTXResponse.pop();
           Serial.println("CX1");
@@ -436,14 +428,6 @@ int getXbeeData()
 
 //---------------------------------------------------
 void readXbeeData()  {
-  uint8_t option;            // Should return zero, not sure how to use this
-  uint8_t dataLength;        // number of bytes of data being sent to xbee
-  static int16_t RxData[RX_MAX_VAL + 1]; // Array to hold data received
-  RXStatusResponse(rx);
-  option = rx.getOption();
-  dataLength = rx.getDataLength();
-  RCV_ADDR = rx.getRemoteAddress64(); // Serial of Tx (remember MY is set as a hex number.  Useful if you have multiple transmitters
-  signalStrength = getRssi();
 
   while (!qRXResponse.isEmpty())
   {
@@ -492,10 +476,10 @@ void readXbeeData()  {
         break;
       case SMCMD: //smartlight command
         aSMCommand[0] = getNodeNumber(node);
-        aSMCommand[1] = RxData[2]; //pin
-        aSMCommand[2] = RxData[3]; //status
-        aSMCommand[3] = RxData[4]; //value
-        aSMCommand[4] = RxData[5]; //color/mood
+        aSMCommand[1] = aRxData[2]; //pin
+        aSMCommand[2] = aRxData[3]; //status
+        aSMCommand[3] = aRxData[4]; //value
+        aSMCommand[4] = aRxData[5]; //color/mood
         sendCommandOnSerial();
         break;
     }
@@ -532,35 +516,14 @@ void sendRemoteCommand() // n=node
           }
         }
       }
-      //Serial.println("1");
       request(addr64, payload, sizeof(payload));
-      //setFrameId();
-      //Serial.println("2");
       xbee.send(tx); //send the command
-      //Serial.println("3");
       startResponseWaitingTime = millis();
-      //Serial.println("4");
       qTXResponse.push(node);
-      //Serial.println("5");
       //updActuator(node, xbeeData[1], xbeeData[2]); //update the actuator
       //setNodeStatus(getNodeIndex(node), nodeStatusOk); //update the node status
     }
   }
 } // sendRemoteCommand()
 
-/*
-void checkTxResponses() // loop on received TX responses
-{
-  if (qCommands.isEmpty()) {
-    ret = sendRemoteCommand(nodeTemp); //send command to the remote node
-    if (ret == sentOK) { //if 0=Ok command sent
-      Serial.println("CX1");  //send on serial to confirm the command is sent
-      updActuator(nodeTemp, xbeeData[1], xbeeData[2]);
-      setNodeStatus(getNodeIndex(nodeTemp), nodeStatusOk);
-    }
-    else {
-      Serial.println("CX0");  //send on serial to confirm the command is NOT sent
-    }
 
-  }
-*/  

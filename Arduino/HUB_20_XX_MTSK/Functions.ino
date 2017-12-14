@@ -774,8 +774,6 @@ void getSerialData() {
         //END COMMON SECTION
         break;
     }
-     //Serial.println("X3");
-     //Serial.println(millis());
     //------------------------------------------------
     // End Commands section
     //------------------------------------------------
