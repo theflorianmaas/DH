@@ -335,15 +335,15 @@ int getXbeeData()
   uint8_t option;            // Should return zero, not sure how to use this
   uint8_t dataLength;        // number of bytes of data being sent to xbee
   //static int16_t RxData[RX_MAX_VAL + 1]; // Array to hold data received
+  
+  int node;
+  //  uint16_t Tx_Id;    //  s of transmitter (MY ID)
+  bool responseFromReadPacket = xbee.readPacket(50);
   RXStatusResponse(rx);
   option = rx.getOption();
   dataLength = rx.getDataLength();
   RCV_ADDR = rx.getRemoteAddress64();
   signalStrength = getRssi();
-  int node;
-
-  //  uint16_t Tx_Id;    //  s of transmitter (MY ID)
-  bool responseFromReadPacket = xbee.readPacket(500);
   if (responseFromReadPacket)
   {
     int resXbee = getApiId();
@@ -371,9 +371,8 @@ int getXbeeData()
       }
 
       //Look for the node number from an Xbee address
-      int nodeid = getNodeByAddress(RCV_ADDR.getLsb(), RCV_ADDR.getMsb());
+      int nodeid = getNodeByAddress(RCV_ADDR.getLsb(), RCV_ADDR.getMsb());    
       node = getNodeIndex(nodeid);
-
       if (debug == 1) {
         Serial.print("NodeX: ");
         Serial.println(nodeid);
