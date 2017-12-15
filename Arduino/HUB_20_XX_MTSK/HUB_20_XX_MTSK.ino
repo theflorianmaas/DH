@@ -9,7 +9,7 @@
   Author: Franco Parenti
 
   Rel. 20 XX
-  12/12/2017
+  15/12/2017
 
   Before compiling:
   Set the Serial Buffer to 2048 in the Arduino IDE
@@ -142,7 +142,7 @@ int delayXbee = 5; //set the delay to receive response from xbee nodes
 int delayXbeeS = 1; //set the delay to receive actuators data after sensors
 int delayXbeeAfterSent = 10;
 int timeoutXbeeResponse = 5; //Xbee nodes timeout. Returns error after this interval
-const unsigned long nodeTimeOut = 6000UL;
+const unsigned long nodeTimeOut = 3000UL;
 const unsigned long receiveResponseTimeout = 2000L; //receive response after a command is sent
 unsigned long startResponseWaitingTime;
 int readInt[1024]; //variable to receive data from serial
@@ -165,7 +165,7 @@ long aActuTable[NUMROWS][NUMCOLS];
 //col 0=node 1=Actuator 2=method 3=value 4=0 spare
 int aMethTable[NUMROWS][NUMCOLS];
 
-//array for smartlight command
+//array for smartlight received command
 int aSMCommand[5];
 
 const int initString = 0xFFFE;
@@ -268,10 +268,10 @@ void setup() {
 
   t0.every(TIMEt0, sendAllData); //set time interval to read data from remote nodes millis
 
+  Scheduler.startLoop(loop4); //start loop 3. Update status of remote nodes
   Scheduler.startLoop(loop3); //start loop 3. Apply data from xbee nodes
   Scheduler.startLoop(loop2); //start loop 2. Read data and responses from Xbee nodes
   Scheduler.startLoop(loop1); //start loop 1. Execute commands
-  //Scheduler.startLoop(loop4); //start loop 3. Update status of remote nodes
 
 }
 
@@ -302,19 +302,17 @@ void loop2() {
 void loop3() {
   //Serial.println("333333333333333333333333333333333");
   readXbeeData();
-  updateNodeStatus();
+  //updateNodeStatus();
   //setLED(SERLed, OFF);
   delay(20);
 }
 
-/*
 void loop4() {
-  Serial.println("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+  //Serial.println("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
   updateNodeStatus();
-  delay(5);
-  yield();
+  delay(20);
 }
-*/
+
 
 // -------- End Mail loop ----------- //
 // -------- End Mail loop ----------- //
@@ -386,7 +384,7 @@ int getXbeeData()
       if (node != NODE_NOT_FOUND) //if the node number has been found
       {
         aNodeTable[node][3] = signalStrength;
-        aNodeTable[node][4] = nodeStatusOk;
+        //aNodeTable[node][4] = nodeStatusOk;
         aNodeLastUpdate[node] = millis();
         String str = createString(node, RxData, sizeof(RxData) / 2);
         qRXResponse.push(str);

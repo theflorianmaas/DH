@@ -35,10 +35,10 @@ void updateNodeStatus()
 {
   for (int i = 0; i < NUMNODS; i++)
   {
-    if (aNodeTable[i][1] != nLocal) {
+    if (aNodeTable[i][1] != nLocal) {  
       if (aNodeTable[i][0] != initString)
       {
-        if (aNodeLastUpdate[i] >= (millis() - nodeTimeOut)) {
+        if (aNodeLastUpdate[i] + nodeTimeOut >= millis()) {
           //node active
           setNodeStatus(i, nodeStatusOk);
         }
@@ -108,7 +108,7 @@ void setNodeStatus(int n, int sts) {
   if (sts == nodeStatusOk) {
     setLED(DATLed, ON);
     aNodeTable[n][4] = nodeStatusOk; //set the node status 1=ok 0=not responding
-    aNodeLastUpdate[n] = millis();
+    //aNodeLastUpdate[n] = millis();
     setErrorLed(aNodeTable[n][0], OFF);
     setStatusLed(aNodeTable[n][0], ON);
     setLED(ERRLed, OFF);
