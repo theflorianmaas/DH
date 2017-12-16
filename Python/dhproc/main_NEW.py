@@ -58,13 +58,8 @@ serCoord.timeout = 10
 serCoord.setDTR(False)
 time.sleep(1)
 # toss any data already received, see
-# http://pyserial.sourceforge.net/pyserial_api.html#serial.Serial.flushInput
 serCoord.flushInput()
-#serCoord.setDTR(True)
 
-#serCoord.flush()
-# send a string to initialize serial
-#serCoord.write(b"+++")
 # -- End Open Serial to the Coordinator-----------
   
 #----------------------------- 
@@ -112,7 +107,7 @@ def log(t, m):
 
 def printTime():
 	now = datetime.datetime.now()
-	output(now.strftime("%H %M %S %f"))	
+	print(now.strftime("%H %M %S %f"))	
 	
 def checkInit():
 	# check Init 
@@ -224,7 +219,7 @@ def initCoordinator():
 	if ret == 0: #if fails
 		return 0
 	output("Init actuators")
-	print(IAString)
+	#output(IAString)
 	ret = initSendStringsToCoordinator(IAString)  
 	if ret == 0: #if fails
 		return 0
@@ -277,23 +272,22 @@ def getSerialData(qDataIn, qDataOut, qResponse):
 		if serialBuffer > 0: #data available on serial
 			readSerial = serCoord.readline()
 			readSerial.rstrip(endSerialChars)
-			print("Data received from serial")
-			#serCoord.flushInput()
+			output("Data received from serial")
 			if isResponse(readSerial) == True:
 				while not qResponse.empty():
 					qResponse.get()
 				qResponse.put(readSerial)
-				#print("Response received")			
+				output("Response received")			
 			else:	
 				qDataIn.put(readSerial)	
 				#print("Data received:", serialBuffer)
-				print("Q size:", qDataIn.qsize()) 	
+				#print("Q size:", qDataIn.qsize()) 	
 
 		if not qDataOut.empty():
 			#print("Q OUT size:", qDataOut.qsize()) 
 			stg = qDataOut.get()
 			serCoord.write(bytes(stg, 'UTF-8')) 
-			print("String: ", stg)
+			output("String: " + str(stg))
 
 				
 #--------------------------------------------------------------------------------------------------------#
@@ -305,13 +299,12 @@ def AUTOreceiveDataFromCoordinator(qDataIn, qDataOut, qResponse, qSQL, qQuery1, 
 	if not qDataIn.empty(): # if there is data to process
 		readSerial = qDataIn.get()	
 		arrayData = str(readSerial).split(',')
-		print("Parsing received data...", len(arrayData))
+		output("Parsing received data: " + str(len(arrayData)))
 		dNum = int((len(arrayData)-1)/(pnum+1))
 		if dNum != 0: #if data received on serial
 			#--- Write data to database ---#
 			sql = ""
 			if (parseint(arrayData[0])) != 99: #check the first value if is NOT 99 = smartlight command	
-				print("Ricevuto comando")
 				sql = "insert into tbdatain (timekey,type,"  
 				x = 0
 				while x < pnum-1:
@@ -335,7 +328,7 @@ def AUTOreceiveDataFromCoordinator(qDataIn, qDataOut, qResponse, qSQL, qQuery1, 
 					if i != dNum-1:
 						sql = sql + ","					
 			elif (parseint(arrayData[0])) == 99: #smart light command
-				print("Ricevuto comando luci")
+				output("Ricevuto comando luci")
 				# get the smartlight_id
 				node = str(parseint(arrayData[1]))
 				pin = str(parseint(arrayData[2]))
@@ -505,20 +498,24 @@ def sendCommand(qDataIn, qDataOut, qResponse, qSQL, qQuery2, qResult2):
 		for i in range(3):	
 			# send the string
 			qDataOut.put(stg)
-			print("waiting for the response for attempt ", i)
+			output("Waiting for the response for attempt " + str(i))
 			#print("stampa stringa:", stg)
-			sResponse = qResponse.get(block=True, timeout=5)
-			#if isResponse(sResponse) == True: #if there is the response code 
-			#		print("Response received ----------------------")					
+			sResponse = "empty"
+			initTime = time.time() + 5 #set timeout for the next loop
+			while True: #data available on serial
+				if initTime < time.time():
+					break
+				if not qResponse.empty():
+					sResponse = qResponse.get()
+					break	
+					
 			if isResponseOK(sResponse) == True: #good response, transmission Ok
 				output ("Response OkOkOkOKOkOkOk")
 				break
 			elif isResponseOK(sResponse) == False: #bad response		
-				# write error in log
-				#log(int("{}".format(type)), "Error "+stg)
 				output ("Error. trying again....")
 			else:	
-				print ("Wrong response:", sResponse)
+				output ("Wrong response:" + str(sResponse))
 				break		
 	return
 	
@@ -543,7 +540,7 @@ def execSQL(qSQL, qQuery1, qResult1, qQuery2, qResult2):
 				cur.execute(inssql)
 				db.commit()
 				#print("command executed:", inssql)
-				print("Command executed")
+				#print("Command executed")
 				
 			if qResult1.empty():
 				sql = "SELECT smartlight_id, tbactuator_id, tbnode_id, pinnumber FROM vwsmartlight"
@@ -567,7 +564,7 @@ def execSQL(qSQL, qQuery1, qResult1, qQuery2, qResult2):
 				db.commit
 			
 			if qResult2.qsize() > 0:			
-				print("Commands to send:", qResult2.qsize())			
+				output("Commands to send: " + str(qResult2.qsize()))			
 				
 		except mysql.connector.Error as err:
 			output("SQL error: {}".format(err))	
@@ -621,29 +618,6 @@ log("I", "Start main loop")
 if __name__ == "__main__":
 	Main()
     
-#readSerial = ""
-#serialBuffer = 0
 
-#p1 = Thread( target=getSerialData )
-#p2 = Thread( target=runme )
-#p3 = Thread( target=sendCommand )
-#print("getSerialData")
-#p1.start()
-#print("AUTOreceiveDataFromCoordinator")	
-#p2.start()
-#print("sendCommand")
-#p3.start()
-#p1.join()
-#p2.join()
-#p3.join()
-	
-#------- Start main loop -------------------------#
-#while True:
-    # controllo se ci sono segnalazioni da arduino
-	#checkInit()
-	#Controller()
-#	time.sleep(0.1)
-#------- End main loop -------------------------#
-  
 
 
