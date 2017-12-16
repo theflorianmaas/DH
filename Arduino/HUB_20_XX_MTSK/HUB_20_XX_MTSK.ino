@@ -137,10 +137,10 @@ int debug = 0;
 int TIMEt0 = 1000; //send data on serial every n millisec
 Timer t0; //timer to schedule the update Sensor and Actuator data
 
-int delayMainLoop = 5;
-int delayXbee = 5; //set the delay to receive response from xbee nodes
-int delayXbeeS = 1; //set the delay to receive actuators data after sensors
-int delayXbeeAfterSent = 10;
+//int delayMainLoop = 5;
+//int delayXbee = 5; //set the delay to receive response from xbee nodes
+//int delayXbeeS = 1; //set the delay to receive actuators data after sensors
+//int delayXbeeAfterSent = 10;
 int timeoutXbeeResponse = 5; //Xbee nodes timeout. Returns error after this interval
 const unsigned long nodeTimeOut = 3000UL;
 const unsigned long receiveResponseTimeout = 2000L; //receive response after a command is sent

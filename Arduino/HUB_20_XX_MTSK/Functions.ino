@@ -550,11 +550,11 @@ void getSerialData() {
         }
         // IT,50,30,100
         else if (inChar == TUNING) {  // T tuning Delay Variables
-          delayXbee = Serial.parseInt(); //set the delay to receive response from xbee nodes
-          delayXbeeS = Serial.parseInt(); //set the delay to receive actuators data after sensors
-          delayXbeeAfterSent = Serial.parseInt();
+          //delayXbee = Serial.parseInt(); //set the delay to receive response from xbee nodes
+          //delayXbeeS = Serial.parseInt(); //set the delay to receive actuators data after sensors
+          //delayXbeeAfterSent = Serial.parseInt();
           timeoutXbeeResponse = Serial.parseInt();
-          delayMainLoop = Serial.parseInt();
+          //delayMainLoop = Serial.parseInt();
           TIMEt0 = Serial.parseInt();
           Serial.println("CX1");
         }
