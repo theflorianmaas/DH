@@ -252,12 +252,20 @@ def isResponse(response):
 		return False	
 		
 def isResponseOK(response):
+	print(response)
+	res = False
 	if "CX0" in str(response, 'utf-8'):
-		return False
+		print(1)
+		res = False
 	elif "CX1" in str(response, 'utf-8'):	
-		return True
+		print(2)
+		res = True
 	else:
-		return False			
+		print(3)
+		res = False	
+	print("qqq:")	
+	#print("xx:", str(response))
+	return res			
 
 #--------------------------------------------------------------------------------------------------------#
 #---- get serial incoming data ---------------------------------------------------------------------#
@@ -501,22 +509,26 @@ def sendCommand(qDataIn, qDataOut, qResponse, qSQL, qQuery2, qResult2):
 			output("Waiting for the response for attempt " + str(i))
 			#print("stampa stringa:", stg)
 			sResponse = "empty"
-			initTime = time.time() + 5 #set timeout for the next loop
-			while True: #data available on serial
+			initTime = time.time() + 3 #set timeout for the next loop
+			loop = 0
+			while loop == 0: #data available on serial
 				if initTime < time.time():
-					break
+					output("Tempo scaduto")
+					loop = 1
 				if not qResponse.empty():
 					sResponse = qResponse.get()
-					break	
-					
-			if isResponseOK(sResponse) == True: #good response, transmission Ok
+					loop = 1
+			if sResponse == CommExecutedTrue: #good response, transmission Ok
 				output ("Response OkOkOkOKOkOkOk")
 				break
-			elif isResponseOK(sResponse) == False: #bad response		
-				output ("Error. trying again....")
-			else:	
-				output ("Wrong response:" + str(sResponse))
-				break		
+			else: #bad response		
+				output ("Error. trying again....")		
+				
+			#if isResponseOK(sResponse) == True: #good response, transmission Ok
+			#	output ("Response OkOkOkOKOkOkOk")
+			#	break
+			#else: #isResponseOK(sResponse) == False: #bad response		
+			#	output ("Error. trying again....")		
 	return
 	
 def runP2(qDataIn, qDataOut, qResponse, qSQL, qQuery1, qResult1):
