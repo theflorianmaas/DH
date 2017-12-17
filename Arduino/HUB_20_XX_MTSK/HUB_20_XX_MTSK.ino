@@ -113,8 +113,6 @@ int debug = 0;
 #define receivedOK 1
 #define sentOK     0
 #define noResponse 0
-#define associateOK 888
-#define associateNotOK 889
 #define dataError 2
 #define xbeeError 3
 #define nodeStatusOk 1
@@ -137,12 +135,7 @@ int debug = 0;
 int TIMEt0 = 1000; //send data on serial every n millisec
 Timer t0; //timer to schedule the update Sensor and Actuator data
 
-//int delayMainLoop = 5;
-//int delayXbee = 5; //set the delay to receive response from xbee nodes
-//int delayXbeeS = 1; //set the delay to receive actuators data after sensors
-//int delayXbeeAfterSent = 10;
-int timeoutXbeeResponse = 5; //Xbee nodes timeout. Returns error after this interval
-const unsigned long nodeTimeOut = 3000UL;
+const unsigned long nodeTimeOut = 5000UL; //Xbee nodes timeout. Returns error after this interval
 const unsigned long receiveResponseTimeout = 2000L; //receive response after a command is sent
 unsigned long startResponseWaitingTime;
 int readInt[1024]; //variable to receive data from serial
@@ -168,7 +161,8 @@ int aMethTable[NUMROWS][NUMCOLS];
 //array for smartlight received command
 int aSMCommand[5];
 
-const int initString = 0xFFFE;
+#define INITSTRING 0xFFFE
+#define NODE_NOT_FOUND 9999
 
 //Enable/Disable data transmition on serial. false=Disable
 boolean procStarted = false;
@@ -228,7 +222,6 @@ XBee xbee = XBee();
 #define NUM_BYTE_ARR   3 // Number of bytes of the array used to store long integers in the payload
 uint8_t payload[NUM_DATA_PTS * NUM_BYTE_ARR];
 long xbeeData[NUM_DATA_PTS];  // Array to hold integers that will be sent to other xbee
-#define RX_MAX_VAL 30 //rxData array size to store received data from node. Must be the same of endnodes
 //remote Xbee node address
 XBeeAddress64 RCV_ADDR = XBeeAddress64(0xFF, 0xFF);
 uint32_t aXbeeAddressTable[NUMNODS][2]; //0=High 1=Low
@@ -237,7 +230,6 @@ QueueList <String> qRXResponse; //queue to collect the RX responses
 QueueList <uint8_t> qTXResponse; //queue to collect the TX responses
 QueueList <int> qCommands; //queue to collect the commands to send out
 
-#define NODE_NOT_FOUND 9999
 //------------------------------------------------------
 //------------------------------------------------------
 
@@ -279,40 +271,32 @@ void setup() {
 // ---------- Main loop ------------- //
 // ---------- Main loop ------------- //
 void loop() {
-  //Serial.println("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
   getSerialData();
   t0.update();
   delay(20);
 }
 
 void loop1() {
-  //Serial.println("111111111111111111111111111111111");
   sendRemoteCommand();
   setLED(SERLed, OFF);
   delay(20);
 }
 
 void loop2() {
-  //Serial.println("222222222222222222222222222222222");
   getXbeeData();
   setLED(SERLed, OFF);
   delay(20);
  }
 
 void loop3() {
-  //Serial.println("333333333333333333333333333333333");
   readXbeeData();
-  //updateNodeStatus();
-  //setLED(SERLed, OFF);
   delay(20);
 }
 
 void loop4() {
-  //Serial.println("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
   updateNodeStatus();
   delay(20);
 }
-
 
 // -------- End Mail loop ----------- //
 // -------- End Mail loop ----------- //
@@ -332,7 +316,6 @@ int getXbeeData()
   int nStatus = 999;
   uint8_t option;            // Should return zero, not sure how to use this
   uint8_t dataLength;        // number of bytes of data being sent to xbee
-  //static int16_t RxData[RX_MAX_VAL + 1]; // Array to hold data received
   
   int node;
   //  uint16_t Tx_Id;    //  s of transmitter (MY ID)
@@ -376,15 +359,14 @@ int getXbeeData()
         Serial.println(nodeid);
         Serial.println(node);
         Serial.println(RCV_ADDR.getLsb(), DEC);
-        //Serial.print(RCV_ADDR.getMsb(),DEC);
-        //Serial.print("Node numberX: ");
-        //Serial.println(getNodeNumber(node));
+        Serial.print(RCV_ADDR.getMsb(),DEC);
+        Serial.print("Node numberX: ");
+        Serial.println(getNodeNumber(node));
       }
 
       if (node != NODE_NOT_FOUND) //if the node number has been found
       {
         aNodeTable[node][3] = signalStrength;
-        //aNodeTable[node][4] = nodeStatusOk;
         aNodeLastUpdate[node] = millis();
         String str = createString(node, RxData, sizeof(RxData) / 2);
         qRXResponse.push(str);
@@ -420,6 +402,12 @@ int getXbeeData()
         }
       }
     }
+    else 
+    {
+      // no valid packet recieved
+      setLED(ERRLed, ON);
+    }
+   
   }
 }
 
@@ -517,8 +505,6 @@ void sendRemoteCommand() // n=node
       xbee.send(tx); //send the command
       startResponseWaitingTime = millis();
       qTXResponse.push(node);
-      //updActuator(node, xbeeData[1], xbeeData[2]); //update the actuator
-      //setNodeStatus(getNodeIndex(node), nodeStatusOk); //update the node status
     }
   }
 } // sendRemoteCommand()

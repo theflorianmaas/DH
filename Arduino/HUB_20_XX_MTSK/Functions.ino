@@ -36,7 +36,7 @@ void updateNodeStatus()
   for (int i = 0; i < NUMNODS; i++)
   {
     if (aNodeTable[i][1] != nLocal) {  
-      if (aNodeTable[i][0] != initString)
+      if (aNodeTable[i][0] != INITSTRING)
       {
         if (aNodeLastUpdate[i] + nodeTimeOut >= millis()) {
           //node active
@@ -116,8 +116,8 @@ void setNodeStatus(int n, int sts) {
   else
   {
     aNodeTable[n][4] = nodeStatusNotOk; //setta lo status del nodo 1=ok 0=non raggiungibile
-    //aNodeTable[c][(NUMCOLS+2)-1] = aNodeTable[c][(NUMCOLS+2)-1] + 1; //increase error counter
-    aNodeTable[n][(NUMCOLS + 1) - 1] = sts; //set the last error code
+    aNodeTable[n][6] = aNodeTable[n][6] + 1; //increase error counter
+    aNodeTable[n][5] = sts; //set the last error code
     setErrorLed(aNodeTable[n][0], ON);
     setStatusLed(aNodeTable[n][0], OFF);
     setLED(ERRLed, ON);
@@ -281,7 +281,7 @@ void resetTable(byte x) {
   {
     case SENSORS:
       for (int i = 0; i < NUMROWS; i++) {
-        aDataTable[i][0] = initString;
+        aDataTable[i][0] = INITSTRING;
         for (int y = 1; y < NUMCOLS; y++) {
           aDataTable[i][y] = 0;
         }
@@ -289,7 +289,7 @@ void resetTable(byte x) {
       break;
     case NODES:
       for (int i = 0; i < NUMNODS; i++) {
-        aNodeTable[i][0] = initString;
+        aNodeTable[i][0] = INITSTRING;
         for (int y = 1; y < NUMCOLS; y++) {
           aNodeTable[i][y] = 0;
         }
@@ -297,7 +297,7 @@ void resetTable(byte x) {
       break;
     case  ACTUATORS:
       for (int i = 0; i < NUMROWS; i++) {
-        aActuTable[i][0] = initString;
+        aActuTable[i][0] = INITSTRING;
         for (int y = 1; y < NUMCOLS; y++) {
           aActuTable[i][y] = 0;
         }
@@ -305,7 +305,7 @@ void resetTable(byte x) {
       break;
     case METHODS:
       for (int i = 0; i < NUMROWS; i++) {
-        aMethTable[i][0] = initString;
+        aMethTable[i][0] = INITSTRING;
         for (int y = 1; y < NUMCOLS; y++) {
           aMethTable[i][y] = 0;
         }
@@ -320,12 +320,12 @@ void resetTable(byte x) {
 void initialize() {
   //inizializza array dei dati
   for (int i = 0; i < NUMROWS; i++) {
-    aDataTable[i][0] = initString;
-    aActuTable[i][0] = initString;
-    aMethTable[i][0] = initString;
+    aDataTable[i][0] = INITSTRING;
+    aActuTable[i][0] = INITSTRING;
+    aMethTable[i][0] = INITSTRING;
   }
   for (int i = 0; i < NUMNODS; i++) {
-    aNodeTable[i][0] = initString;
+    aNodeTable[i][0] = INITSTRING;
     aNodeTable[i][(NUMCOLS + 2) - 1] = 0; //set counter for num of transmission errors
     aXbeeAddressTable[i][0] = 0x0;
     aXbeeAddressTable[i][1] = 0x0;
@@ -350,7 +350,7 @@ void sendDataOnSerial(int x) {
     //Serial.print("DS,");
     for (int i = 0; i < NUMROWS; i++)
     {
-      if (aDataTable[i][0] != initString)
+      if (aDataTable[i][0] != INITSTRING)
       {
         for (int y = 0; y < NUMCOLS; y++) {
           Serial.print(aDataTable[i][y], DEC);
@@ -368,7 +368,7 @@ void sendDataOnSerial(int x) {
     //Serial.print("DN,");
     for (int i = 0; i < NUMNODS; i++)
     {
-      if (aNodeTable[i][0] != initString)
+      if (aNodeTable[i][0] != INITSTRING)
       {
         for (int y = 0; y < NUMCOLS; y++) {
           Serial.print(aNodeTable[i][y], DEC);
@@ -399,7 +399,7 @@ void sendDataOnSerial(int x) {
     //Serial.print("DS,");
     for (int i = 0; i < NUMROWS; i++)
     {
-      if (aActuTable[i][0] != initString)
+      if (aActuTable[i][0] != INITSTRING)
       {
         for (int y = 0; y < NUMCOLS; y++) {
           Serial.print(aActuTable[i][y], DEC);
@@ -419,7 +419,7 @@ void sendDataOnSerial(int x) {
     //Nodes
     for (int i = 0; i < NUMNODS; i++)
     {
-      if (aNodeTable[i][0] != initString)
+      if (aNodeTable[i][0] != INITSTRING)
       {
         stringToSend.concat("1,"); //prefix for nodes
         for (int y = 0; y < NUMCOLS; y++) {
@@ -435,7 +435,7 @@ void sendDataOnSerial(int x) {
     //sensors
     for (int i = 0; i < NUMROWS; i++)
     {
-      if (aDataTable[i][0] != initString)
+      if (aDataTable[i][0] != INITSTRING)
       {
         stringToSend.concat("0,"); //prefix for nodes
         for (int y = 0; y < NUMCOLS; y++) {
@@ -451,7 +451,7 @@ void sendDataOnSerial(int x) {
     //actuators
     for (int i = 0; i < NUMROWS; i++)
     {
-      if (aActuTable[i][0] != initString)
+      if (aActuTable[i][0] != INITSTRING)
       {
         stringToSend.concat("3,"); //prefix for nodes
         for (int y = 0; y < NUMCOLS; y++) {
@@ -467,7 +467,7 @@ void sendDataOnSerial(int x) {
     //methods
     for (int i = 0; i < NUMROWS; i++)
     {
-      if (aMethTable[i][0] != initString)
+      if (aMethTable[i][0] != INITSTRING)
       {
         stringToSend.concat("9,"); //prefix for methods
         for (int y = 0; y < NUMCOLS; y++) {
@@ -506,7 +506,7 @@ void getSerialData() {
     switch (inChar) {
       case DEBUG:  // X debug
         for (int i = 0; i < 5; i++) {
-          if (aNodeTable[i][0] != initString) {
+          if (aNodeTable[i][0] != INITSTRING) {
             Serial.print("Node ");
             Serial.print(aNodeTable[i][0]);
             Serial.print(" Errors ");
@@ -548,13 +548,8 @@ void getSerialData() {
           initTable(inChar, intNum);
           Serial.println("CX1");
         }
-        // IT,50,30,100
+        // IT,500
         else if (inChar == TUNING) {  // T tuning Delay Variables
-          //delayXbee = Serial.parseInt(); //set the delay to receive response from xbee nodes
-          //delayXbeeS = Serial.parseInt(); //set the delay to receive actuators data after sensors
-          //delayXbeeAfterSent = Serial.parseInt();
-          timeoutXbeeResponse = Serial.parseInt();
-          //delayMainLoop = Serial.parseInt();
           TIMEt0 = Serial.parseInt();
           Serial.println("CX1");
         }
