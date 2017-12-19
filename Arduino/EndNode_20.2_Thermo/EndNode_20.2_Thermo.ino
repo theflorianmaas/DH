@@ -1,6 +1,6 @@
 // ------------------------------------------------------------ //
-// EndNode_20.2_Thermo version with DS1307 RTC + AM2322 sensor
-// V. 20.2 26/11/2017
+// EndNode_20.3_Thermo version with DS1307 RTC + AM2322 sensor
+// V. 20.3 19/12/2017
 // Meteo forecast support
 // DS18B20 support
 // ------------------------------------------------------------ //
@@ -427,7 +427,10 @@ void parseXbeeReceivedData(int x)
   }
   if (x == METEO) //Set meteo
   {
-    t_extTemp =  RxData[1] / 100; //EXT TEMP
+    if (RxData[1] >= 900) 
+      t_extTemp =  (RxData[1]-900)*-1; //EXT TEMP negative value
+    else
+      t_extTemp =  RxData[1] / 100; //EXT TEMP positive value
     h_extHum =  RxData[2]; //EXT HUMIDITY
     p_extPre =  RxData[3]; //EXT PRESSURE
     g_meteo =  RxData[4]; //METEO

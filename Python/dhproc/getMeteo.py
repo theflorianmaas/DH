@@ -138,9 +138,9 @@ while True:
 			sql = "SELECT id FROM tbnode WHERE sendmeteo = 1"
 			cur.execute(sql)
 			if int(temp_c) < 0:
-				temp_c_fixed = (int(temp_c) + 900) * -1
+				temp_c_fixed = abs(int(temp_c))+900
 			else: 	
-				temp_c_fixed = int(temp_c*100)
+				temp_c_fixed = int(temp_c)*100
 			for (id) in cur:
 				id = id[0]
 				#temp_c = int(temp_c*100)
