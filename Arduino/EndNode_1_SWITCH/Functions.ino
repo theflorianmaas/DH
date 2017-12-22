@@ -15,7 +15,7 @@ void refreshScreen() {
   }
   HMISerial.sendCommand("t_icons.en=1");
   HMISerial.sendCommand("t_select_type.en=1");
-  pBit();
+  //pBit();
 }
 
 byte convertColor(byte color) {
@@ -52,11 +52,16 @@ byte convertColor(byte color) {
 
 
 void execLightCommand(byte pin, byte sts, int value, int color) {
+  if (isDimmerStarted == true && pin == c_light) { //if dimmer started do not update the current light
+    pBit(); //do nothing
+  }
+  else  {
   byte val = map(value, 0, 254, 0, 100);
   aLights[getPinIdx(pin)][2] = sts; //status
   aLights[getPinIdx(pin)][3] = val; //status
   aLights[getPinIdx(pin)][4] = convertColor(color); //status
   refreshScreen();
+  }
 }
 
 void setLightConfig(byte pin, byte type, byte mode) {
@@ -100,7 +105,7 @@ void setLightConfig(byte pin, byte type, byte mode) {
       }
       break;
   }
-  pBit();
+  //pBit();
   refreshScreen();
 }
 
@@ -122,8 +127,8 @@ void getScreenTouch() {
   if (touch[0] != 0) {
     if (touch[2] == NEX_RET_GROUP || touch[2] == NEX_RET_LIGHT1 || touch[2] == NEX_RET_LIGHT2 || touch[2] == NEX_RET_LIGHT3 || touch[2] == NEX_RET_LIGHT4 || touch[2] == NEX_RET_LIGHT5 || touch[2] == NEX_RET_LIGHT6)
     {
-      pBit();
-       switch (touch[2]) {
+
+      switch (touch[2]) {
         case NEX_RET_GROUP:
           c_light = 0;
           break;
@@ -147,8 +152,14 @@ void getScreenTouch() {
           break;
       }
     }
-    else
+    else if (touch[2] == NEX_RET_STRDIM)
+      isDimmerStarted = true;
+    else {
+      if (touch[2] == NEX_RET_OFF) {
+        isDimmerStarted = false;
+      }
       sendCommand(touch[2]);
+    }
   }
 }
 

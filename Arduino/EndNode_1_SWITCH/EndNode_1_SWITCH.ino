@@ -61,6 +61,9 @@ const int pinBattery PROGMEM = A0;
 #define NEX_RET_LIGHT4  0x74 //light 4
 #define NEX_RET_LIGHT5  0x75 //light 5
 #define NEX_RET_LIGHT6  0x76 //light 6
+#define NEX_RET_STRDIM  0x90 //start dimmer
+
+boolean isDimmerStarted = false;
 
 #define PAGE_MAIN 0
 
@@ -506,7 +509,7 @@ void sendCommand(byte cmd)
       if (response == TX_RESPONSE || response == ZB_TX_STATUS_RESPONSE) {
         TXStatusResponse(txStatus);
         if (getStatus() == SUCCESS) {
-          pBit();
+          //pBit();
         }
         else
         {

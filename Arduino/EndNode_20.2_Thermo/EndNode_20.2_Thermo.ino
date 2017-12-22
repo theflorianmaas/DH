@@ -427,8 +427,8 @@ void parseXbeeReceivedData(int x)
   }
   if (x == METEO) //Set meteo
   {
-    if (RxData[1] >= 900) 
-      t_extTemp =  (RxData[1]-900)*-1; //EXT TEMP negative value
+    if (RxData[1] >= 9000) 
+      t_extTemp =  (RxData[1]-9000)*-1; //EXT TEMP negative value
     else
       t_extTemp =  RxData[1] / 100; //EXT TEMP positive value
     h_extHum =  RxData[2]; //EXT HUMIDITY

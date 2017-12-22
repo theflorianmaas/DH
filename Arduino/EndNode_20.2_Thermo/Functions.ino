@@ -245,12 +245,12 @@ void f_meteo_forecast_temp() {
   byte cnt = 0;
   for (int i = 1; i < 5; i++) {
     cnt = (i * 2) - 2;
-    if (RxData[cnt + 1] >= 900) //if negative value
-      RxData[cnt + 1] = (RxData[cnt + 1] - 900) * -1;
+    if (RxData[cnt + 1] >= 9000) //if negative value
+      RxData[cnt + 1] = (RxData[cnt + 1] - 9000) * -1;
     String label = "t" + String(i) + "min";
     HMISerial.setComponentText(label, String(RxData[cnt + 1]));
-    if (RxData[cnt + 2] >= 900)//if negative value
-      RxData[cnt + 2] = (RxData[cnt + 2] - 900) * -1;
+    if (RxData[cnt + 2] >= 9000)//if negative value
+      RxData[cnt + 2] = (RxData[cnt + 2] - 9000) * -1;
     label = "t" + String(i) + "max";
     HMISerial.setComponentText(label, String(RxData[cnt + 2]));
   }
