@@ -193,52 +193,6 @@ OneWire ds(ONE_WIRE_BUS);
 #define LEDRGB        7
 #define THERMOSTAT    9
 
-/*
-  //Actuator commands HVAC
-  #define ACCOFF      0
-  #define ACCON       1
-  #define ACCTEMP     2
-  #define ACCMODE     3
-  #define ACCFAN      4
-  #define ACCSWING    5
-
-  //Actuator methods HVAC
-  #define ACFAN1        3
-  #define ACFAN2        4
-  #define ACFAN3        5
-  #define ACFANAUTO     6
-  #define ACMODECOOL    7
-  #define ACMODEDRY     8
-  #define ACMODEHEAT    9
-  #define ACMODEAUTO    10
-  #define ACTEMPERATURE 11
-  #define ACSWING       12
-*/
-
-/*
-  //Actuator methods TV
-  #define TVVOLUMEUP    13
-  #define TVVOLUMEDOWN  14
-  #define TVCHANNELUP   15
-  #define TVCHANNELDOWN 16
-  #define TVMUTE        17
-  #define TVANTENNA     18
-  #define TVHDMI        19
-  #define TVBUTRED      20
-  #define TVBUTGREEN    21
-  #define TVBUTYELLOW   22
-  #define TVBUTBLUE     23
-  #define TVKEYUP       24
-  #define TVKEYDOWN     25
-  #define TVKEYLEFT     26
-  #define TVKEYRIGHT    27
-  #define TVKEYOK       28
-  #define TVKEYRETURN   29
-
-  #define SONY      1
-  #define SAMSUNG   2
-*/
-
 #define IN 1
 #define OUT 0
 
@@ -377,7 +331,7 @@ void updatePinValues()
 {
 
   am2322.readTemperatureAndHumidity(t_intTemp, h_intHum);
-  t_intTemp = t_intTemp - 2; //compensate components heating
+  t_intTemp = t_intTemp - 3; //compensate components heating
   getScreenTouch();
   checkFire();
   f_refreshMain();
@@ -395,14 +349,6 @@ void parseXbeeReceivedData(int x)
       val = RxData[2];
     }
     if (RxData[3] == ANALOG || RxData[3] == SERVO || RxData[3] == TONE) //analog
-    {
-      val = RxData[2];
-    }
-    if (RxData[3] == HVAC) //AC
-    {
-      val = RxData[2];
-    }
-    if (RxData[3] == TV) //TV
     {
       val = RxData[2];
     }
