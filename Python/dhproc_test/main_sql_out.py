@@ -120,24 +120,7 @@ def printTime():
 	now = datetime.datetime.now()
 	print(now.strftime("%H %M %S %f"))	
 	
-def checkInit():
-	# check Init 
-	sql = "SELECT pvalue,pindex FROM tbparam WHERE ptype = 'I'" 
-	cur.execute(sql)
-	for (pvalue,pindex) in cur:
-		i = int("{}".format(pindex))
-		if i  == 1:
-			output ("Initialize Coordinator")
-			sql = "UPDATE tbparam SET pvalue = 0 WHERE ptype = 'I'" 
-			cur.execute(sql)
-			db.commit()
-			cur.close
-			initCoordinator()
-			break
-	sys.stdout.flush()		
-	# end check Init
-	
-	
+
 def isResponse(response):
 	if "CX0" in str(response, 'utf-8'):
 		return True
@@ -163,23 +146,23 @@ def isResponseOK(response):
 	return res	
 
 
-def execSQL(qSQL, qQuery2, qResult2):
+def execSQL(qSQL, qOUT):
 	cur = db.cursor()
 	curX = db.cursor()
 	while True:
 		try:
-			if qResult2.empty():
-				sql = "select timekey,type,V0,V1,V2,V3,V4,V5,V6,V7,V8,V9,V10 from tbdataout order by timekey asc"
-				cur.execute(sql)
+			#if qOUT.empty():
+			sql = "select timekey,type,V0,V1,V2,V3,V4,V5,V6,V7,V8,V9,V10 from tbdataout order by timekey asc"
+			cur.execute(sql)
+			row = cur.fetchone()
+			while row is not None:							
+				qOUT.put(row)
+				sql = "delete from tbdataout where timekey = " + str(row[0])
+				curX.execute(sql)
 				row = cur.fetchone()
-				while row is not None:							
-					qResult2.put(row)
-					sql = "delete from tbdataout where timekey = " + str(row[0])
-					curX.execute(sql)
-					row = cur.fetchone()
-				db.commit
+			db.commit
 			
-			if qResult2.qsize() > 0:			
+			if qOUT.qsize() > 0:			
 				output("Commands to send: " + str(qResult2.qsize()))			
 				
 		except mysql.connector.Error as err:
@@ -201,11 +184,13 @@ def QueueServerClient(HOST, PORT, AUTHKEY):
 #------- Main section ----------------------------#
 #------- Run once --------------------------------#
 # create three connected managers
+qmOut = QueueServerClient(HOST, PORT1, AUTHKEY)
 qmSql = QueueServerClient(HOST, PORT2, AUTHKEY)
 qmResp = QueueServerClient(HOST, PORT3, AUTHKEY)
 qmQry = QueueServerClient(HOST, PORT4, AUTHKEY)
 qmRslt = QueueServerClient(HOST, PORT5, AUTHKEY)
 # Get the queue objects from the clients
+qOut = qmOut.get_queue()
 qSql = qmSql.get_queue()	
 qResp = qmResp.get_queue()	
 qQuery2 = qmQry.get_queue()	
@@ -213,7 +198,7 @@ qResult2 = qmRslt.get_queue()
 	
 #------- End run once    -------------------------#
 log("I", "Start main loop")
-execSQL(qSql, qQuery2, qResult2)
+execSQL(qSql, qQuery2, qOut)
 
 
 
