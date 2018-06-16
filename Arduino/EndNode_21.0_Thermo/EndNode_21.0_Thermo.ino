@@ -13,7 +13,8 @@
 #include <pitches.h>
 #include <Wire.h>
 #include <RTClib.h>
-#include <AM2322.h>
+//#include <AM2322.h>
+#include <AM232X.h>
 //#include <OneWire.h>
 
 // ------------------------------------------------------------ //
@@ -151,7 +152,7 @@ byte weekdays[7][3];
 //-----------------------------------------------------------
 
 RTC_DS1307 rtc; //Real time clock instance
-AM2322 am2322;  //Temp+Hum sensor instance
+AM232X am2322;  //Temp+Hum sensor instance
 // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
 //OneWire ds(ONE_WIRE_BUS);
 
@@ -286,12 +287,13 @@ void setup()
 
   digitalWrite(PIN_RELE, LOW);
   analogWrite(IR_EMITER, 100);
-
+  Wire.begin();
+  Wire.setClock(40000);
   // start serial xbee
   Serial.begin(BAUD_RATE);
-  //xbee.setSerial(Serial);
-  rtc.begin();
-  am2322.begin();
+  xbee.setSerial(Serial);
+  //rtc.begin();
+  //am2322.begin();
   HMISerial.init();
   delay(1000);
   play();
@@ -329,10 +331,12 @@ void sendSensorData() {
 
 void updatePinValues()
 {
-
-  am2322.readTemperatureAndHumidity(t_intTemp, h_intHum);
-  t_intTemp = t_intTemp - 3; //compensate components heating
-  Serial.println(t_intTemp);
+  am2322.read();
+  h_intHum = am2322.humidity;
+  t_intTemp = am2322.temperature/10;
+  //am2322.readTemperatureAndHumidity(t_intTemp, h_intHum);
+  //t_intTemp = t_intTemp - 3; //compensate components heating
+  //Serial.println(t_intTemp);
   getScreenTouch();
   checkFire();
   f_refreshMain();

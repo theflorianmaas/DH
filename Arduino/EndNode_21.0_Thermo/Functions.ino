@@ -205,7 +205,7 @@ void f_time()
   char buffer[10] = {0};
   getScreenTouch();
   DateTime now = rtc.now();
-      Serial.println(now.year());
+  //Serial.println(now.year());
   HMISerial.setComponentValue("t_dd", f_weekday(now.dayOfTheWeek()));
   HMISerial.setComponentValue("t_hh", now.hour());
   HMISerial.setComponentValue("t_mm", now.minute());
