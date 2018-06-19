@@ -8,8 +8,10 @@
 
   Author: Franco Parenti
 
-  Rel. 20 XX
-  15/12/2017
+  Rel. 21 XX
+  17/06/2018
+
+  Nextion display support
 
   Before compiling:
   Set the Serial Buffer to 2048 in the Arduino IDE
@@ -78,6 +80,7 @@ int debug = 0;
 #include "Timer.h"
 #include <Scheduler.h>
 #include <QueueList.h>
+#include "Nextion.h"
 
 #define SERIAL_BUFFER_SIZE 4096
 #define BAUD_RATE_XBEE 115200  // Baud for Xbee serial
@@ -230,6 +233,20 @@ QueueList <String> qRXResponse; //queue to collect the RX responses
 QueueList <uint8_t> qTXResponse; //queue to collect the TX responses
 QueueList <int> qCommands; //queue to collect the commands to send out
 
+
+//------------------------------------------------------
+//Nextion display
+//------------------------------------------------------
+NexText tx0 = NexText(0, 1, "t0");
+NexText tx1 = NexText(0, 2, "t1");
+NexText tx2 = NexText(0, 3, "t2");
+NexText tx3 = NexText(0, 4, "t3");
+NexText tx4 = NexText(0, 5, "t4");
+NexText tx5 = NexText(0, 6, "t5");
+NexText tx6 = NexText(0, 7, "t6");
+NexText tx7 = NexText(0, 8, "t7");
+NexText tx8 = NexText(0, 9, "t8");
+char buffer[10] = {0};
 //------------------------------------------------------
 //------------------------------------------------------
 
@@ -286,7 +303,7 @@ void loop2() {
   getXbeeData();
   setLED(SERLed, OFF);
   delay(20);
- }
+}
 
 void loop3() {
   readXbeeData();
@@ -316,7 +333,7 @@ int getXbeeData()
   int nStatus = 999;
   uint8_t option;            // Should return zero, not sure how to use this
   uint8_t dataLength;        // number of bytes of data being sent to xbee
-  
+
   int node;
   //  uint16_t Tx_Id;    //  s of transmitter (MY ID)
   bool responseFromReadPacket = xbee.readPacket(50);
@@ -352,14 +369,14 @@ int getXbeeData()
       }
 
       //Look for the node number from an Xbee address
-      int nodeid = getNodeByAddress(RCV_ADDR.getLsb(), RCV_ADDR.getMsb());    
+      int nodeid = getNodeByAddress(RCV_ADDR.getLsb(), RCV_ADDR.getMsb());
       node = getNodeIndex(nodeid);
       if (debug == 1) {
         Serial.print("NodeX: ");
         Serial.println(nodeid);
         Serial.println(node);
         Serial.println(RCV_ADDR.getLsb(), DEC);
-        Serial.print(RCV_ADDR.getMsb(),DEC);
+        Serial.print(RCV_ADDR.getMsb(), DEC);
         Serial.print("Node numberX: ");
         Serial.println(getNodeNumber(node));
       }
@@ -386,8 +403,8 @@ int getXbeeData()
         if (!qTXResponse.isEmpty()) {
           qTXResponse.pop();
           Serial.println("CX1");
-         }
-       }
+        }
+      }
       else
       {
         //an invalid packet is received
@@ -402,12 +419,12 @@ int getXbeeData()
         }
       }
     }
-    else 
+    else
     {
       // no valid packet recieved
       setLED(ERRLed, ON);
     }
-   
+
   }
 }
 
@@ -509,4 +526,38 @@ void sendRemoteCommand() // n=node
   }
 } // sendRemoteCommand()
 
-
+void display(int row, int code) // n=node
+{
+  memset(buffer, 0, sizeof(buffer));
+  const char* str = String(code).c_str();
+  strcpy(buffer, str);
+  switch (row) {
+    case 0:
+      tx0.setText(buffer);
+      break;
+    case 1:
+      tx1.setText(buffer);
+      break;
+    case 2:
+      tx2.setText(buffer);
+      break;
+    case 3:
+      tx3.setText(buffer);
+      break;
+    case 4:
+      tx4.setText(buffer);
+      break;
+    case 5:
+      tx5.setText(buffer);
+      break;
+    case 6:
+      tx6.setText(buffer);
+      break;
+    case 7:
+      tx7.setText(buffer);
+      break;
+    case 8:
+      tx8.setText(buffer);
+      break;
+  }
+}
