@@ -14,7 +14,6 @@
 #include <Wire.h>
 #include <RTClib.h>
 #include <AM2322.h>
-//#include <AM232X.h>
 #include <OneWire.h>
 
 // ------------------------------------------------------------ //
@@ -267,7 +266,6 @@ union {
 int res;
 
 Timer t0; //timer to schedule the sensors and actuators values update
-
 /*
    Setup function. Here we do the basics
 */
@@ -329,11 +327,8 @@ void sendSensorData() {
 void updatePinValues()
 {
   //Serial.println(getTemp());
-  //am2322.read();
-  //h_intHum = am2322.humidity;
-  //t_intTemp = am2322.temperature/10;
   am2322.readTemperatureAndHumidity(t_intTemp, h_intHum);
-  t_intTemp = t_intTemp - 2; //compensate components heating
+  t_intTemp = t_intTemp - 2.5; //compensate components heating
   //Serial.println(t_intTemp);
   getScreenTouch();
   checkFire();
@@ -719,6 +714,7 @@ void play()
   }
 }
 
+
 void startTasks() {
   t0.every(TIMEt1, sendSensorData);
   t0.every(TIMEt0, updatePinValues);
@@ -726,7 +722,7 @@ void startTasks() {
   t0.every(TIMEt3, checkFire);
 }
 
-/*
+
 float getTemp() {
   //returns the temperature from one DS18B20 in DEG Celsius
 
@@ -763,4 +759,4 @@ float getTemp() {
   return TemperatureSum;
 
 }
-*/
+

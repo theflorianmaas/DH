@@ -44,10 +44,9 @@ void initTimeLine() {
 
   for (byte i = 1; i < TIMELINE_ARRAY; i++) {
     timeline[i] = EEPROM.read(i);
-
-    actuators[getActuatorId(PINNODE)][1] = g_sts;
-    actuators[getActuatorId(PINNODE)][3] = g_sts;
   }
+  actuators[getActuatorId(PINNODE)][1] = g_sts;
+  actuators[getActuatorId(PINNODE)][3] = g_sts;
 
   f_refreshRange();
   //save weekly days
@@ -94,7 +93,6 @@ void f_indoor()
   getScreenTouch();
   HMISerial.setComponentValue("gIntInt", getInt(t_intTemp));
   HMISerial.setComponentValue("gIntDec", getDec(t_intTemp));
-  //HMISerial.setComponentValue("t", getTemp());
 }
 
 void f_outdoor()
@@ -108,7 +106,6 @@ void f_prog()
 {
   //getScreenTouch();
   g_prog = HMISerial.getComponentValue("gProg");
-  //pBit();
   f_timeline();
 }
 
@@ -171,7 +168,6 @@ void f_battery()
     pic = 76;
   else if (analogRead(pinBattery) < 100)
     pic = 75;
-
   HMISerial.setComponentPic("pBatt", pic);
 }
 
@@ -622,7 +618,6 @@ void getScreenTouch() {
   else if (isTouch(touch, NEX_RET_REST))
   {
     pBit();
-    //reset();
   }
   else if (touch[0] == NEX_RET_CURRENT_PAGE_ID_HEAD) {
     pBit();
@@ -651,7 +646,6 @@ void pBit() {
   HMISerial.setComponentPic("pBit", pic);
   tone(9, 1500, 30);
   noTone;
-  //delay(10);
 }
 
 boolean isTouch(uint8_t* touch, uint8_t code) {
@@ -732,7 +726,6 @@ void checkFire() {
       break;
   }
   f_fire();
-  //return res;
 }
 
 int getTimelineId() {
