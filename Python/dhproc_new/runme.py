@@ -8,7 +8,7 @@ from os import system
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 
-#import pygubu
+import datetime
 
 import subprocess 
 from subprocess import *
@@ -187,16 +187,16 @@ def initProcess(id):
 	except:
 		a = 0
 		
-def setProcess(self, index):
+def setProcess(index):
 	px = Popen([cmd, p_path + proc[index] + ".py", str(arg[index])], shell=False, stdin=None, stderr=None, stdout=PIPE, bufsize=1)
 	pid = px.pid
 	cur.execute("UPDATE tbproctl SET sts = %s WHERE id = %s", (pid, 100+index))
 	db.commit()
-	obj = self.builder.get_object('statusbar')
-	self.setOutput("Starting " + proc[index], obj)
+	# obj = self.builder.get_object('statusbar')
+	setOutput("Starting " + proc[index], obj)
 	return px
 
-def killProc(self, index, p):
+def killProc(index, p):
 	try:
 		cur.execute("UPDATE tbproctl SET sts = %s WHERE id = %s", (0, 100+id))
 		db.commit()
@@ -205,22 +205,24 @@ def killProc(self, index, p):
 	except:
 		a = 0
 	p.kill()
-	obj = self.builder.get_object('statusbar')
-	self.setOutput("Stopping " + proc[index], obj)
+	#obj = self.builder.get_object('statusbar')
+	setOutput("Stopping " + proc[index], obj)
 	return 0
 
 def checkStatus(index, pindex):
 	sts = 0
+	ts = time.time()
+	timestamp = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
 	if pindex.poll() is not None:
 		sts = 9			
 	else:
-		sts = 1	
+		sts = 1		
 	try:
-		cur.execute("UPDATE tbproctl SET sts = %s WHERE id = %s", (sts, 100+index))
+		cur.execute("UPDATE tbproctl SET sts = %s, lastupdate = %s WHERE id = %s", (sts, timestamp ,100+index))
 		db.commit()
-		#time.sleep(3)
 		return
-	except:
+	except (MySQLdb.Error, MySQLdb.Warning):
+		print(e)
 		print("sql errorrrrrrrrrrrrrrrrrrrrrrrrrrrr")		
 			
 def isNotInt(self, s):
@@ -242,9 +244,8 @@ def setOutput(txt, obj):
 	global StatusBar
 	status_text = txt + '\r\n' + status_text
 	status_text = (status_text[:200] + '..') if len(status_text) > 200 else status_text	
-	#obj = self.builder.get_object('statusbar')
-	#obj.delete("1.0", "end")
-	#obj.insert("end", status_text)
+	print(status_text)
+
 
 def enqueue_output(out, queue, idx):
 	for line in iter(out.readline, b''):
@@ -260,7 +261,7 @@ def checkProc():
 		if line == "thread":
 			index = q.get_nowait()
 			line = q.get_nowait()
-			self.updateOutput(index, line)	
+			updateOutput(index, line)	
 	except Empty:
 		a = 1
 
