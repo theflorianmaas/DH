@@ -5,7 +5,6 @@
 //
 // ------------------------------------------------------------ //
 // Include libraries //
-//#include <XBee.h>
 #include <Timer.h>
 #include <SoftwareSerial.h>
 #include <Nextion.h>
@@ -58,6 +57,8 @@
 #define NEX_RET_LIGHT5  0x75 //light 5
 #define NEX_RET_LIGHT6  0x76 //light 6
 #define NEX_RET_STRDIM  0x90 //start dimmer
+#define NEX_SEL_GROUP   0x40 //selected group
+#define NEX_CON_WIFI   0x50 //connect WIFI
 
 boolean isDimmerStarted = false;
 
@@ -140,9 +141,6 @@ Nextion HMISerial(nextion, 57600); //create a Nextion object named myNextion usi
 #define NUM_RCVD_VAL  12 // Numero di valori ricevuri dal cordinatore 
 
 
-
-
-
 /* ACTUATORS
   //0=actuator number
   //1=status
@@ -150,9 +148,12 @@ Nextion HMISerial(nextion, 57600); //create a Nextion object named myNextion usi
   //3=value
 */
 int actuators[NUM_ACTU][4] = {{PINNODE, 0, 0, 0}};
-int aLights[NUM_LIGHTS][5]; //[x][0]=pin [x][1]=type [x][2]=status [x][3]=value [x][4]=color
-byte aGroups[1][5] = {0, 0, 0, 0, 0}; //current mood, mood1, mood2...
-byte c_light;
+int aGroups[11]; //current group available in the gateway...
+int aMoods[1][5] = {0, 0, 0, 0, 0}; //moods of the selected group
+int aLights[NUM_LIGHTS][5]; //lights of the selected group [x][0]=pin [x][1]=type [x][2]=status [x][3]=value [x][4]=color
+int c_light; //current light
+int c_group; //current group
+int c_mood; //current mood
 /*
 // --- Xbee section ----*/
 
@@ -218,7 +219,7 @@ void loop(void)
 // Functions                                              //
 // *******************************************************//
 void sendSensorData() {
-  sendData(ACTUATOR); //send actuators
+  //sendData(ACTUATOR); //send actuators
   getScreenTouch();
 }
 
@@ -253,7 +254,7 @@ void parseXbeeReceivedData(int x)
 
   if (x == SMLIGHT_GROUP) //set group light moods in the array
   {
-    setLightGroup(RxData);
+    //setLightGroup(RxData);
   }
 
   if (x == SMLIGHT_COMMAND) //coomand
@@ -473,32 +474,7 @@ void sendCommand(byte cmd)
 
 
 
-// ******************************************************* //
-void setPIN(byte pin, byte sts, byte outputType, int p1, int p2)
-{
-  // p1 = time time, where output type = HVAV p1 = component where type = Thermostat
-  // p2 = fading time
-  byte actuatorId = getActuatorId(pin);
-  switch (outputType) {
-    case TONE: //Tone
-      if (sts == OFF) {
-        noTone(pin);
-      }
-      if (sts == ON) {
-        tone(pin, 4500);
-        //TimerFreeTone(pin, false);
-      }
-      // update actuator status
-      if (sts == OFF) { //if = OFF
-        actuators[actuatorId][1] = OFF; //set actuator status inactive
-      }
-      else { //if != OFF
-        actuators[actuatorId][1] = ON; //set actuator status active
-      }
-      break;
 
-  }
-}
 
 // ******************************************************* //
 // Common functions                                        //
@@ -529,9 +505,8 @@ void parseTxData(uint8_t* payload, int16_t* txData, int idx)
   }
 }
 
-
 void startTasks() {
-  t0.every(TIMEt1, sendSensorData);
+  //t0.every(TIMEt1, sendSensorData);
   //t0.every(TIMEt0, updatePinValues);
 }
 
@@ -561,4 +536,8 @@ int getFreePinIdx()
     }
   }
   return ret;
+}
+
+void connectWIFI(){
+  // insert istruction to connect WIFI network
 }

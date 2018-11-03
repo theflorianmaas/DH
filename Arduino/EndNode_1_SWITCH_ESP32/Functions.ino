@@ -109,11 +109,8 @@ void setLightConfig(byte pin, byte type, byte mode) {
   refreshScreen();
 }
 
-void setLightGroup(long int RxData[1]) {
-  aGroups[0][1] = RxData[2]; //mood1
-  aGroups[0][2] = RxData[3]; //mood2
-  aGroups[0][3] = RxData[4]; //mood3
-  aGroups[0][4] = RxData[5]; //mood4
+void setLightGroup(uint8_t group) { 
+  c_group = group; //current group
 }
 
 void pBit() {
@@ -157,6 +154,10 @@ void getScreenTouch() {
     }
     else if (touch[2] == NEX_RET_STRDIM)
       isDimmerStarted = true;
+    else if (touch[2] == NEX_SEL_GROUP) //selected default group
+      setLightGroup(touch[3]);
+    else if (touch[2] == NEX_CON_WIFI) //selected default group
+      connectWIFI();
     else {
       if (touch[2] == NEX_RET_OFF) {
         isDimmerStarted = false;
