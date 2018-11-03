@@ -1,7 +1,7 @@
 // ------------------------------------------------------------ //
 // EndNode_1_Switch
-// V.1 27/11/2017
-// First version
+// V.0.1 3/11/2018
+// First version 0.1 Development
 //
 // ------------------------------------------------------------ //
 // Include libraries //
@@ -17,14 +17,11 @@
 //-----------------------------------------------------------
 // reserved pins
 //-----------------------------------------------------------
-// Data wire is plugged into port 2 on the Arduino
-#define ONE_WIRE_BUS 2
-const int pinBattery PROGMEM = A0;
-#define IR_EMITER 3 //pin for IR Led 
-#define PINt 24 //virtual pin for temperature
-#define PINh 25 //virtual pin for humidity
-#define NEXTION_RX 10
-#define NEXTION_TX 11
+#define NEXTION_RX 5 //D2
+#define NEXTION_TX 4 //D1
+#define PIN_RELE   2 //D4
+#define PIN_TONE   12 //D6
+
 //-----------------------------------------------------------
 // Nextion Display
 //-----------------------------------------------------------
@@ -82,7 +79,6 @@ Nextion HMISerial(nextion, 57600); //create a Nextion object named myNextion usi
 //Service Led status
 #define ON  HIGH
 #define OFF LOW
-#define LED_STATUS 3
 
 //Service command and status
 #define READ          0
@@ -114,52 +110,6 @@ Nextion HMISerial(nextion, 57600); //create a Nextion object named myNextion usi
 #define LEDRGB        7
 #define THERMOSTAT    9
 
-/*
-  //Actuator commands HVAC
-  #define ACCOFF      0
-  #define ACCON       1
-  #define ACCTEMP     2
-  #define ACCMODE     3
-  #define ACCFAN      4
-  #define ACCSWING    5
-
-  //Actuator methods HVAC
-  #define ACFAN1        3
-  #define ACFAN2        4
-  #define ACFAN3        5
-  #define ACFANAUTO     6
-  #define ACMODECOOL    7
-  #define ACMODEDRY     8
-  #define ACMODEHEAT    9
-  #define ACMODEAUTO    10
-  #define ACTEMPERATURE 11
-  #define ACSWING       12
-*/
-
-/*
-  //Actuator methods TV
-  #define TVVOLUMEUP    13
-  #define TVVOLUMEDOWN  14
-  #define TVCHANNELUP   15
-  #define TVCHANNELDOWN 16
-  #define TVMUTE        17
-  #define TVANTENNA     18
-  #define TVHDMI        19
-  #define TVBUTRED      20
-  #define TVBUTGREEN    21
-  #define TVBUTYELLOW   22
-  #define TVBUTBLUE     23
-  #define TVKEYUP       24
-  #define TVKEYDOWN     25
-  #define TVKEYLEFT     26
-  #define TVKEYRIGHT    27
-  #define TVKEYOK       28
-  #define TVKEYRETURN   29
-
-  #define SONY      1
-  #define SAMSUNG   2
-*/
-
 #define IN 1
 #define OUT 0
 
@@ -189,11 +139,7 @@ Nextion HMISerial(nextion, 57600); //create a Nextion object named myNextion usi
 
 #define NUM_RCVD_VAL  12 // Numero di valori ricevuri dal cordinatore 
 
-#define PIN_ADJU   23
-#define PIN_ITEM   24
-#define PIN_IHUM   25
-#define PIN_RELE   8
-#define PIN_TONE   9
+
 
 
 
@@ -209,17 +155,6 @@ byte aGroups[1][5] = {0, 0, 0, 0, 0}; //current mood, mood1, mood2...
 byte c_light;
 /*
 // --- Xbee section ----*/
-//XBee xbee = XBee();
-//#define TX_RESPONSE ZB_TX_STATUS_RESPONSE
-//#define request(addr64, payload, sizeofPayload) ZBTxRequest tx = ZBTxRequest(addr64, payload, sizeofPayload)
-//#define getStatus() txStatus.getDeliveryStatus()
-//#define TXStatusResponse(txStatus)  xbee.getResponse().getZBTxStatusResponse(txStatus)
-//ZBTxStatusResponse txStatus = ZBTxStatusResponse();
-//ZBRxResponse rx = ZBRxResponse();
-//#define RXStatusResponse(rx) xbee.getResponse().getZBRxResponse(rx);
-//#define getApiId() xbee.getResponse().getApiId();
-//#define getRssi() 100;
-//XBeeAddress64 COORD_ADDR = XBeeAddress64(0x0, 0x0);
 
 // Array to hold data received [0]=command 0=Read 1=Write [1]=pin number [2]=pin value
 // es. [R][0][0] read all values, [W][1][100] set pin 1 to value 100
@@ -257,13 +192,8 @@ void setup()
   }
 
   pinMode(PIN_RELE, OUTPUT);
-  pinMode(IR_EMITER, OUTPUT);
-
   digitalWrite(PIN_RELE, LOW);
-
   // start serial xbee
-  Serial.begin(BAUD_RATE);
-  //xbee.setSerial(Serial);
   HMISerial.init();
   //HMISerial.sendCommand("bauds=57600");
   delay(1000);
@@ -492,10 +422,10 @@ void sendCommand(byte cmd)
   }
   byte array_size = 5;
   int elements = array_size * 2;
-  boolean readPacketResponse; //store the response of xbee.readPacket(timeout)
-  uint8_t payload[elements];
-  int16_t xbeeLoad[array_size]; // Array to hold integers that will be sent
-  int response = 0;
+  //boolean readPacketResponse; //store the response of xbee.readPacket(timeout)
+  //uint8_t payload[elements];
+  //int16_t xbeeLoad[array_size]; // Array to hold integers that will be sent
+  //int response = 0;
 
 /*
 

@@ -117,7 +117,7 @@ void setLightGroup(long int RxData[1]) {
 }
 
 void pBit() {
-  tone(9, 1500, 30);
+  tone(PIN_TONE, 1500, 30);
   noTone;
 }
 
@@ -125,9 +125,12 @@ void getScreenTouch() {
   uint8_t* touch = HMISerial.listen(); //check for message
   byte cmd;
   if (touch[0] != 0) {
+     pBit();
+     //Serial.println(touch[0]);
+     //Serial.println(touch[1]);
+     //Serial.println(touch[2]);
     if (touch[2] == NEX_RET_GROUP || touch[2] == NEX_RET_LIGHT1 || touch[2] == NEX_RET_LIGHT2 || touch[2] == NEX_RET_LIGHT3 || touch[2] == NEX_RET_LIGHT4 || touch[2] == NEX_RET_LIGHT5 || touch[2] == NEX_RET_LIGHT6)
     {
-
       switch (touch[2]) {
         case NEX_RET_GROUP:
           c_light = 0;
@@ -162,4 +165,3 @@ void getScreenTouch() {
     }
   }
 }
-

@@ -220,7 +220,7 @@ String Nextion::getComponentText(String component, uint32_t timeout){
   String tempStr = "get " + component + ".txt";
   sendCommand(tempStr.c_str());
   tempStr = "";
-  tempStr = listen(timeout);
+  //tempStr = listen(timeout);
   unsigned long start = millis();
   uint8_t ff = 0;//end message
   while((millis()-start < timeout)){
