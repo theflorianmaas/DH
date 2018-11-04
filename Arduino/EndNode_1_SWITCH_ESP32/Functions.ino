@@ -15,6 +15,7 @@ void refreshScreen() {
   }
   HMISerial.sendCommand("t_icons.en=1");
   HMISerial.sendCommand("t_select_type.en=1");
+
   //pBit();
 }
 
@@ -121,11 +122,13 @@ void pBit() {
 void getScreenTouch() {
   uint8_t* touch = HMISerial.listen(); //check for message
   byte cmd;
+       Serial.println(touch[0],HEX);
+     Serial.println(touch[1],HEX);
+     Serial.println(touch[2],HEX);
+     delay(100);
   if (touch[0] != 0) {
      pBit();
-     //Serial.println(touch[0]);
-     //Serial.println(touch[1]);
-     //Serial.println(touch[2]);
+
     if (touch[2] == NEX_RET_GROUP || touch[2] == NEX_RET_LIGHT1 || touch[2] == NEX_RET_LIGHT2 || touch[2] == NEX_RET_LIGHT3 || touch[2] == NEX_RET_LIGHT4 || touch[2] == NEX_RET_LIGHT5 || touch[2] == NEX_RET_LIGHT6)
     {
       switch (touch[2]) {
@@ -157,7 +160,7 @@ void getScreenTouch() {
     else if (touch[2] == NEX_SEL_GROUP) //selected default group
       setLightGroup(touch[3]);
     else if (touch[2] == NEX_CON_WIFI) //selected default group
-      connectWIFI();
+      tryWifiConnect();
     else {
       if (touch[2] == NEX_RET_OFF) {
         isDimmerStarted = false;
