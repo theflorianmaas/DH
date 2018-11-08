@@ -2,19 +2,19 @@ void refreshScreen() {
 
   boolean outout;
   for (int c = 0; c < 5; c++) {
-    HMISerial.setComponentValue("st1", 0);
+    //HMISerial.setComponentValue("st1", 0);
     Serial.println(outout);
   }
   String label;
 
   for (int i = 1; i < NUM_LIGHTS; i++) {
-    HMISerial.setComponentValue("vt" + String(i), int(aLights[i][1]));
-    HMISerial.setComponentValue("st" + String(i), int(aLights[i][2]));
-    HMISerial.setComponentValue("vl" + String(i), int(aLights[i][3]));
-    HMISerial.setComponentValue("cx" + String(i), int(aLights[i][4]));
+    //HMISerial.setComponentValue("vt" + String(i), int(aLights[i][1]));
+    //HMISerial.setComponentValue("st" + String(i), int(aLights[i][2]));
+    //HMISerial.setComponentValue("vl" + String(i), int(aLights[i][3]));
+    //HMISerial.setComponentValue("cx" + String(i), int(aLights[i][4]));
   }
-  HMISerial.sendCommand("t_icons.en=1");
-  HMISerial.sendCommand("t_select_type.en=1");
+  //HMISerial.sendCommand("t_icons.en=1");
+  //HMISerial.sendCommand("t_select_type.en=1");
 
   //pBit();
 }
@@ -120,7 +120,8 @@ void pBit() {
 }
 
 void getScreenTouch() {
-  uint8_t* touch = HMISerial.listen(); //check for message
+  /*
+  //uint8_t* touch = HMISerial.listen(); //check for message
   byte cmd;
   delay(5);
   if (touch[0] != 0) {
@@ -167,4 +168,5 @@ Serial.println(touch[2]);
       sendCommand(touch[2]);
     }
   }
+  */
 }

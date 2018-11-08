@@ -6,10 +6,14 @@
 // ------------------------------------------------------------ //
 // Include libraries //
 #include <Timer.h>
-#include <SoftwareSerial.h>
-#include <Nextion.h>
 #include <EEPROM.h>
 #include <ESP8266WiFi.h>
+#include <Nextion.h>
+#include <NextionPage.h>
+#include <NextionButton.h>
+#include <SoftwareSerial.h>
+#include <NextionVariableString.h>
+#include <INextionStringValued.h>
 
 // ------------------------------------------------------------ //
 //-----------------------------------------------------------
@@ -65,10 +69,20 @@ boolean isDimmerStarted = false;
 
 #define PAGE_MAIN 0
 
-SoftwareSerial nextion(NEXTION_RX, NEXTION_TX);// Nextion TX to pin 11 and RX to pin 10 of Arduino
-Nextion HMISerial(nextion, 57600); //create a Nextion object named myNextion using the nextion serial port @ 9600bps
+SoftwareSerial nextionSerial(NEXTION_RX, NEXTION_TX);// Nextion TX to pin 11 and RX to pin 10 of Arduino
+Nextion nex(nextionSerial); //create a Nextion object named myNextion using the nextion serial port @ 9600bps
 
 //-----------------------------------------------------------
+NextionPage pgMain(nex, 0, 0, "Main");
+NextionPage pgWifi(nex, 6, 0, "Wifi");
+
+//----- Wifi ----------------------------//
+INextionStringValued t_ssid(nex,6,2,"t_ssid");
+INextionStringValued t_pass(nex,6,3,"t_pass");
+NextionButton bconnect(nex,6,6,"bconn");
+
+char buffer1[30];
+char buffer2[30];
 //-----------------------------------------------------------
 
 #define receivedOK 0
@@ -200,26 +214,21 @@ void setup()
   pinMode(PIN_RELE, OUTPUT);
   digitalWrite(PIN_RELE, LOW);
   Serial.begin(BAUD_RATE);
-  // start serial xbee
-  HMISerial.init();
-  //HMISerial.sendCommand("bauds=57600");
-  delay(1000);
-  refreshScreen();
+  nextionSerial.begin(57600);
+
+  bconnect.attachCallback(&_bconnect);
+
+
+  //refreshScreen();
   pBit();
   Serial.println("xxxxxxxxxxxxxxxxxx");
-  startTasks();
+  //startTasks();
 }  //setup()
 
 void loop(void)
 {
-  t0.update();
-  getScreenTouch();
-  /*
-    if (xbee.readPacket(1))
-    {
-    getData();
-    }
-  */
+  //t0.update();
+  nex.poll();
 }
 
 // *******************************************************//
@@ -420,13 +429,13 @@ void sendCommand(byte cmd)
 { //send single command of changed light
   //read light or group data to transmit
   if (c_light != 0) { //light
-    aLights[c_light][2] = HMISerial.getComponentValue("st" + String(c_light)); //get status
-    aLights[c_light][3] = HMISerial.getComponentValue("vl" + String(c_light)); //get value
-    aLights[c_light][4] = HMISerial.getComponentValue("cx" + String(c_light)); //get color
+    //aLights[c_light][2] = HMISerial.getComponentValue("st" + String(c_light)); //get status
+    //aLights[c_light][3] = HMISerial.getComponentValue("vl" + String(c_light)); //get value
+    //aLights[c_light][4] = HMISerial.getComponentValue("cx" + String(c_light)); //get color
   } else { //group
-    aLights[c_light][2] = HMISerial.getComponentValue("stg" + String(c_light)); //get status
-    aLights[c_light][3] = HMISerial.getComponentValue("vlg" + String(c_light)); //get value
-    aLights[c_light][4] = HMISerial.getComponentValue("cxg" + String(c_light)); //get mood
+    //aLights[c_light][2] = HMISerial.getComponentValue("stg" + String(c_light)); //get status
+    //aLights[c_light][3] = HMISerial.getComponentValue("vlg" + String(c_light)); //get value
+    //aLights[c_light][4] = HMISerial.getComponentValue("cxg" + String(c_light)); //get mood
   }
   byte array_size = 5;
   int elements = array_size * 2;
@@ -557,24 +566,13 @@ void getLights() {
   // get available lights assigned to the selected group from gateway
 }
 
-int tryWifiConnect() {
+boolean tryWifiConnect() {
   //se la pagina corrente non è wifi legge i parametri da eeprom
   Serial.print("Provo connessione ");
-  String s_ssid = HMISerial.getComponentText("t_ssid",1000);
-  s_ssid.toCharArray(wifiParams.ssid, s_ssid.length());
-  //String s_passcode = HMISerial.getComponentText("t_pass",1000);
-  //s_passcode.toCharArray(wifiParams.passcode, s_passcode.length());
-
-   Serial.println(s_ssid);
-   //Serial.println(s_passcode);
-   
-   Serial.println(wifiParams.ssid);
-   Serial.println(wifiParams.passcode);
-  //getWifiParams();
-
-
   //prova la connessione
   WiFi.mode(WIFI_STA);
+  Serial.println(wifiParams.ssid);
+  Serial.println(wifiParams.passcode);
   WiFi.begin(wifiParams.ssid, wifiParams.passcode);
 
   unsigned long timeout = millis() + 5000;
@@ -587,15 +585,16 @@ int tryWifiConnect() {
   }
   if (WiFi.status() == WL_CONNECTED) { //connessione attiva
     //se connesso aggiorna variabile wifi su schermo a 1 altrimenti 0
-    HMISerial.setComponentValue("wifi", 1);
+    //HMISerial.setComponentValue("wifi", 1);
     putWifiParams(); //scrive valori su eeprom
     Serial.println("Connesso");
     pBit();
-    // get available lights assigned to the selected group from gateway
+    return true;
   }
   else {
-    HMISerial.setComponentValue("wifi", 0);
+    //HMISerial.setComponentValue("wifi", 0);
     Serial.println("Non connesso");
+    return false;
   }
 }
 
@@ -605,4 +604,32 @@ void putWifiParams() {
 
 int getWifiParams() {
   EEPROM.get(0, wifiParams);
+}
+
+//--- Callsback funcions ------------------------//
+void _bconnect(NextionEventType type, INextionTouchable *widget)
+{
+  if (type == NEX_EVENT_PUSH)
+  {
+    digitalWrite(13, HIGH);
+    //wifiParams.ssid = buffer;
+
+    if (t_pass.getText(buffer1, 30)) {
+      Serial.println(buffer1);
+      wifiParams.passcode = buffer1;
+    }
+       
+    if (t_ssid.getText(buffer2, 30)) {
+      Serial.println(buffer2);
+      wifiParams.ssid = buffer2;
+    }
+
+
+    if (tryWifiConnect())
+      bconnect.setText("Connected!");
+  }
+  else if (type == NEX_EVENT_POP)
+  {
+    digitalWrite(13, LOW);
+  }
 }
