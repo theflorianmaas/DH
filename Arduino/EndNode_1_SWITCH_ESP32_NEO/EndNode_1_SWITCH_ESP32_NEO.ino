@@ -337,10 +337,6 @@ void putWifiParams() {
   EEPROM.put(0, wifiParams);
 }
 
-void putWifiParams() {
-  EEPROM.put(0, wifiParams);
-}
-
 int getWifiParams() {
   EEPROM.get(0, wifiParams);
 }
