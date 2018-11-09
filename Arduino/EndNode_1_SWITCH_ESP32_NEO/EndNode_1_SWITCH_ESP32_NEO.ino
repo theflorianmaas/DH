@@ -8,12 +8,14 @@
 #include <Timer.h>
 #include <EEPROM.h>
 #include <ESP8266WiFi.h>
+
 #include <Nextion.h>
 #include <NextionPage.h>
 #include <NextionButton.h>
 #include <SoftwareSerial.h>
 #include <NextionVariableString.h>
 #include <INextionStringValued.h>
+#include <NextionPicture.h>
 
 // ------------------------------------------------------------ //
 //-----------------------------------------------------------
@@ -26,12 +28,7 @@
 #define PIN_RELE   2 //D4
 #define PIN_TONE   12 //D6
 
-//-----------------------------------------------------------
-// Nextion Display
-//-----------------------------------------------------------
-//-----------------------------------------------------------
-#define ON  1
-#define OFF 0
+
 
 //--------------------------------------------//
 // Codes received from Nextion screen on serial
@@ -65,6 +62,15 @@
 #define NEX_SEL_GROUP   0x40 //selected group
 #define NEX_CON_WIFI    0x34 //connect WIFI
 
+//-----------------------------------------------------------
+// Nextion Display
+//-----------------------------------------------------------
+//-----------------------------------------------------------
+#define ON  1
+#define OFF 0
+#define NEX_WIFI_CONNECTED_PICTURE 0
+#define NEX_WIFI_NOTCONNECTED_PICTURE 1
+
 boolean isDimmerStarted = false;
 
 #define PAGE_MAIN 0
@@ -72,17 +78,22 @@ boolean isDimmerStarted = false;
 SoftwareSerial nextionSerial(NEXTION_RX, NEXTION_TX);// Nextion TX to pin 11 and RX to pin 10 of Arduino
 Nextion nex(nextionSerial); //create a Nextion object named myNextion using the nextion serial port @ 9600bps
 
-//-----------------------------------------------------------
+//------Pages---------------------------------------------------
 NextionPage pgMain(nex, 0, 0, "Main");
 NextionPage pgWifi(nex, 6, 0, "Wifi");
+
+//----- Main ---------------------------//
+NextionPicture bswitch(nex, 0, 0, "s1");
+NextionPicture bmoncolor[4] = {(nex, 0, 0, "ml1"), (nex, 0, 0, "ml2"), (nex, 0, 0, "ml3"), (nex, 0, 0, "ml4")};
+NextionPicture brgbcolor[8] = {(nex, 0, 0, "rl1"), (nex, 0, 0, "rl2"), (nex, 0, 0, "rl3"), (nex, 0, 0, "rl4"),(nex, 0, 0, "rl5"), (nex, 0, 0, "rl6"), (nex, 0, 0, "rl7"), (nex, 0, 0, "rl8")};
+NextionPicture blight[6] = {(nex, 0, 0, "l1"), (nex, 0, 0, "l2"), (nex, 0, 0, "l3"), (nex, 0, 0, "l4"),(nex, 0, 0, "l5"), (nex, 0, 0, "l6")};
+NextionPicture bgroup(nex, 0, 0, "group");
+NextionPicture iwifi(nex, 0, 0, "wifi");
 
 //----- Wifi ----------------------------//
 INextionStringValued t_ssid(nex,6,2,"t_ssid");
 INextionStringValued t_pass(nex,6,3,"t_pass");
 NextionButton bconnect(nex,6,6,"bconn");
-
-char buffer1[30];
-char buffer2[30];
 //-----------------------------------------------------------
 
 #define receivedOK 0
@@ -216,13 +227,16 @@ void setup()
   Serial.begin(BAUD_RATE);
   nextionSerial.begin(57600);
 
-  bconnect.attachCallback(&_bconnect);
-
-
+  //--- Callback attachement -----------------------//
+  bconnect.attachCallback(&_bconnect); //wifi connect button
+  bswitch.attachCallback(&_bswitch); //main switch
+  
+  initScreenMain();
+  
   //refreshScreen();
   pBit();
-  Serial.println("xxxxxxxxxxxxxxxxxx");
   //startTasks();
+  wifiTryConnect();
 }  //setup()
 
 void loop(void)
@@ -232,327 +246,30 @@ void loop(void)
 }
 
 // *******************************************************//
-// Functions                                              //
+// Functions  NEXTION                                            //
 // *******************************************************//
-void sendSensorData() {
-  //sendData(ACTUATOR); //send actuators
-  getScreenTouch();
+void initScreenMain() {
+  // get available groups from gateway
+  bswitch.setPictureID(OFF);
+  for (int i = 0; i < 4, i++){
+	  bmoncolor[i].hide();
+  }  
+  for (int i = 0; i < 8, i++){
+	  brgbcolor[i].hide();
+  }
+  for (int i = 0; i < 6, i++){
+	  blight[i].hide();
+  }
+  
+  //nex.sendCommand("vis p7,0")
+	
 }
 
 // ******************************************************* //
-// ******************************************************* //
-void parseXbeeReceivedData(int x)
-{
-  int val = OFF;
-  if (x == WRITE) {
-    if (RxData[3] == DIGITAL) //digital
-    {
-      val = RxData[2];
-    }
-    if (RxData[3] == ANALOG || RxData[3] == SERVO || RxData[3] == TONE) //analog
-    {
-      val = RxData[2];
-    }
-    if (RxData[3] == HVAC) //AC
-    {
-      val = RxData[2];
-    }
-    if (RxData[3] == TV) //TV
-    {
-      val = RxData[2];
-    }
-  }
-  //--------------------------------------------
-  if (x == SMLIGHT_CONFIG) //set light in the array
-  {
-    setLightConfig(RxData[1], RxData[2], RxData[3]); // pin, type, mode
-  }
-
-  if (x == SMLIGHT_GROUP) //set group light moods in the array
-  {
-    //setLightGroup(RxData);
-  }
-
-  if (x == SMLIGHT_COMMAND) //coomand
-  {
-    execLightCommand(RxData[1], RxData[2], RxData[3], RxData[4]);
-  }
-
-}
-// ******************************************************* //
-
-// ******************************************************* //
-//-----------------------------------
-// Read received data on Xbee serial
-//------------------------------------
-void getData()
-{
-  uint8_t option;            // Should return zero, not sure how to use this
-  uint8_t dataLength;        // number of bytes of data being sent to xbee
-  int resXbee;
-  /*
-    if (xbee.getResponse().isAvailable()) //got something
-    {
-    resXbee = getApiId();
-    if (resXbee == RX_16_RESPONSE || resXbee == RX_64_RESPONSE || resXbee == ZB_RX_RESPONSE || resXbee == ZB_EXPLICIT_RX_RESPONSE)
-    {
-      RXStatusResponse(rx);
-      option = rx.getOption();
-      dataLength = rx.getDataLength();
-      COORD_ADDR = rx.getRemoteAddress64(); // Serial of Tx (remember MY is set as a hex number.  Useful if you have multiple transmitters
-
-      for (int i = 0; i < dataLength; i = i + NUM_BYTE_ARR)
-      {
-        // convert received payload to long
-        for (int k = 0; k < NUM_BYTE_ARR; k++)
-        {
-          convLong.by[k] = rx.getData(i + ((NUM_BYTE_ARR - 1) - k));
-        }
-        RxData[i / NUM_BYTE_ARR] = convLong.num;
-      }
-
-      if (RxData[0] == READ) { // if [0]=0 command to read sensors and comando di lettura sensori o attuatori
-        sendData(RxData[1]); //definisce cosa leggere
-      }
-      else
-        //if (RxData[0] == WRITE || RxData[0] == ALARM || RxData[0] == TIME || RxData[0] == METEO || RxData[0] == METEO_FCST || RxData[0] == METEO_FCST_TEMP)
-      {
-        parseXbeeReceivedData(RxData[0]);
-      }
-    }
-    }
-  */
-}
-// ******************************************************* //
-
-// ******************************************************* //
-void sendData(int t) // t=0 = sensors 1 = actuators 2=method 3=light
-{
-  int elements = 0;
-  if (t == SMCMD) {
-    elements = (NUM_LIGHT_PTS + 1) * 2;
-  }
-  else if (t == ACTUATOR) {
-    elements = (NUM_ACTU_PTS + 1) * 2;
-  }
-
-  boolean readPacketResponse; //store the response of xbee.readPacket(timeout)
-  uint8_t payload[elements];
-  int16_t xbeeData[NUM_DATA_PTS + 1]; // Array to hold integers that will be sent to other xbee [pari]=valore pin [dispari]=valore pin
-  int16_t xbeeActu[NUM_ACTU_PTS + 1]; // Array to hold integers that will be sent to other xbee [pari]=valore pin [dispari]=valore pin
-  int16_t xbeeLoad[NUM_LIGHT_PTS + 1]; // Array to hold integers that will be sent to other xbee [pari]=valore pin [dispari]=valore pin
-  byte idx = 1;
-  int response = 0;
-  switch (t)
-  {
-    case SMCMD:
-      xbeeLoad[0] = SMCMD;
-      for (int i = 1; i < NUM_LIGHTS; i++) {
-        xbeeLoad[idx] = aLights[i][0]; //pin
-        idx++;
-        xbeeLoad[idx] = aLights[i][2]; //status
-        idx++;
-        xbeeLoad[idx] = aLights[i][3]; //value
-        idx++;
-        xbeeLoad[idx] = aLights[i][4]; //color
-        idx++;
-      }
-
-      parseTxData(payload, xbeeLoad, idx);
-      break;
-
-    /* ACTUATORS
-      //0=actuator number
-      //1=status
-      //2=output type
-      //3=value
-    */
-    case ACTUATOR:
-      // Actuators data
-      xbeeActu[0] = ACTUATOR;
-      for (byte i = 0; i < NUM_ACTU; i++)
-      {
-        xbeeActu[idx] = actuators[i][0]; //actuator number
-        idx++;
-        xbeeActu[idx] = actuators[i][1]; //status
-        idx++;
-        xbeeActu[idx] = actuators[i][3]; //value
-        idx++;
-      }
-      parseTxData(payload, xbeeActu, idx);
-      break;
-  }
-
-  /* request(COORD_ADDR, payload, sizeof(payload));
-    /* begin the common part */
-
-  /*
-    xbee.send(tx);
-
-    xbee.readPacket(50);
-    if (xbee.getResponse().isAvailable()) //got something
-    {
-      // should be a znet tx status
-      response = getApiId();
-      if (response == TX_RESPONSE) {
-        TXStatusResponse(txStatus);
-        if (getStatus() == SUCCESS) {
-          // g_link = ON;
-        }
-        else
-        {
-          // g_link = OFF;
-        }
-      }
-      else if ((response == ZB_RX_RESPONSE))
-      {
-        //g_link = ON;
-        getData();
-      }
-    }
-    else if (xbee.getResponse().isError())
-    {
-      //g_link = OFF;
-    }
-    else
-    {
-      //g_link = OFF;
-    } // Finished waiting for XBee packet
-
-  */
-} // sendData()
-// ******************************************************* //
 
 
 // ******************************************************* //
-void sendCommand(byte cmd)
-{ //send single command of changed light
-  //read light or group data to transmit
-  if (c_light != 0) { //light
-    //aLights[c_light][2] = HMISerial.getComponentValue("st" + String(c_light)); //get status
-    //aLights[c_light][3] = HMISerial.getComponentValue("vl" + String(c_light)); //get value
-    //aLights[c_light][4] = HMISerial.getComponentValue("cx" + String(c_light)); //get color
-  } else { //group
-    //aLights[c_light][2] = HMISerial.getComponentValue("stg" + String(c_light)); //get status
-    //aLights[c_light][3] = HMISerial.getComponentValue("vlg" + String(c_light)); //get value
-    //aLights[c_light][4] = HMISerial.getComponentValue("cxg" + String(c_light)); //get mood
-  }
-  byte array_size = 5;
-  int elements = array_size * 2;
-  //boolean readPacketResponse; //store the response of xbee.readPacket(timeout)
-  //uint8_t payload[elements];
-  //int16_t xbeeLoad[array_size]; // Array to hold integers that will be sent
-  //int response = 0;
-
-  /*
-
-    xbeeLoad[0] = SMCMD; //it is a command
-    xbeeLoad[1] = aLights[c_light][0]; //pin
-    xbeeLoad[2] = aLights[c_light][2]; //status
-    xbeeLoad[3] = map(aLights[c_light][3], 0, 100, 0, 254);
-    xbeeLoad[4] = aLights[c_light][4]; //color/mood
-    parseTxData(payload, xbeeLoad, array_size);
-    request(COORD_ADDR, payload, sizeof(payload));
-    /* begin the common part */
-  /*
-    //for (int attempts = 0; attempts < 5; attempts++) {
-    //    xbee.send(tx);
-      xbee.readPacket(500);
-      if (xbee.getResponse().isAvailable()) //got something
-      {
-        response = getApiId();
-        if (response == TX_RESPONSE || response == ZB_TX_STATUS_RESPONSE) {
-          TXStatusResponse(txStatus);
-          if (getStatus() == SUCCESS) {
-            //pBit();
-          }
-          else
-          {
-            //HMISerial.setComponentText("t0", "Errore");
-          }
-        }
-        else if ((response == ZB_RX_RESPONSE))
-        {
-          getData();
-          //xbee.send(tx);
-        }
-      }
-      else
-      {
-        //HMISerial.setComponentText("t0", "No response");
-        //break;
-      }
-      delay(10);
-    //}
-  */
-} // sendCommand()
 // ******************************************************* //
-
-
-
-
-
-// ******************************************************* //
-// Common functions                                        //
-// ******************************************************* //
-
-// ******************************************************* //
-int getActuatorId(uint8_t pin)
-{
-  for (uint8_t i = 0; i < sizeof(actuators); i++)
-  { //cerco il tipo di nodo
-    if (actuators[i][0] == pin)
-    {
-      return i;
-      break;
-    }
-  }
-}
-
-// ******************************************************* //
-void parseTxData(uint8_t* payload, int16_t* txData, int idx)
-{
-  // SRG put the xbee code in it's own function   bool xbSend =  sendToXBee(&xbeeData);
-  // break down integers into two bytes and place in payload
-  for (int t = 0; t < idx; t++)
-  {
-    payload[t * 2]     = txData[t] >> 8 & 0xff; // High byte - shift bits 8 places, 0xff masks off the upper 8 bits
-    payload[(t * 2) + 1] = txData[t] & 0xff;  // low byte, just mask off the upper 8 bits
-  }
-}
-
-void startTasks() {
-  //t0.every(TIMEt1, sendSensorData);
-  //t0.every(TIMEt0, updatePinValues);
-}
-
-int getPinIdx(byte pin)
-{
-  int ret = -1;
-  for (byte i = 1; i < NUM_LIGHTS; i++)
-  {
-    if (aLights[i][0] == pin)
-    {
-      ret = i;
-      break;
-    }
-  }
-  return ret;
-}
-
-int getFreePinIdx()
-{
-  int ret = -1;
-  for (byte i = 1; i < NUM_LIGHTS; i++)
-  {
-    if (aLights[i][0] == NOLIGHT)
-    {
-      ret = i;
-      break;
-    }
-  }
-  return ret;
-}
 
 void getGroups() {
   // get available groups from gateway
@@ -566,7 +283,7 @@ void getLights() {
   // get available lights assigned to the selected group from gateway
 }
 
-boolean tryWifiConnect() {
+boolean wifiTryConnect() {
   //se la pagina corrente non è wifi legge i parametri da eeprom
   Serial.print("Provo connessione ");
   //prova la connessione
@@ -585,17 +302,39 @@ boolean tryWifiConnect() {
   }
   if (WiFi.status() == WL_CONNECTED) { //connessione attiva
     //se connesso aggiorna variabile wifi su schermo a 1 altrimenti 0
-    //HMISerial.setComponentValue("wifi", 1);
+    iwifi.setPictureID(NEX_WIFI_CONNECTED_PICTURE)
     putWifiParams(); //scrive valori su eeprom
     Serial.println("Connesso");
     pBit();
     return true;
   }
   else {
-    //HMISerial.setComponentValue("wifi", 0);
+    iwifi.setPictureID(NEX_WIFI_NOTCONNECTED_PICTURE)
     Serial.println("Non connesso");
     return false;
   }
+}
+
+boolean wifiCheckConnect() {
+  if (WiFi.status() == WL_CONNECTED) { //connessione attiva
+    //se connesso aggiorna variabile wifi su schermo a 1 altrimenti 0
+    iwifi.setPictureID(NEX_WIFI_CONNECTED_PICTURE)
+    putWifiParams(); //scrive valori su eeprom
+    Serial.println("Connesso");
+    pBit();
+    return true;
+  }
+  else {
+    iwifi.setPictureID(NEX_WIFI_NOTCONNECTED_PICTURE)
+    Serial.println("Non connesso");
+	wifiTryConnect();
+    return false;
+  }
+	
+}
+
+void putWifiParams() {
+  EEPROM.put(0, wifiParams);
 }
 
 void putWifiParams() {
@@ -609,23 +348,22 @@ int getWifiParams() {
 //--- Callsback funcions ------------------------//
 void _bconnect(NextionEventType type, INextionTouchable *widget)
 {
+  char buffer_ssid[30];
+  char buffer_pass[30];
   if (type == NEX_EVENT_PUSH)
   {
     digitalWrite(13, HIGH);
     //wifiParams.ssid = buffer;
-
-    if (t_pass.getText(buffer1, 30)) {
-      Serial.println(buffer1);
-      wifiParams.passcode = buffer1;
+    if (t_ssid.getText(buffer_ssid, 30)) {
+      Serial.println(buffer_ssid);
+      wifiParams.ssid = buffer_ssid;
     }
-       
-    if (t_ssid.getText(buffer2, 30)) {
-      Serial.println(buffer2);
-      wifiParams.ssid = buffer2;
+	
+    if (t_pass.getText(buffer_pass, 30)) {
+      Serial.println(buffer_pass);
+      wifiParams.passcode = buffer_pass;
     }
-
-
-    if (tryWifiConnect())
+    if (wifiTryConnect())
       bconnect.setText("Connected!");
   }
   else if (type == NEX_EVENT_POP)
@@ -633,3 +371,10 @@ void _bconnect(NextionEventType type, INextionTouchable *widget)
     digitalWrite(13, LOW);
   }
 }
+
+void _bswitch(NextionEventType type, INextionTouchable *widget)
+{
+	//
+}
+
+
