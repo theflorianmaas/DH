@@ -45,7 +45,6 @@ byte convertColor(byte color) {
       break;
   }
   return ret;
-
 }
 
 

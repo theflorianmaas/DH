@@ -9,6 +9,7 @@
 #include <SoftwareSerial.h>
 #include <EEPROM.h>
 #include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
 
 #include <NeoNextion.h>
 #include <NextionPage.h>
@@ -38,43 +39,6 @@
 //-----------------------------------------------------------
 #define ON  1
 #define OFF 0
-
-//--------------------------------------------//
-// Codes received from Nextion screen on serial
-//--------------------------------------------//
-
-#define NEX_RET_ON    0x99 //on
-#define NEX_RET_OFF   0x88 //off
-#define NEX_RET_DIMMER   0x55 //dimmer value
-#define NEX_RET_COLOR1   0x25 //rgb color 1
-#define NEX_RET_COLOR2   0x26 //rgb color 2
-#define NEX_RET_COLOR3   0x27 //rgb color 3
-#define NEX_RET_COLOR4   0x28 //rgb color 4
-#define NEX_RET_COLOR5   0x29 //rgb color 5
-#define NEX_RET_COLOR6   0x2a //rgb color 6
-#define NEX_RET_COLORMONO1   0x14 //mono color 1
-#define NEX_RET_COLORMONO2   0x15 //mono color 2
-#define NEX_RET_COLORMONO3   0x16 //mono color 3
-#define NEX_RET_MOOD1   0x3c //mood 1
-#define NEX_RET_MOOD2   0x3b //mood 2
-#define NEX_RET_MOOD3   0x3d //mood 3
-#define NEX_RET_MOOD4   0x3e //mood 4
-#define NEX_RET_MOOD4   0x3e //mood 4
-#define NEX_RET_GROUP   0x70 //group
-#define NEX_RET_LIGHT1  0x71 //light 1
-#define NEX_RET_LIGHT2  0x72 //light 2
-#define NEX_RET_LIGHT3  0x73 //light 3
-#define NEX_RET_LIGHT4  0x74 //light 4
-#define NEX_RET_LIGHT5  0x75 //light 5
-#define NEX_RET_LIGHT6  0x76 //light 6
-#define NEX_RET_STRDIM  0x90 //start dimmer
-#define NEX_SEL_GROUP   0x40 //selected group
-#define NEX_CON_WIFI    0x34 //connect WIFI
-
-boolean isDimmerStarted = false;
-
-#define PAGE_MAIN 0
-
 #define PAGE_MAIN           0
 #define PAGE_AC             1
 #define PAGE_TV             2
@@ -195,43 +159,22 @@ NextionButton bconnect(nex, 6, 6, "bconn");
 #define TIMEt2 11000 //set time
 
 #define BAUD_RATE     115200  // Baud for both Xbee and serial monitor
-#define NUM_ACTU      1 //Insert here the (# of actuators x NUM_DATA_VAL)
-#define NUM_METH      5 //Insert here the (# of methods x NUM_DATA_VAL)
-#define NUM_DATA      3 //Insert here the (# of sensors x NUM_DATA_VAL)
-#define NUM_DATA_VAL  3 // number of values transmitted for each sensor: number, value, alarm status
-#define NUM_DATA_PTS  NUM_DATA*NUM_DATA_VAL
-#define NUM_ACTU_PTS  NUM_ACTU*NUM_DATA_VAL
 #define NUM_BYTE_ARR  3 // Number of bytes of the array used to store long integers in the payload
 
 #define NUM_LIGHTS  7 //max number of lights available (# of lights+1) 
 #define NUM_LIGHT_PTS  NUM_LIGHTS*NUM_DATA_VAL
 
-#define SENSOR 0
-#define ACTUATOR 1
-#define METHOD 2
-#define SMCMD 99
-
-#define RANGE_IN  1 //the actuator is in range 
-#define RANGE_OUT 0 //the actuator is out of range 
-
-#define NUM_RCVD_VAL  12 // Numero di valori ricevuri dal cordinatore 
-
-
-/* ACTUATORS
-  //0=actuator number
-  //1=status
-  //2=output type
-  //3=value
-*/
-int actuators[NUM_ACTU][4] = {{PINNODE, 0, 0, 0}};
-int aGroups[11]; //current group available in the gateway...
-int aMoods[1][5] = {0, 0, 0, 0, 0}; //moods of the selected group
+int aGroups[11]; //current groups available in the gateway...
+int aMoods[1][5] = {0, 0, 0, 0, 0}; //[0][0] group/mood - moods of the selected group
 int aLights[NUM_LIGHTS][5]; //lights of the selected group [x][0]=pin [x][1]=type [x][2]=status [x][3]=value [x][4]=color
 int c_light; //current light
 int c_group; //current group
 int c_mood; //current mood
 bool c_status = OFF; //switch current status
 int c_switch_mode = SWITCH_MODE_HWSW;
+
+boolean isDimmerStarted = false;
+
 /*
 
   // -----------------------------------------------------------------
@@ -242,12 +185,8 @@ struct WifiObj {
 };
 
 WifiObj wifiParams = {"", ""};
-
-// --- Xbee section ----*/
-
-// Array to hold data received [0]=command 0=Read 1=Write [1]=pin number [2]=pin value
-// es. [R][0][0] read all values, [W][1][100] set pin 1 to value 100
-long RxData[NUM_RCVD_VAL];
+HTTPClient http;    //Declare object of class HTTPClient
+String HubClient = "http://192.168.1.33/";
 
 int res;
 
@@ -260,10 +199,6 @@ void setup()
 {
 
   // initialize arrays and pins
-  for (int i = 0; i < NUM_RCVD_VAL; i++)
-  {
-    RxData[i] = 0;
-  }
   //initialize light array. Set all pin to 999 (no light configured)
   for (int i = 1; i < NUM_LIGHTS; i++)
   {
@@ -292,12 +227,10 @@ void setup()
   bback.attachCallback(&_bback);
 
   nex.init();
-  //initScreenMain();
   delay(2000);
   refreshScreen();
   wifiTryConnect();
   pBit();
-  Serial.println("xxxxxxxxxxxxxxxxxx");
   //startTasks();
 }  //setup()
 
@@ -310,51 +243,6 @@ void loop(void)
 // *******************************************************//
 // Functions  NEXTION                                            //
 // *******************************************************//
-void initScreenMain() {
-  // get available groups from gateway
-  //bswitch.setPictureID(0);
-
-  bmoncolor1.hide();
-  bmoncolor2.hide();
-  bmoncolor3.hide();
-
-  bdimmer.hide();
-
-  bmood1.hide();
-  bmood2.hide();
-  bmood3.hide();
-  bmood4.hide();
-
-  brgbcolor1.hide();
-  brgbcolor2.hide();
-  brgbcolor3.hide();
-  brgbcolor4.hide();
-  brgbcolor5.hide();
-  brgbcolor6.hide();
-
-  bgroup.hide();
-  blight1.hide();
-  blight2.hide();
-  blight3.hide();
-  blight4.hide();
-  blight5.hide();
-  blight6.hide();
-
-  iwifi.hide();
-}
-
-void getGroups() {
-  // get available groups from gateway
-}
-
-void getMoods() {
-  // get available moods for selected group from gateway
-}
-
-void getLights() {
-  // get available lights assigned to the selected group from gateway
-}
-
 boolean wifiTryConnect() {
   //se la pagina corrente non è wifi legge i parametri da eeprom
   Serial.print("Provo connessione ");
@@ -378,7 +266,6 @@ boolean wifiTryConnect() {
     vwifi.setValue(1);
     putWifiParams(); //scrive valori su eeprom
     Serial.println("Connesso");
-    //pBit();
     return true;
   }
   else {
@@ -395,7 +282,6 @@ boolean wifiCheckConnect() {
     iwifi.show();
     putWifiParams(); //scrive valori su eeprom
     Serial.println("Connesso");
-    //pBit();
     return true;
   }
   else {
@@ -422,263 +308,37 @@ int getWifiParams() {
 // *******************************************************//
 // Functions                                              //
 // *******************************************************//
-void sendSensorData() {
-  //sendData(ACTUATOR); //send actuators
-}
-
-// ******************************************************* //
-// ******************************************************* //
-void parseXbeeReceivedData(int x)
-{
-  int val = OFF;
-  if (x == WRITE) {
-    if (RxData[3] == DIGITAL) //digital
-    {
-      val = RxData[2];
-    }
-    if (RxData[3] == ANALOG || RxData[3] == SERVO || RxData[3] == TONE) //analog
-    {
-      val = RxData[2];
-    }
-    if (RxData[3] == HVAC) //AC
-    {
-      val = RxData[2];
-    }
-    if (RxData[3] == TV) //TV
-    {
-      val = RxData[2];
-    }
-  }
-  //--------------------------------------------
-  if (x == SMLIGHT_CONFIG) //set light in the array
-  {
-    setLightConfig(RxData[1], RxData[2], RxData[3]); // pin, type, mode
-  }
-
-  if (x == SMLIGHT_GROUP) //set group light moods in the array
-  {
-    //setLightGroup(RxData);
-  }
-
-  if (x == SMLIGHT_COMMAND) //coomand
-  {
-    execLightCommand(RxData[1], RxData[2], RxData[3], RxData[4]);
-  }
-
-}
-// ******************************************************* //
-
-// ******************************************************* //
 //-----------------------------------
-// Read received data on Xbee serial
+// Read data from gateway
 //------------------------------------
-void getData()
-{
-  uint8_t option;            // Should return zero, not sure how to use this
-  uint8_t dataLength;        // number of bytes of data being sent to xbee
-  int resXbee;
-  /*
-    if (xbee.getResponse().isAvailable()) //got something
-    {
-    resXbee = getApiId();
-    if (resXbee == RX_16_RESPONSE || resXbee == RX_64_RESPONSE || resXbee == ZB_RX_RESPONSE || resXbee == ZB_EXPLICIT_RX_RESPONSE)
-    {
-      RXStatusResponse(rx);
-      option = rx.getOption();
-      dataLength = rx.getDataLength();
-      COORD_ADDR = rx.getRemoteAddress64(); // Serial of Tx (remember MY is set as a hex number.  Useful if you have multiple transmitters
+void getGroups() {
 
-      for (int i = 0; i < dataLength; i = i + NUM_BYTE_ARR)
-      {
-        // convert received payload to long
-        for (int k = 0; k < NUM_BYTE_ARR; k++)
-        {
-          convLong.by[k] = rx.getData(i + ((NUM_BYTE_ARR - 1) - k));
-        }
-        RxData[i / NUM_BYTE_ARR] = convLong.num;
-      }
+  String getData; // = "?status=" + ADCData + "&station=" + station ;  //Note "?" added at front
+  // get available group from gateway
+  http.begin(HubClient);     //Specify request destination
+  
+  int httpCode = http.GET();            //Send the request
+  String payload = http.getString();    //Get the response payload
+ 
+  Serial.println(httpCode);   //Print HTTP return code
+  Serial.println(payload);    //Print request response payload
+ 
+  http.end();  //Close connection
+  
+}
 
-      if (RxData[0] == READ) { // if [0]=0 command to read sensors and comando di lettura sensori o attuatori
-        sendData(RxData[1]); //definisce cosa leggere
-      }
-      else
-        //if (RxData[0] == WRITE || RxData[0] == ALARM || RxData[0] == TIME || RxData[0] == METEO || RxData[0] == METEO_FCST || RxData[0] == METEO_FCST_TEMP)
-      {
-        parseXbeeReceivedData(RxData[0]);
-      }
-    }
-    }
-  */
+void getMoods() {
+  // get available moods for selected group from gateway
+}
+
+void getLights() {
+  // get available lights assigned to the selected group from gateway
 }
 // ******************************************************* //
 
 // ******************************************************* //
-void sendData(int t) // t=0 = sensors 1 = actuators 2=method 3=light
-{
-  int elements = 0;
-  if (t == SMCMD) {
-    elements = (NUM_LIGHT_PTS + 1) * 2;
-  }
-  else if (t == ACTUATOR) {
-    elements = (NUM_ACTU_PTS + 1) * 2;
-  }
-
-  boolean readPacketResponse; //store the response of xbee.readPacket(timeout)
-  uint8_t payload[elements];
-  int16_t xbeeData[NUM_DATA_PTS + 1]; // Array to hold integers that will be sent to other xbee [pari]=valore pin [dispari]=valore pin
-  int16_t xbeeActu[NUM_ACTU_PTS + 1]; // Array to hold integers that will be sent to other xbee [pari]=valore pin [dispari]=valore pin
-  int16_t xbeeLoad[NUM_LIGHT_PTS + 1]; // Array to hold integers that will be sent to other xbee [pari]=valore pin [dispari]=valore pin
-  byte idx = 1;
-  int response = 0;
-  switch (t)
-  {
-    case SMCMD:
-      xbeeLoad[0] = SMCMD;
-      for (int i = 1; i < NUM_LIGHTS; i++) {
-        xbeeLoad[idx] = aLights[i][0]; //pin
-        idx++;
-        xbeeLoad[idx] = aLights[i][2]; //status
-        idx++;
-        xbeeLoad[idx] = aLights[i][3]; //value
-        idx++;
-        xbeeLoad[idx] = aLights[i][4]; //color
-        idx++;
-      }
-
-      parseTxData(payload, xbeeLoad, idx);
-      break;
-
-    /* ACTUATORS
-      //0=actuator number
-      //1=status
-      //2=output type
-      //3=value
-    */
-    case ACTUATOR:
-      // Actuators data
-      xbeeActu[0] = ACTUATOR;
-      for (byte i = 0; i < NUM_ACTU; i++)
-      {
-        xbeeActu[idx] = actuators[i][0]; //actuator number
-        idx++;
-        xbeeActu[idx] = actuators[i][1]; //status
-        idx++;
-        xbeeActu[idx] = actuators[i][3]; //value
-        idx++;
-      }
-      parseTxData(payload, xbeeActu, idx);
-      break;
-  }
-
-  /* request(COORD_ADDR, payload, sizeof(payload));
-    /* begin the common part */
-
-  /*
-    xbee.send(tx);
-
-    xbee.readPacket(50);
-    if (xbee.getResponse().isAvailable()) //got something
-    {
-      // should be a znet tx status
-      response = getApiId();
-      if (response == TX_RESPONSE) {
-        TXStatusResponse(txStatus);
-        if (getStatus() == SUCCESS) {
-          // g_link = ON;
-        }
-        else
-        {
-          // g_link = OFF;
-        }
-      }
-      else if ((response == ZB_RX_RESPONSE))
-      {
-        //g_link = ON;
-        getData();
-      }
-    }
-    else if (xbee.getResponse().isError())
-    {
-      //g_link = OFF;
-    }
-    else
-    {
-      //g_link = OFF;
-    } // Finished waiting for XBee packet
-
-  */
-} // sendData()
-// ******************************************************* //
-
 
 // ******************************************************* //
-void sendCommand(byte cmd)
-{ //send single command of changed light
-  //read light or group data to transmit
-  /*
-    if (c_light != 0) { //light
-    aLights[c_light][2] = HMISerial.getComponentValue("st" + String(c_light)); //get status
-    aLights[c_light][3] = HMISerial.getComponentValue("vl" + String(c_light)); //get value
-    aLights[c_light][4] = HMISerial.getComponentValue("cx" + String(c_light)); //get color
-    } else { //group
-    aLights[c_light][2] = HMISerial.getComponentValue("stg" + String(c_light)); //get status
-    aLights[c_light][3] = HMISerial.getComponentValue("vlg" + String(c_light)); //get value
-    aLights[c_light][4] = HMISerial.getComponentValue("cxg" + String(c_light)); //get mood
-    }
-    /*
-    byte array_size = 5;
-    int elements = array_size * 2;
-    //boolean readPacketResponse; //store the response of xbee.readPacket(timeout)
-    //uint8_t payload[elements];
-    //int16_t xbeeLoad[array_size]; // Array to hold integers that will be sent
-    //int response = 0;
-
-    /*
-
-    xbeeLoad[0] = SMCMD; //it is a command
-    xbeeLoad[1] = aLights[c_light][0]; //pin
-    xbeeLoad[2] = aLights[c_light][2]; //status
-    xbeeLoad[3] = map(aLights[c_light][3], 0, 100, 0, 254);
-    xbeeLoad[4] = aLights[c_light][4]; //color/mood
-    parseTxData(payload, xbeeLoad, array_size);
-    request(COORD_ADDR, payload, sizeof(payload));
-    /* begin the common part */
-  /*
-    //for (int attempts = 0; attempts < 5; attempts++) {
-    //    xbee.send(tx);
-      xbee.readPacket(500);
-      if (xbee.getResponse().isAvailable()) //got something
-      {
-        response = getApiId();
-        if (response == TX_RESPONSE || response == ZB_TX_STATUS_RESPONSE) {
-          TXStatusResponse(txStatus);
-          if (getStatus() == SUCCESS) {
-            //pBit();
-          }
-          else
-          {
-            //HMISerial.setComponentText("t0", "Errore");
-          }
-        }
-        else if ((response == ZB_RX_RESPONSE))
-        {
-          getData();
-          //xbee.send(tx);
-        }
-      }
-      else
-      {
-        //HMISerial.setComponentText("t0", "No response");
-        //break;
-      }
-      delay(10);
-    //}
-  */
-} // sendCommand()
-// ******************************************************* //
-
-
-
 
 
 // ******************************************************* //
@@ -686,29 +346,6 @@ void sendCommand(byte cmd)
 // ******************************************************* //
 
 // ******************************************************* //
-int getActuatorId(uint8_t pin)
-{
-  for (uint8_t i = 0; i < sizeof(actuators); i++)
-  { //cerco il tipo di nodo
-    if (actuators[i][0] == pin)
-    {
-      return i;
-      break;
-    }
-  }
-}
-
-// ******************************************************* //
-void parseTxData(uint8_t* payload, int16_t* txData, int idx)
-{
-  // SRG put the xbee code in it's own function   bool xbSend =  sendToXBee(&xbeeData);
-  // break down integers into two bytes and place in payload
-  for (int t = 0; t < idx; t++)
-  {
-    payload[t * 2]     = txData[t] >> 8 & 0xff; // High byte - shift bits 8 places, 0xff masks off the upper 8 bits
-    payload[(t * 2) + 1] = txData[t] & 0xff;  // low byte, just mask off the upper 8 bits
-  }
-}
 
 void startTasks() {
   //t0.every(TIMEt1, sendSensorData);
@@ -792,6 +429,7 @@ void _bgroup(NextionEventType type, INextionTouchable *widget)
   {
     c_light = 0;
   }
+  getGroups();
 }
 
 void _blight1(NextionEventType type, INextionTouchable *widget)
