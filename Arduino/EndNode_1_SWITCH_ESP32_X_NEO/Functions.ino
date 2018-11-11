@@ -1,21 +1,18 @@
 void refreshScreen() {
-
-  boolean outout;
-  for (int c = 0; c < 5; c++) {
-    HMISerial.setComponentValue("st1", 0);
-    Serial.println(outout);
-  }
-  String label;
-
+  String setValue;
   for (int i = 1; i < NUM_LIGHTS; i++) {
-    HMISerial.setComponentValue("vt" + String(i), int(aLights[i][1]));
-    HMISerial.setComponentValue("st" + String(i), int(aLights[i][2]));
-    HMISerial.setComponentValue("vl" + String(i), int(aLights[i][3]));
-    HMISerial.setComponentValue("cx" + String(i), int(aLights[i][4]));
+    //I don't use the library as this is faster
+    //[x][0]=pin [x][1]=type [x][2]=status [x][3]=value [x][4]=color
+    setValue = "vt" + String(i) + ".val=" + int(aLights[i][1]); //type
+    sendCommand(setValue.c_str());
+    setValue = "st" + String(i) + ".val=" + int(aLights[i][2]); //status
+    sendCommand(setValue.c_str());
+    setValue = "vl" + String(i) + ".val=" + int(aLights[i][3]); //value
+    sendCommand(setValue.c_str());
+    setValue = "cx" + String(i) + ".val=" + int(aLights[i][4]); //color
   }
-  HMISerial.sendCommand("t_icons.en=1");
-  HMISerial.sendCommand("t_select_type.en=1");
-
+  t_icons.enable();
+  t_select_type.enable();
   //pBit();
 }
 
@@ -57,11 +54,11 @@ void execLightCommand(byte pin, byte sts, int value, int color) {
     pBit(); //do nothing
   }
   else  {
-  byte val = map(value, 0, 254, 0, 100);
-  aLights[getPinIdx(pin)][2] = sts; //status
-  aLights[getPinIdx(pin)][3] = val; //status
-  aLights[getPinIdx(pin)][4] = convertColor(color); //status
-  refreshScreen();
+    byte val = map(value, 0, 254, 0, 100);
+    aLights[getPinIdx(pin)][2] = sts; //status
+    aLights[getPinIdx(pin)][3] = val; //status
+    aLights[getPinIdx(pin)][4] = convertColor(color); //status
+    refreshScreen();
   }
 }
 
@@ -110,7 +107,7 @@ void setLightConfig(byte pin, byte type, byte mode) {
   refreshScreen();
 }
 
-void setLightGroup(uint8_t group) { 
+void setLightGroup(uint8_t group) {
   c_group = group; //current group
 }
 
@@ -119,52 +116,14 @@ void pBit() {
   noTone;
 }
 
-void getScreenTouch() {
-  uint8_t* touch = HMISerial.listen(); //check for message
-  byte cmd;
-  delay(5);
-  if (touch[0] != 0) {
-     pBit();
-Serial.println(touch[0]);
-Serial.println(touch[1]);
-Serial.println(touch[2]);
-    if (touch[2] == NEX_RET_GROUP || touch[2] == NEX_RET_LIGHT1 || touch[2] == NEX_RET_LIGHT2 || touch[2] == NEX_RET_LIGHT3 || touch[2] == NEX_RET_LIGHT4 || touch[2] == NEX_RET_LIGHT5 || touch[2] == NEX_RET_LIGHT6)
-    {
-      switch (touch[2]) {
-        case NEX_RET_GROUP:
-          c_light = 0;
-          break;
-        case NEX_RET_LIGHT1:
-          c_light = 1;
-          break;
-        case NEX_RET_LIGHT2:
-          c_light = 2;
-          break;
-        case NEX_RET_LIGHT3:
-          c_light = 3;
-          break;
-        case NEX_RET_LIGHT4:
-          c_light = 4;
-          break;
-        case NEX_RET_LIGHT5:
-          c_light = 5;
-          break;
-        case NEX_RET_LIGHT6:
-          c_light = 6;
-          break;
-      }
-    }
-    else if (touch[2] == NEX_RET_STRDIM)
-      isDimmerStarted = true;
-    else if (touch[2] == NEX_SEL_GROUP) //selected default group
-      setLightGroup(touch[3]);
-    else if (touch[2] == NEX_CON_WIFI) //selected default group
-      tryWifiConnect();
-    else {
-      if (touch[2] == NEX_RET_OFF) {
-        isDimmerStarted = false;
-      }
-      sendCommand(touch[2]);
-    }
-  }
-}
+void sendCommand(const char* cmd) {
+  Serial.println(cmd);
+  while (nextionSerial.available()) {
+    nextionSerial.read();
+  }//end while
+  //flushSerial();
+  nextionSerial.print(cmd);
+  nextionSerial.write(0xFF);
+  nextionSerial.write(0xFF);
+  nextionSerial.write(0xFF);
+}//end sendCommand

@@ -7,9 +7,19 @@
 // Include libraries //
 #include <Timer.h>
 #include <SoftwareSerial.h>
-#include <Nextion.h>
 #include <EEPROM.h>
 #include <ESP8266WiFi.h>
+
+#include <NeoNextion.h>
+#include <NextionPage.h>
+#include <NextionButton.h>
+#include <SoftwareSerial.h>
+#include <NextionVariableString.h>
+#include <INextionStringValued.h>
+#include <NextionPicture.h>
+#include <NextionProgressBar.h>
+#include <NextionTimer.h>
+#include <NextionVariableNumeric.h>
 
 // ------------------------------------------------------------ //
 //-----------------------------------------------------------
@@ -65,8 +75,73 @@ boolean isDimmerStarted = false;
 
 #define PAGE_MAIN 0
 
-SoftwareSerial nextion(NEXTION_RX, NEXTION_TX);// Nextion TX to pin 11 and RX to pin 10 of Arduino
-Nextion HMISerial(nextion, 57600); //create a Nextion object named myNextion using the nextion serial port @ 9600bps
+#define PAGE_MAIN           0
+#define PAGE_AC             1
+#define PAGE_TV             2
+#define PAGE_SETTINGS       3
+#define PAGE_OPTIONS        4
+#define PAGE_CONFIG_LIGHTS  5
+#define PAGE_WIFI           6
+
+#define SWITCH_MODE_HWSW    0
+#define SWITCH_MODE_SW      1
+
+SoftwareSerial nextionSerial(NEXTION_RX, NEXTION_TX);// Nextion TX to pin 11 and RX to pin 10 of Arduino
+Nextion nex(nextionSerial); //create a Nextion object named myNextion using the nextion serial port @ 9600bps
+
+//------Pages---------------------------------------------------
+NextionPage pgMain(nex, 0, 0, "Main");
+NextionPage pgAC(nex, 1, 0, "AC");
+NextionPage pgTV(nex, 2, 0, "TV");
+NextionPage pgSettings(nex, 3, 0, "Settings");
+NextionPage pgOptions(nex, 4, 0, "Options");
+NextionPage pgConfigLights(nex, 5, 0, "Config_Lights");
+NextionPage pgWifi(nex, 6, 0, "Wifi");
+
+//----- Main ---------------------------//
+NextionPicture bswitch(nex, 0, 6, "s1");
+NextionProgressBar bdimmer(nex, 0, 1, "d1");
+
+NextionPicture bmood1(nex, 0, 60, "md1");
+NextionPicture bmood2(nex, 0, 59, "md2");
+NextionPicture bmood3(nex, 0, 61, "md3");
+NextionPicture bmood4(nex, 0, 62, "md4");
+
+NextionPicture bmoncolor1(nex, 0, 20, "m1");
+NextionPicture bmoncolor2(nex, 0, 21, "m2");
+NextionPicture bmoncolor3(nex, 0, 22, "m3");
+
+NextionPicture brgbcolor1(nex, 0, 37, "c1");
+NextionPicture brgbcolor2(nex, 0, 38, "c2");
+NextionPicture brgbcolor3(nex, 0, 39, "c3");
+NextionPicture brgbcolor4(nex, 0, 40, "c4");
+NextionPicture brgbcolor5(nex, 0, 41, "c5");
+NextionPicture brgbcolor6(nex, 0, 42, "c6");
+
+NextionPicture blight1(nex, 0, 12, "l1");
+NextionPicture blight2(nex, 0, 13, "l2");
+NextionPicture blight3(nex, 0, 11, "l3");
+NextionPicture blight4(nex, 0, 10, "l4");
+NextionPicture blight5(nex, 0, 14, "l5");
+NextionPicture blight6(nex, 0, 17, "l6");
+
+NextionPicture bgroup(nex, 0, 19, "g0");
+NextionPicture iwifi(nex, 0, 72, "i_wifi");
+NextionVariableNumeric vwifi(nex, 0, 71, "wifi");
+NextionVariableNumeric vdefLight(nex, 0, 68, "defLight");
+NextionVariableNumeric vdefMainSW(nex, 0, 69, "defMainSW");
+
+NextionTimer t_icons(nex, 0, 63, "t_icons");
+NextionTimer t_select_type(nex, 0, 43, "t_select_type");
+
+//----- Settings ----------------------------//
+NextionPicture bback(nex, 3, 1, "p0");
+
+//----- Wifi ----------------------------//
+INextionStringValued t_ssid(nex, 6, 2, "t_ssid");
+INextionStringValued t_pass(nex, 6, 3, "t_pass");
+NextionButton bconnect(nex, 6, 6, "bconn");
+//-----------------------------------------------------------
 
 //-----------------------------------------------------------
 //-----------------------------------------------------------
@@ -155,6 +230,8 @@ int aLights[NUM_LIGHTS][5]; //lights of the selected group [x][0]=pin [x][1]=typ
 int c_light; //current light
 int c_group; //current group
 int c_mood; //current mood
+bool c_status = OFF; //switch current status
+int c_switch_mode = SWITCH_MODE_HWSW;
 /*
 
   // -----------------------------------------------------------------
@@ -200,34 +277,153 @@ void setup()
   pinMode(PIN_RELE, OUTPUT);
   digitalWrite(PIN_RELE, LOW);
   Serial.begin(BAUD_RATE);
-  // start serial xbee
-  HMISerial.init();
-  //HMISerial.sendCommand("bauds=57600");
-  delay(1000);
+  nextionSerial.begin(57600);
+
+  //--- Callback attachement -----------------------//
+  bconnect.attachCallback(&_bconnect); //wifi connect button
+  bswitch.attachCallback(&_bswitch); //main switch
+  bgroup.attachCallback(&_bgroup);
+  blight1.attachCallback(&_blight1);
+  blight2.attachCallback(&_blight2);
+  blight3.attachCallback(&_blight3);
+  blight4.attachCallback(&_blight4);
+  blight5.attachCallback(&_blight5);
+  blight6.attachCallback(&_blight6);
+  bback.attachCallback(&_bback);
+
+  nex.init();
+  //initScreenMain();
+  delay(2000);
   refreshScreen();
+  wifiTryConnect();
   pBit();
   Serial.println("xxxxxxxxxxxxxxxxxx");
-  startTasks();
+  //startTasks();
 }  //setup()
 
 void loop(void)
 {
-  t0.update();
-  getScreenTouch();
-  /*
-    if (xbee.readPacket(1))
-    {
-    getData();
-    }
-  */
+  //t0.update();
+  nex.poll();
 }
+
+// *******************************************************//
+// Functions  NEXTION                                            //
+// *******************************************************//
+void initScreenMain() {
+  // get available groups from gateway
+  //bswitch.setPictureID(0);
+
+  bmoncolor1.hide();
+  bmoncolor2.hide();
+  bmoncolor3.hide();
+
+  bdimmer.hide();
+
+  bmood1.hide();
+  bmood2.hide();
+  bmood3.hide();
+  bmood4.hide();
+
+  brgbcolor1.hide();
+  brgbcolor2.hide();
+  brgbcolor3.hide();
+  brgbcolor4.hide();
+  brgbcolor5.hide();
+  brgbcolor6.hide();
+
+  bgroup.hide();
+  blight1.hide();
+  blight2.hide();
+  blight3.hide();
+  blight4.hide();
+  blight5.hide();
+  blight6.hide();
+
+  iwifi.hide();
+}
+
+void getGroups() {
+  // get available groups from gateway
+}
+
+void getMoods() {
+  // get available moods for selected group from gateway
+}
+
+void getLights() {
+  // get available lights assigned to the selected group from gateway
+}
+
+boolean wifiTryConnect() {
+  //se la pagina corrente non è wifi legge i parametri da eeprom
+  Serial.print("Provo connessione ");
+  //prova la connessione
+  WiFi.mode(WIFI_STA);
+  Serial.println(wifiParams.ssid);
+  Serial.println(wifiParams.passcode);
+  WiFi.begin(wifiParams.ssid, wifiParams.passcode);
+
+  unsigned long timeout = millis() + 5000;
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+    if (timeout < millis()) { //exit loop after 10 seconds
+      break;
+    }
+  }
+  if (WiFi.status() == WL_CONNECTED) { //connessione attiva
+    //se connesso aggiorna variabile wifi su schermo a 1 altrimenti 0
+    iwifi.show();
+    vwifi.setValue(1);
+    putWifiParams(); //scrive valori su eeprom
+    Serial.println("Connesso");
+    //pBit();
+    return true;
+  }
+  else {
+    iwifi.hide();
+    vwifi.setValue(0);
+    Serial.println("Non connesso");
+    return false;
+  }
+}
+
+boolean wifiCheckConnect() {
+  if (WiFi.status() == WL_CONNECTED) { //connessione attiva
+    //se connesso aggiorna variabile wifi su schermo a 1 altrimenti 0
+    iwifi.show();
+    putWifiParams(); //scrive valori su eeprom
+    Serial.println("Connesso");
+    //pBit();
+    return true;
+  }
+  else {
+    iwifi.hide();
+    Serial.println("Non connesso");
+    wifiTryConnect();
+    return false;
+  }
+
+}
+
+void putWifiParams() {
+  EEPROM.put(0, wifiParams);
+}
+
+int getWifiParams() {
+  EEPROM.get(0, wifiParams);
+}
+
+
+// ******************************************************* //
+
 
 // *******************************************************//
 // Functions                                              //
 // *******************************************************//
 void sendSensorData() {
   //sendData(ACTUATOR); //send actuators
-  getScreenTouch();
 }
 
 // ******************************************************* //
@@ -419,23 +615,25 @@ void sendData(int t) // t=0 = sensors 1 = actuators 2=method 3=light
 void sendCommand(byte cmd)
 { //send single command of changed light
   //read light or group data to transmit
-  if (c_light != 0) { //light
+  /*
+    if (c_light != 0) { //light
     aLights[c_light][2] = HMISerial.getComponentValue("st" + String(c_light)); //get status
     aLights[c_light][3] = HMISerial.getComponentValue("vl" + String(c_light)); //get value
     aLights[c_light][4] = HMISerial.getComponentValue("cx" + String(c_light)); //get color
-  } else { //group
+    } else { //group
     aLights[c_light][2] = HMISerial.getComponentValue("stg" + String(c_light)); //get status
     aLights[c_light][3] = HMISerial.getComponentValue("vlg" + String(c_light)); //get value
     aLights[c_light][4] = HMISerial.getComponentValue("cxg" + String(c_light)); //get mood
-  }
-  byte array_size = 5;
-  int elements = array_size * 2;
-  //boolean readPacketResponse; //store the response of xbee.readPacket(timeout)
-  //uint8_t payload[elements];
-  //int16_t xbeeLoad[array_size]; // Array to hold integers that will be sent
-  //int response = 0;
+    }
+    /*
+    byte array_size = 5;
+    int elements = array_size * 2;
+    //boolean readPacketResponse; //store the response of xbee.readPacket(timeout)
+    //uint8_t payload[elements];
+    //int16_t xbeeLoad[array_size]; // Array to hold integers that will be sent
+    //int response = 0;
 
-  /*
+    /*
 
     xbeeLoad[0] = SMCMD; //it is a command
     xbeeLoad[1] = aLights[c_light][0]; //pin
@@ -545,64 +743,120 @@ int getFreePinIdx()
   return ret;
 }
 
-void getGroups() {
-  // get available groups from gateway
-}
-
-void getMoods() {
-  // get available moods for selected group from gateway
-}
-
-void getLights() {
-  // get available lights assigned to the selected group from gateway
-}
-
-int tryWifiConnect() {
-  //se la pagina corrente non è wifi legge i parametri da eeprom
-  Serial.print("Provo connessione ");
-  String s_ssid = HMISerial.getComponentText("t_ssid",1000);
-  s_ssid.toCharArray(wifiParams.ssid, s_ssid.length());
-  //String s_passcode = HMISerial.getComponentText("t_pass",1000);
-  //s_passcode.toCharArray(wifiParams.passcode, s_passcode.length());
-
-   Serial.println(s_ssid);
-   //Serial.println(s_passcode);
-   
-   Serial.println(wifiParams.ssid);
-   Serial.println(wifiParams.passcode);
-  //getWifiParams();
-
-
-  //prova la connessione
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(wifiParams.ssid, wifiParams.passcode);
-
-  unsigned long timeout = millis() + 5000;
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-    if (timeout < millis()) { //exit loop after 10 seconds
-      break;
+//--- Callsback funcions ------------------------//
+void _bconnect(NextionEventType type, INextionTouchable *widget)
+{
+  char buffer_ssid[30];
+  char buffer_pass[30];
+  if (type == NEX_EVENT_PUSH)
+  {
+    digitalWrite(13, HIGH);
+    //wifiParams.ssid = buffer;
+    if (t_ssid.getText(buffer_ssid, 30)) {
+      Serial.println(buffer_ssid);
+      wifiParams.ssid = buffer_ssid;
     }
-  }
-  if (WiFi.status() == WL_CONNECTED) { //connessione attiva
-    //se connesso aggiorna variabile wifi su schermo a 1 altrimenti 0
-    HMISerial.setComponentValue("wifi", 1);
-    putWifiParams(); //scrive valori su eeprom
-    Serial.println("Connesso");
-    pBit();
-    // get available lights assigned to the selected group from gateway
-  }
-  else {
-    HMISerial.setComponentValue("wifi", 0);
-    Serial.println("Non connesso");
+
+    if (t_pass.getText(buffer_pass, 30)) {
+      Serial.println(buffer_pass);
+      wifiParams.passcode = buffer_pass;
+    }
+    if (wifiTryConnect())
+      bconnect.setText("Connected!");
   }
 }
 
-void putWifiParams() {
-  EEPROM.put(0, wifiParams);
+void _bswitch(NextionEventType type, INextionTouchable *widget)
+{
+  if (type == NEX_EVENT_POP)
+  {
+    if (c_status == OFF) {
+      c_status = ON;
+    }
+    else if (c_status == ON) {
+      c_status = OFF;
+    }
+    if (c_switch_mode = SWITCH_MODE_HWSW) {
+      digitalWrite(PIN_RELE, c_status);
+    }
+    else {
+      digitalWrite(PIN_RELE, ON);
+    }
+    refreshScreen();
+  }
 }
 
-int getWifiParams() {
-  EEPROM.get(0, wifiParams);
+void _bgroup(NextionEventType type, INextionTouchable *widget)
+{
+  if (type == NEX_EVENT_POP)
+  {
+    c_light = 0;
+  }
+}
+
+void _blight1(NextionEventType type, INextionTouchable *widget)
+{
+  if (type == NEX_EVENT_POP)
+  {
+    c_light = 1;
+    refreshScreen();
+  }
+}
+
+void _blight2(NextionEventType type, INextionTouchable *widget)
+{
+  if (type == NEX_EVENT_POP)
+  {
+    c_light = 2;
+    refreshScreen();
+  }
+}
+
+void _blight3(NextionEventType type, INextionTouchable *widget)
+{
+  if (type == NEX_EVENT_POP)
+  {
+    c_light = 3;
+    refreshScreen();
+  }
+}
+
+void _blight4(NextionEventType type, INextionTouchable *widget)
+{
+  if (type == NEX_EVENT_POP)
+  {
+    c_light = 4;
+    refreshScreen();
+  }
+}
+
+void _blight5(NextionEventType type, INextionTouchable *widget)
+{
+  if (type == NEX_EVENT_POP)
+  {
+    c_light = 5;
+    refreshScreen();
+  }
+}
+
+void _blight6(NextionEventType type, INextionTouchable *widget)
+{
+  if (type == NEX_EVENT_POP)
+  {
+    c_light = 6;
+    refreshScreen();
+  }
+}
+
+void _bback(NextionEventType type, INextionTouchable *widget)
+{
+  Serial.println(NEX_EVENT_PUSH);
+  if (type == NEX_EVENT_PUSH)
+  {
+    //read global variables
+    c_light = vdefLight.getValue();
+    c_switch_mode = vdefMainSW.getValue();
+    //pgMain.show();
+    refreshScreen();
+  }
 }
