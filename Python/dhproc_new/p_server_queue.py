@@ -39,4 +39,6 @@ qQuery = CreateQueueServer(HOST, PORT4, AUTHKEY, 'qQuery', description)
 qResult = CreateQueueServer(HOST, PORT5, AUTHKEY, 'qResult', description)
 qQuery2 = CreateQueueServer(HOST, PORT6, AUTHKEY, 'qQuery2', description)
 qResult2 = CreateQueueServer(HOST, PORT7, AUTHKEY, 'qResult2', description)
-input("return to end")
+
+while True:
+	a=1

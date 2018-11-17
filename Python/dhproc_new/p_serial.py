@@ -355,16 +355,17 @@ def getSerialData(qIN, qOUT, qResponse):
 			gpio.digitalWrite(0,gpio.HIGH)
 			readSerial = serCoord.readline()
 			readSerial.rstrip(endSerialChars)
-			output("Data received from serial")
+			#output("Data received from serial")
 			if isResponse(readSerial) == True:
 			#	while not qResponse.empty():
 			#		qResponse.get()
 			#qResponse.put(readSerial)
-				output("Response received")			
+				#output("Response received")	
+				aa=1		
 			else:	
 				qIN.put(readSerial)	
 				print("Data received:", serialBuffer)
-				print("Q size:", qIn.qsize()) 	
+				#print("Q size:", qIn.qsize()) 	
 
 		while not qOUT.empty():
 			print("Q OUT size:", qOUT.qsize()) 

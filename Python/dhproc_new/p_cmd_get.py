@@ -129,7 +129,7 @@ def AUTOreceiveDataFromCoordinator(qIN, qSQL):  # CR0=sensors CR1=nodes CR3=Actu
 	if not qIN.empty(): # if there is data to process
 		readSerial = qIN.get()	
 		arrayData = str(readSerial).split(',')
-		output("Parsing received data: " + str(len(arrayData)))
+		#output("Parsing received data: " + str(len(arrayData)))
 		dNum = int((len(arrayData)-1)/(pnum+1))
 		if dNum != 0: #if data received on serial
 			#--- Write data to database ---#

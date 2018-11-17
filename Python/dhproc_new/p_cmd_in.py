@@ -93,8 +93,7 @@ def isResponseOK(response):
 		res = True
 	else:
 		print(3)
-		res = False	
-	print("qqq:")	
+		res = False		
 	print("xx:", str(response))
 	return res	
 
@@ -110,7 +109,7 @@ def execSQL(qSQL):
 			cur.execute(inssql)
 			cur.execute("COMMIT")	
 			db.commit()
-			output("Command executed")	
+			#output("Command executed")	
 		time.sleep(0.1)	
 			
 
