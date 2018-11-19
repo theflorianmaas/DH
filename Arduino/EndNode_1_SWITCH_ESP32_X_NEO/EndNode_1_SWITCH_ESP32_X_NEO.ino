@@ -1,6 +1,6 @@
 // ------------------------------------------------------------ //
 // EndNode_1_Switch
-// V.0.1 3/11/2018
+// V.0.1 19/11/2018
 // First version 0.1 Development
 //
 // ------------------------------------------------------------ //
@@ -61,6 +61,7 @@ NextionPage pgSettings(nex, 3, 0, "Settings");
 NextionPage pgOptions(nex, 4, 0, "Options");
 NextionPage pgConfigLights(nex, 5, 0, "Config_Lights");
 NextionPage pgWifi(nex, 6, 0, "Wifi");
+NextionPage pgTradfri(nex, 7, 0, "Tradfri");
 
 //----- Main ---------------------------//
 NextionPicture bswitch(nex, 0, 6, "s1");
@@ -105,6 +106,11 @@ NextionPicture bback(nex, 3, 1, "p0");
 INextionStringValued t_ssid(nex, 6, 2, "t_ssid");
 INextionStringValued t_pass(nex, 6, 3, "t_pass");
 NextionButton bconnect(nex, 6, 6, "bconn");
+
+//----- Wifi ----------------------------//
+INextionStringValued t_ip(nex, 7, 2, "t_ip");
+INextionStringValued t_key(nex, 7, 3, "t_key");
+NextionButton btradfri(nex, 7, 6, "btradfri");
 //-----------------------------------------------------------
 
 //-----------------------------------------------------------
@@ -121,20 +127,7 @@ NextionButton bconnect(nex, 6, 6, "bconn");
 #define ON  HIGH
 #define OFF LOW
 
-//Service command and status
-#define READ          0
-#define WRITE         1
-#define ALARM         2
-#define TIME          3
-#define METEO         4
-#define METEO_FCST    5
-#define METEO_FCST_TEMP 6
-#define SMLIGHT_COMMAND 7
-#define SMLIGHT_CONFIG  8
-#define SMLIGHT_GROUP 9
-
 #define NOLIGHT -1
-#define RESETALARM -999
 
 #define PERMANENT 1
 #define TEMPORARY 2
@@ -179,12 +172,14 @@ boolean isDimmerStarted = false;
 
   // -----------------------------------------------------------------
   // ---- Wifi section ----*/
-struct WifiObj {
-  char* ssid;
-  char* passcode;
-};
 
-WifiObj wifiParams = {"", ""};
+char wifiParams_ssid[40]; // = {"Astronomy-Domine"};
+char wifiParams_passcode[40]; // = {"37F0DE5CFEfrank61"};
+
+// ---- Tradfri section ----*/
+char tradfriParams_ip[40] = {"192.168.1.75"};
+char tradfriParams_key[40] = {"rqrqrqrqr43232"};
+
 HTTPClient http;    //Declare object of class HTTPClient
 String HubClient = "http://192.168.1.33/";
 
@@ -197,6 +192,7 @@ Timer t0; //timer to schedule the sensors and actuators values update
 */
 void setup()
 {
+
 
   // initialize arrays and pins
   //initialize light array. Set all pin to 999 (no light configured)
@@ -213,9 +209,11 @@ void setup()
   digitalWrite(PIN_RELE, LOW);
   Serial.begin(BAUD_RATE);
   nextionSerial.begin(57600);
+  EEPROM.begin(512);
 
   //--- Callback attachement -----------------------//
   bconnect.attachCallback(&_bconnect); //wifi connect button
+  btradfri.attachCallback(&_btradfri); //tradfri test button
   bswitch.attachCallback(&_bswitch); //main switch
   bgroup.attachCallback(&_bgroup);
   blight1.attachCallback(&_blight1);
@@ -229,8 +227,9 @@ void setup()
   nex.init();
   delay(2000);
   refreshScreen();
-  wifiTryConnect();
-  pBit();
+  delay(100);
+  start();
+  //pBit();
   //startTasks();
 }  //setup()
 
@@ -240,6 +239,14 @@ void loop(void)
   nex.poll();
 }
 
+void start() {
+  Serial.println("xxxxxxxxxxxxxxx");
+  getTradfriParams();
+  getWifiParams();
+  wifiTryConnect();
+}
+
+
 // *******************************************************//
 // Functions  NEXTION                                            //
 // *******************************************************//
@@ -248,9 +255,9 @@ boolean wifiTryConnect() {
   Serial.print("Provo connessione ");
   //prova la connessione
   WiFi.mode(WIFI_STA);
-  Serial.println(wifiParams.ssid);
-  Serial.println(wifiParams.passcode);
-  WiFi.begin(wifiParams.ssid, wifiParams.passcode);
+  Serial.println(wifiParams_ssid);
+  Serial.println(wifiParams_passcode);
+  WiFi.begin((char*)wifiParams_ssid, (char*)wifiParams_passcode);
 
   unsigned long timeout = millis() + 5000;
   while (WiFi.status() != WL_CONNECTED) {
@@ -294,11 +301,54 @@ boolean wifiCheckConnect() {
 }
 
 void putWifiParams() {
-  EEPROM.put(0, wifiParams);
+  EEPROM.put(0, wifiParams_ssid);
+  EEPROM.put(50, wifiParams_passcode);
+  EEPROM.commit();
+  String cmd = "Wifi.t_ssid.txt=" + String('"') + String(wifiParams_ssid) + String('"');
+  sendCommand(cmd.c_str());
+  cmd = "Wifi.t_pass.txt=" + String('"') + String(wifiParams_passcode) + String('"');
+  sendCommand(cmd.c_str());
 }
 
-int getWifiParams() {
-  EEPROM.get(0, wifiParams);
+void getWifiParams() {
+  EEPROM.get(0, wifiParams_ssid);
+  EEPROM.get(50, wifiParams_passcode);
+  String cmd = "Wifi.t_ssid.txt=" + String('"') + String(wifiParams_ssid) + String('"');
+  sendCommand(cmd.c_str());
+  cmd = "Wifi.t_pass.txt=" + String('"') + String(wifiParams_passcode) + String('"');
+  sendCommand(cmd.c_str());
+}
+
+boolean wifiTradfriTestConnect() {
+
+  //aggiunegere test qui
+  boolean testResult = true;
+  if (testResult == true) { //connessione attiva
+    //se connesso aggiorna variabile wifi su schermo a 1 altrimenti 0
+    putTradfriParams(); //scrive valori su eeprom
+    Serial.println("Tradfri OK");
+  }
+
+  return testResult;
+}
+
+void putTradfriParams() {
+  EEPROM.put(100, tradfriParams_ip);
+  EEPROM.put(150, tradfriParams_key);
+  EEPROM.commit();
+  String cmd = "Tradfri.t_ip.txt=" + String('"') + String(tradfriParams_ip) + String('"');
+  sendCommand(cmd.c_str());
+  cmd = "Tradfri.t_key.txt=" + String('"') + String(tradfriParams_key) + String('"');
+  sendCommand(cmd.c_str());
+}
+
+int getTradfriParams() {
+  EEPROM.get(100, tradfriParams_ip);
+  EEPROM.get(150, tradfriParams_key);
+  String cmd = "Tradfri.t_ip.txt=" + String('"') + String(tradfriParams_ip) + String('"');
+  sendCommand(cmd.c_str());
+  cmd = "Tradfri.t_key.txt=" + String('"') + String(tradfriParams_key) + String('"');
+  sendCommand(cmd.c_str());
 }
 
 
@@ -316,15 +366,15 @@ void getGroups() {
   String getData; // = "?status=" + ADCData + "&station=" + station ;  //Note "?" added at front
   // get available group from gateway
   http.begin(HubClient);     //Specify request destination
-  
+
   int httpCode = http.GET();            //Send the request
   String payload = http.getString();    //Get the response payload
- 
+
   Serial.println(httpCode);   //Print HTTP return code
   Serial.println(payload);    //Print request response payload
- 
+
   http.end();  //Close connection
-  
+
 }
 
 void getMoods() {
@@ -383,24 +433,31 @@ int getFreePinIdx()
 //--- Callsback funcions ------------------------//
 void _bconnect(NextionEventType type, INextionTouchable *widget)
 {
-  char buffer_ssid[30];
-  char buffer_pass[30];
+
+  char buffer_ssid[40];
+  char buffer_pass[40];
   if (type == NEX_EVENT_PUSH)
   {
     digitalWrite(13, HIGH);
     //wifiParams.ssid = buffer;
-    if (t_ssid.getText(buffer_ssid, 30)) {
+    if (t_ssid.getText(buffer_ssid, 40)) {
       Serial.println(buffer_ssid);
-      wifiParams.ssid = buffer_ssid;
     }
 
-    if (t_pass.getText(buffer_pass, 30)) {
+    if (t_pass.getText(buffer_pass, 40)) {
       Serial.println(buffer_pass);
-      wifiParams.passcode = buffer_pass;
     }
+
+    for (int i = 0; i < 40; i++)
+    {
+      wifiParams_passcode[i] = buffer_pass[i];
+      wifiParams_ssid[i] = buffer_ssid[i];
+    }
+
     if (wifiTryConnect())
       bconnect.setText("Connected!");
   }
+
 }
 
 void _bswitch(NextionEventType type, INextionTouchable *widget)
@@ -494,7 +551,32 @@ void _bback(NextionEventType type, INextionTouchable *widget)
     //read global variables
     c_light = vdefLight.getValue();
     c_switch_mode = vdefMainSW.getValue();
-    //pgMain.show();
     refreshScreen();
   }
+}
+
+void _btradfri(NextionEventType type, INextionTouchable *widget)
+{
+
+  char buffer_ip[40];
+  char buffer_key[40];
+  if (type == NEX_EVENT_PUSH)
+  {
+    if (t_ip.getText(buffer_ip, 40)) {
+      Serial.println(buffer_ip);
+    }
+
+    if (t_key.getText(buffer_key, 40)) {
+      Serial.println(buffer_key);
+    }
+
+    for (int i = 0; i < 40; i++)
+    {
+      tradfriParams_ip[i] = buffer_ip[i];
+      tradfriParams_key[i] = buffer_key[i];
+    }
+
+    putTradfriParams();
+  }
+
 }
