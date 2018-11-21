@@ -10,6 +10,7 @@
 #include <EEPROM.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
+#include "pitches.h"
 
 #include <NeoNextion.h>
 #include <NextionPage.h>
@@ -98,6 +99,7 @@ NextionVariableNumeric vdefMainSW(nex, 0, 69, "defMainSW");
 
 NextionTimer t_icons(nex, 0, 63, "t_icons");
 NextionTimer t_select_type(nex, 0, 43, "t_select_type");
+NextionTimer t_t1(nex, 0, 4, "tm1");
 
 //----- Settings ----------------------------//
 NextionPicture bback(nex, 3, 1, "p0");
@@ -173,15 +175,16 @@ boolean isDimmerStarted = false;
   // -----------------------------------------------------------------
   // ---- Wifi section ----*/
 
-char wifiParams_ssid[40]; // = {"Astronomy-Domine"};
-char wifiParams_passcode[40]; // = {"37F0DE5CFEfrank61"};
+char wifiParams_ssid[32]; // = {"Astronomy-Domine"};
+char wifiParams_passcode[64]; // = {"xxxxxxx"};
 
 // ---- Tradfri section ----*/
-char tradfriParams_ip[40] = {"192.168.1.75"};
-char tradfriParams_key[40] = {"rqrqrqrqr43232"};
+char tradfriParams_ip[15] = {"192.168.1.75"};
+char tradfriParams_key[20] = {"FdkbvH1mxUFhb"};
 
-HTTPClient http;    //Declare object of class HTTPClient
-String HubClient = "http://192.168.1.33/";
+WiFiClient http;    //Declare object of class HTTPClient
+const int httpPort = 90;
+char* host = "192.168.1.33";
 
 int res;
 
@@ -223,13 +226,14 @@ void setup()
   blight5.attachCallback(&_blight5);
   blight6.attachCallback(&_blight6);
   bback.attachCallback(&_bback);
+  //t_t1.attachCallback(&_t_t1);
 
   nex.init();
   delay(2000);
   refreshScreen();
   delay(100);
   start();
-  //pBit();
+  pBit();
   //startTasks();
 }  //setup()
 
@@ -239,11 +243,12 @@ void loop(void)
   nex.poll();
 }
 
-void start() {
-  Serial.println("xxxxxxxxxxxxxxx");
+void start() { 
   getTradfriParams();
   getWifiParams();
   wifiTryConnect();
+  String url = createUrl(tradfriParams_ip, tradfriParams_key, 0, 0, "listgroup", 0);
+  Serial.println(execUrl(url));
 }
 
 
@@ -273,6 +278,11 @@ boolean wifiTryConnect() {
     vwifi.setValue(1);
     putWifiParams(); //scrive valori su eeprom
     Serial.println("Connesso");
+    //crea HTTP Client
+    delay(100);
+    if (!http.connect(host, httpPort)) {
+      Serial.println("connection failed");
+    }
     return true;
   }
   else {
@@ -302,21 +312,17 @@ boolean wifiCheckConnect() {
 
 void putWifiParams() {
   EEPROM.put(0, wifiParams_ssid);
-  EEPROM.put(50, wifiParams_passcode);
+  EEPROM.put(33, wifiParams_passcode);
   EEPROM.commit();
-  String cmd = "Wifi.t_ssid.txt=" + String('"') + String(wifiParams_ssid) + String('"');
-  sendCommand(cmd.c_str());
-  cmd = "Wifi.t_pass.txt=" + String('"') + String(wifiParams_passcode) + String('"');
-  sendCommand(cmd.c_str());
+  setText("Wifi", "t_ssid", String(wifiParams_ssid));
+  setText("Wifi", "t_pass", String(wifiParams_passcode));
 }
 
 void getWifiParams() {
   EEPROM.get(0, wifiParams_ssid);
-  EEPROM.get(50, wifiParams_passcode);
-  String cmd = "Wifi.t_ssid.txt=" + String('"') + String(wifiParams_ssid) + String('"');
-  sendCommand(cmd.c_str());
-  cmd = "Wifi.t_pass.txt=" + String('"') + String(wifiParams_passcode) + String('"');
-  sendCommand(cmd.c_str());
+  EEPROM.get(33, wifiParams_passcode);
+  setText("Wifi", "t_ssid", String(wifiParams_ssid));
+  setText("Wifi", "t_pass", String(wifiParams_passcode));
 }
 
 boolean wifiTradfriTestConnect() {
@@ -334,21 +340,17 @@ boolean wifiTradfriTestConnect() {
 
 void putTradfriParams() {
   EEPROM.put(100, tradfriParams_ip);
-  EEPROM.put(150, tradfriParams_key);
+  EEPROM.put(116, tradfriParams_key);
   EEPROM.commit();
-  String cmd = "Tradfri.t_ip.txt=" + String('"') + String(tradfriParams_ip) + String('"');
-  sendCommand(cmd.c_str());
-  cmd = "Tradfri.t_key.txt=" + String('"') + String(tradfriParams_key) + String('"');
-  sendCommand(cmd.c_str());
+  setText("Tradfri", "t_ip", String(tradfriParams_ip));
+  setText("Tradfri", "t_key", String(tradfriParams_key));
 }
 
 int getTradfriParams() {
   EEPROM.get(100, tradfriParams_ip);
-  EEPROM.get(150, tradfriParams_key);
-  String cmd = "Tradfri.t_ip.txt=" + String('"') + String(tradfriParams_ip) + String('"');
-  sendCommand(cmd.c_str());
-  cmd = "Tradfri.t_key.txt=" + String('"') + String(tradfriParams_key) + String('"');
-  sendCommand(cmd.c_str());
+  EEPROM.get(116, tradfriParams_key);
+  setText("Tradfri", "t_ip", String(tradfriParams_ip));
+  setText("Tradfri", "t_key", String(tradfriParams_key));
 }
 
 
@@ -365,15 +367,14 @@ void getGroups() {
 
   String getData; // = "?status=" + ADCData + "&station=" + station ;  //Note "?" added at front
   // get available group from gateway
-  http.begin(HubClient);     //Specify request destination
 
-  int httpCode = http.GET();            //Send the request
-  String payload = http.getString();    //Get the response payload
+  //int httpCode = http.GET();            //Send the request
+  //String payload = http.getString();    //Get the response payload
 
-  Serial.println(httpCode);   //Print HTTP return code
-  Serial.println(payload);    //Print request response payload
+  //Serial.println(httpCode);   //Print HTTP return code
+  //Serial.println(payload);    //Print request response payload
 
-  http.end();  //Close connection
+  //http.end();  //Close connection
 
 }
 
@@ -431,22 +432,19 @@ int getFreePinIdx()
 }
 
 //--- Callsback funcions ------------------------//
+//void _t_t1(NextionEventType type, INextionTouchable *widget)
+//{
+//Serial.println(bdimmer.getValue());
+//}
+
 void _bconnect(NextionEventType type, INextionTouchable *widget)
 {
-
   char buffer_ssid[40];
   char buffer_pass[40];
   if (type == NEX_EVENT_PUSH)
   {
-    digitalWrite(13, HIGH);
-    //wifiParams.ssid = buffer;
-    if (t_ssid.getText(buffer_ssid, 40)) {
-      Serial.println(buffer_ssid);
-    }
-
-    if (t_pass.getText(buffer_pass, 40)) {
-      Serial.println(buffer_pass);
-    }
+    t_ssid.getText(buffer_ssid, 40);
+    t_pass.getText(buffer_pass, 40);
 
     for (int i = 0; i < 40; i++)
     {
@@ -457,27 +455,46 @@ void _bconnect(NextionEventType type, INextionTouchable *widget)
     if (wifiTryConnect())
       bconnect.setText("Connected!");
   }
-
 }
 
 void _bswitch(NextionEventType type, INextionTouchable *widget)
 {
+  if (type == NEX_EVENT_PUSH)
+  {
+
+    Serial.println("boia de'");
+    //get current status
+    Serial.println(bswitch.getPictureID());
+    if (c_status != bswitch.getPictureID()) {
+      pTic();
+      if (c_status == OFF) {
+        c_status = ON;
+      }
+      else if (c_status == ON) {
+        c_status = OFF;
+      }
+      if (c_switch_mode = SWITCH_MODE_HWSW) {
+        digitalWrite(PIN_RELE, c_status);
+      }
+      else {
+        digitalWrite(PIN_RELE, ON);
+      }
+      refreshScreen();
+    }
+    else { //se non cmabia stato ed è ON legge valori dimmer
+      if (c_status == ON) {
+
+      }
+    }
+  }
+
   if (type == NEX_EVENT_POP)
   {
-    if (c_status == OFF) {
-      c_status = ON;
-    }
-    else if (c_status == ON) {
-      c_status = OFF;
-    }
-    if (c_switch_mode = SWITCH_MODE_HWSW) {
-      digitalWrite(PIN_RELE, c_status);
-    }
-    else {
-      digitalWrite(PIN_RELE, ON);
-    }
-    refreshScreen();
+    pTic();
+    Serial.println(bdimmer.getValue());
+    Serial.println("boiona");
   }
+
 }
 
 void _bgroup(NextionEventType type, INextionTouchable *widget)
@@ -562,13 +579,8 @@ void _btradfri(NextionEventType type, INextionTouchable *widget)
   char buffer_key[40];
   if (type == NEX_EVENT_PUSH)
   {
-    if (t_ip.getText(buffer_ip, 40)) {
-      Serial.println(buffer_ip);
-    }
-
-    if (t_key.getText(buffer_key, 40)) {
-      Serial.println(buffer_key);
-    }
+    t_ip.getText(buffer_ip, 40);
+    t_key.getText(buffer_key, 40);
 
     for (int i = 0; i < 40; i++)
     {

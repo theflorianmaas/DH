@@ -115,14 +115,68 @@ void pBit() {
   noTone;
 }
 
+void pTic() {
+  tone(PIN_TONE, NOTE_C3, 30);
+  noTone;
+}
+
+
+String createUrl(char* ip, char* key, int group, int light, String cmd, int value) {
+  String url = "/dh/runScript.php?";
+  url = url + "ip=";
+  url = url + ip;
+  url = url + "&key=";
+  url = url + key;
+  url = url + "&group=";
+  url = url + group;
+  url = url + "&light=";
+  url = url + light;
+  url = url + "&command=";
+  url = url + cmd;
+  url = url + "&value=";
+  url = url + value;
+  Serial.print(url);
+  return url;
+}
+
+String execUrl(String url) {
+  // This will send the request to the server
+  String line;
+  http.print(String("GET ") + url + " HTTP/1.1\r\n" +
+               "Host: " + host + "\r\n" +
+               "Connection: keep-alive\r\n\r\n");
+  unsigned long timeout = millis();
+  while (http.available() == 0) {
+    if (millis() - timeout > 5000) {
+      Serial.println(">>> Client Timeout !");
+      //client.stop();
+      return line;
+    }
+  }
+
+  // Read all the lines of the reply from server and print them to Serial
+  while (http.available()) {
+    line = http.readStringUntil('\r');
+  }
+  return line;
+}
+
+
+
+
 void sendCommand(const char* cmd) {
-  Serial.println(cmd);
   while (nextionSerial.available()) {
     nextionSerial.read();
   }//end while
-  //flushSerial();
   nextionSerial.print(cmd);
   nextionSerial.write(0xFF);
   nextionSerial.write(0xFF);
   nextionSerial.write(0xFF);
 }//end sendCommand
+
+void setText(String page, String obj, String val) {
+
+  String cmd = page + "." + obj + ".txt = " + String('"') + val + String('"');
+  sendCommand(cmd.c_str());
+
+}//setText
