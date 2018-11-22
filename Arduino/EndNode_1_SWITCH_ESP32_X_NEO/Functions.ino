@@ -143,8 +143,8 @@ String execUrl(String url) {
   // This will send the request to the server
   String line;
   http.print(String("GET ") + url + " HTTP/1.1\r\n" +
-               "Host: " + host + "\r\n" +
-               "Connection: keep-alive\r\n\r\n");
+             "Host: " + host + "\r\n" +
+             "Connection: keep-alive\r\n\r\n");
   unsigned long timeout = millis();
   while (http.available() == 0) {
     if (millis() - timeout > 5000) {
@@ -162,12 +162,11 @@ String execUrl(String url) {
 }
 
 
-
-
 void sendCommand(const char* cmd) {
   while (nextionSerial.available()) {
     nextionSerial.read();
   }//end while
+  Serial.println(cmd);
   nextionSerial.print(cmd);
   nextionSerial.write(0xFF);
   nextionSerial.write(0xFF);
@@ -176,7 +175,26 @@ void sendCommand(const char* cmd) {
 
 void setText(String page, String obj, String val) {
 
-  String cmd = page + "." + obj + ".txt = " + String('"') + val + String('"');
+  String cmd = page + "." + obj + ".txt=" + String('"') + val + String('"');
+  Serial.println(cmd.c_str());
   sendCommand(cmd.c_str());
 
 }//setText
+
+
+void setGroupList() {
+
+  Serial.println(sizeof(aGroups));
+  int numRows = sizeof(aGroups) / 88;
+  
+  for (int i = 0; i < numRows; i++) {
+    String cmd = "Config_Lights.t" + String(i) + ".txt=" + String('"') + aGroups[i][1] + String('"');
+    Serial.println(cmd.c_str());
+    sendCommand(cmd.c_str());
+    cmd = "vis Config_Lights.t" + String(i) + ",1";
+    sendCommand(cmd.c_str());
+    cmd = "vis Config_Lights.g" + String(i) + ",1";
+    sendCommand(cmd.c_str());
+  }
+
+}//setGroupList

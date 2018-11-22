@@ -22,6 +22,7 @@
 #include <NextionProgressBar.h>
 #include <NextionTimer.h>
 #include <NextionVariableNumeric.h>
+#include <NextionRadioButton.h>
 
 // ------------------------------------------------------------ //
 //-----------------------------------------------------------
@@ -113,6 +114,22 @@ NextionButton bconnect(nex, 6, 6, "bconn");
 INextionStringValued t_ip(nex, 7, 2, "t_ip");
 INextionStringValued t_key(nex, 7, 3, "t_key");
 NextionButton btradfri(nex, 7, 6, "btradfri");
+
+//----- Group select ----------------------------//
+NextionRadioButton r_t0(nex, 5, 13, "g0");
+NextionRadioButton r_t1(nex, 5, 14, "g1");
+NextionRadioButton r_t2(nex, 5, 15, "g2");
+NextionRadioButton r_t3(nex, 5, 18, "g3");
+NextionRadioButton r_t4(nex, 5, 16, "g4");
+NextionRadioButton r_t5(nex, 5, 17, "g5");
+NextionRadioButton r_t6(nex, 5, 21, "g6");
+NextionRadioButton r_t7(nex, 5, 19, "g7");
+NextionRadioButton r_t8(nex, 5, 20, "g8");
+NextionRadioButton r_t9(nex, 5, 22, "g9");
+NextionRadioButton r_t10(nex, 5, 23, "g10");
+
+NextionPicture pload(nex, 5, 99, "00");
+
 //-----------------------------------------------------------
 
 //-----------------------------------------------------------
@@ -159,7 +176,7 @@ NextionButton btradfri(nex, 7, 6, "btradfri");
 #define NUM_LIGHTS  7 //max number of lights available (# of lights+1) 
 #define NUM_LIGHT_PTS  NUM_LIGHTS*NUM_DATA_VAL
 
-int aGroups[11]; //current groups available in the gateway...
+String aGroups[11][2]; //current groups available in the gateway...
 int aMoods[1][5] = {0, 0, 0, 0, 0}; //[0][0] group/mood - moods of the selected group
 int aLights[NUM_LIGHTS][5]; //lights of the selected group [x][0]=pin [x][1]=type [x][2]=status [x][3]=value [x][4]=color
 int c_light; //current light
@@ -176,7 +193,7 @@ boolean isDimmerStarted = false;
   // ---- Wifi section ----*/
 
 char wifiParams_ssid[32]; // = {"Astronomy-Domine"};
-char wifiParams_passcode[64]; // = {"xxxxxxx"};
+char wifiParams_passcode[64];// = {""};
 
 // ---- Tradfri section ----*/
 char tradfriParams_ip[15] = {"192.168.1.75"};
@@ -228,6 +245,19 @@ void setup()
   bback.attachCallback(&_bback);
   //t_t1.attachCallback(&_t_t1);
 
+  r_t0.attachCallback(&_r_t0);
+  r_t1.attachCallback(&_r_t1);
+  r_t2.attachCallback(&_r_t2);
+  r_t3.attachCallback(&_r_t3);
+  r_t4.attachCallback(&_r_t4);
+  r_t5.attachCallback(&_r_t5);
+  r_t6.attachCallback(&_r_t6);
+  r_t7.attachCallback(&_r_t7);
+  r_t8.attachCallback(&_r_t8);
+  r_t9.attachCallback(&_r_t9);
+  
+  pload.attachCallback(&_pload);
+  
   nex.init();
   delay(2000);
   refreshScreen();
@@ -243,12 +273,14 @@ void loop(void)
   nex.poll();
 }
 
-void start() { 
+void start() {
+  //putTradfriParams();
+  //putWifiParams();
   getTradfriParams();
   getWifiParams();
   wifiTryConnect();
-  String url = createUrl(tradfriParams_ip, tradfriParams_key, 0, 0, "listgroup", 0);
-  Serial.println(execUrl(url));
+
+  getGroups();
 }
 
 
@@ -365,16 +397,45 @@ int getTradfriParams() {
 //------------------------------------
 void getGroups() {
 
-  String getData; // = "?status=" + ADCData + "&station=" + station ;  //Note "?" added at front
-  // get available group from gateway
+  String url = createUrl(tradfriParams_ip, tradfriParams_key, 0, 0, "listgroup", 0);
+  String result = execUrl(url);
+  char *str = (char*)result.c_str();
 
-  //int httpCode = http.GET();            //Send the request
-  //String payload = http.getString();    //Get the response payload
+  String arr[40]; //max 10 groups. 4 values per group
+  //arr[0] = command
+  //arr[1] = group id
+  //arr[2] = group name
+  //arr[3] = not used
+  //arr[4] = not used
+  //...
 
-  //Serial.println(httpCode);   //Print HTTP return code
-  //Serial.println(payload);    //Print request response payload
+  char *p = strtok(str, ",");
+  size_t index = 0;
 
-  //http.end();  //Close connection
+  while (p != nullptr && index < 20) {
+    arr[index++] = p;
+    p = strtok(NULL, ",");
+  }
+
+
+  memset(aGroups, 0, sizeof(aGroups)); //reset group array
+  int idx = 0;
+  if (arr[0] == "listgroup") {
+    //read received groups from gateway
+    for (int i = 1; i < index; i + 4) {
+      aGroups[idx][0] = arr[i];
+      aGroups[idx][1] = arr[i + 1];
+      idx++;
+    }
+  }
+
+  setGroupList();
+
+  for (size_t i = 0; i < index; i++)
+    Serial.println(arr[i]);
+
+  Serial.println("------------------");
+  Serial.println(index);
 
 }
 
@@ -591,4 +652,100 @@ void _btradfri(NextionEventType type, INextionTouchable *widget)
     putTradfriParams();
   }
 
+}
+
+
+void _r_t0(NextionEventType type, INextionTouchable *widget)
+{
+  if (type == NEX_EVENT_PUSH)
+  {
+    Serial.println("0");
+  }
+}
+
+void _r_t1(NextionEventType type, INextionTouchable *widget)
+{
+  if (type == NEX_EVENT_PUSH)
+  {
+    Serial.println("0");
+  }
+}
+
+void _r_t2(NextionEventType type, INextionTouchable *widget)
+{
+  if (type == NEX_EVENT_PUSH)
+  {
+    Serial.println("0");
+  }
+}
+
+void _r_t3(NextionEventType type, INextionTouchable *widget)
+{
+  if (type == NEX_EVENT_PUSH)
+  {
+    Serial.println("0");
+  }
+}
+
+void _r_t4(NextionEventType type, INextionTouchable *widget)
+{
+  if (type == NEX_EVENT_PUSH)
+  {
+    Serial.println("0");
+  }
+}
+
+void _r_t5(NextionEventType type, INextionTouchable *widget)
+{
+  if (type == NEX_EVENT_PUSH)
+  {
+    Serial.println("0");
+  }
+}
+
+void _r_t6(NextionEventType type, INextionTouchable *widget)
+{
+  if (type == NEX_EVENT_PUSH)
+  {
+    Serial.println("0");
+  }
+}
+
+void _r_t7(NextionEventType type, INextionTouchable *widget)
+{
+  if (type == NEX_EVENT_PUSH)
+  {
+    Serial.println("0");
+  }
+}
+
+void _r_t8(NextionEventType type, INextionTouchable *widget)
+{
+  if (type == NEX_EVENT_PUSH)
+  {
+    Serial.println("0");
+  }
+}
+
+void _r_t9(NextionEventType type, INextionTouchable *widget)
+{
+  if (type == NEX_EVENT_PUSH)
+  {
+    Serial.println("0");
+  }
+}
+
+
+void _r_t10(NextionEventType type, INextionTouchable *widget)
+{
+  if (type == NEX_EVENT_PUSH)
+  {
+    Serial.println("0");
+  }
+}
+
+void _pload(NextionEventType type, INextionTouchable *widget)
+{
+    Serial.println("eccolo!");
+    getGroups();
 }
