@@ -1,20 +1,25 @@
 void refreshScreen() {
+
+  for (int c = 0; c < 5; c++) {
+    sendCommand("st1.val=0");
+  }
   String setValue;
-Serial.println("refersh screen");
+  Serial.println("refersh screen");
   for (int i = 0; i < NUM_LIGHTS; i++) {
     //I don't use the library as this is faster
     //[x][0]=id [x][1]=status [x][2]=value [x][3]=color
-    setValue = "vt" + String(i + 1) + ".val=" + aLights[i][2].toInt(); //type
+    setValue = "vt" + String(i + 1) + ".val=" + aLights[i].type.toInt(); //type
     sendCommand(setValue.c_str());
-    setValue = "st" + String(i + 1) + ".val=" + int(aLightsStatus[i][1]); //status
+    setValue = "st" + String(i + 1) + ".val=" + int(aLights[i].status); //status
     sendCommand(setValue.c_str());
-    setValue = "vl" + String(i + 1) + ".val=" + int(aLightsStatus[i][2]); //value
+    setValue = "vl" + String(i + 1) + ".val=" + int(aLights[i].value); //value
     sendCommand(setValue.c_str());
-    setValue = "cx" + String(i + 1) + ".val=" + int(aLightsStatus[i][3]); //color
+    setValue = "cx" + String(i + 1) + ".val=" + int(aLights[i].color); //color
   }
 
   t_icons.enable();
   t_select_type.enable();
+  //t_default.enable();
   //pBit();
 }
 
@@ -22,19 +27,12 @@ void clearLightsArrays(int type) {
   if (type == 0) {
     for (int i = 1; i < NUM_LIGHTS; i++)
     {
-      aLights[i][0] = "";
-      aLights[i][1] = "";
-      aLights[i][2] = "";
-      aLights[i][3] = "";
-    }
-  }
-  else if (type == 1) {
-    for (int i = 1; i < NUM_LIGHTS; i++)
-    {
-      aLightsStatus[i][0] = NOLIGHT;
-      aLightsStatus[i][1] = 999;
-      aLightsStatus[i][2] = 0;
-      aLightsStatus[i][3] = 0;
+      aLights[i].id = "";
+      aLights[i].name = "";
+      aLights[i].type = "";
+      aLights[i].status = NOLIGHT;
+      aLights[i].value = 999;
+      aLights[i].color = 0;
     }
   }
 }
@@ -221,7 +219,7 @@ void setGroupList(int idx) {
     Serial.println(aGroups[i][1]);
     Serial.println(cmd);
     sendCommand(cmd.c_str());
-    if (i == c_group){
+    if (i == c_group) {
       cmd = "gx" + String(i) + ".val=1";
       sendCommand(cmd.c_str());
     }

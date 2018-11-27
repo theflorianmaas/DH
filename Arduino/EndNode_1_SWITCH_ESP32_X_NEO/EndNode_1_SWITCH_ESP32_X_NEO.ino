@@ -100,6 +100,7 @@ NextionVariableNumeric vdefMainSW(nex, 0, 69, "defMainSW");
 
 NextionTimer t_icons(nex, 0, 63, "t_icons");
 NextionTimer t_select_type(nex, 0, 43, "t_select_type");
+NextionTimer t_default(nex, 0, 70, "default");
 NextionTimer t_t1(nex, 0, 4, "tm1");
 
 //----- Settings ----------------------------//
@@ -176,7 +177,17 @@ NextionButton bloadgroups(nex, 5, 24, "b0");
 
 String aGroups[11][2]; //current groups available in the gateway...
 int aMoods[1][5] = {0, 0, 0, 0, 0}; //[0][0] group/mood - moods of the selected group
-String aLights[11][4]; //lights of the selected group [x][0]=id [x][1]=name [x][2]=type [x][3]=status
+
+typedef struct  {
+  String id;
+  String name;
+  String type;
+  int status;
+  int value;
+  int color;
+} light;
+
+light aLights[NUM_LIGHTS]; //lights of the selected group [x][0]=id [x][1]=name [x][2]=type [x][3]=status
 int aLightsStatus[11][4]; //lights status values of the selected group [x][0]=id [x][1]=status [x][2]=value, color=[x][3]
 int c_light; //current light
 int c_group; //current group
@@ -437,7 +448,7 @@ void getLights() {
   String result = execUrl(url);
   char *str = (char*)result.c_str();
   Serial.println(result);
-  String arr[NUM_LIGHTS * 4 + 1]; //max 10 lights. 4 values per light
+  String arr[NUM_LIGHTS * 6 + 1]; //max 10 lights. 4 values per light
   //arr[0] = command
   //arr[1] = light id
   //arr[2] = type
@@ -448,91 +459,48 @@ void getLights() {
   char *p = strtok(str, ",");
   int index = 0;
 
-  while (p != nullptr && index < NUM_LIGHTS * 4 + 1) {
+  while (p != nullptr && index < NUM_LIGHTS * 6 + 1) {
     arr[index++] = String(p);
     p = strtok(NULL, ",");
   }
 
   clearLightsArrays(0);
   int idx = 0;
-  Serial.println(arr[0]);
   //if (String(arr[0]) == String("listgroup")) {
   //read received groups from gateway
-  for (int i = 1; i < index; i = i + 4) {
-    aLights[idx][0] = arr[i];
-    aLights[idx][1] = arr[i + 1];
-    aLights[idx][2] = arr[i + 2];
-    aLights[idx][3] = arr[i + 3];
+  for (int i = 1; i < index; i = i + 6) {
+    aLights[idx].id = arr[i];
+    aLights[idx].name = arr[i + 1];
+    aLights[idx].type = arr[i + 2];
+    aLights[idx].status = convStatus(arr[i + 3]);
+    aLights[idx].value = arr[i + 4].toInt();
+    aLights[idx].color = arr[i + 5].toInt();
     idx++;
   }
   // }
-  Serial.println(idx);
   setLightList(idx);
 
   for (int i = 0; i < idx; i++) {
-    Serial.println(aLights[i][0]);
-    Serial.println(aLights[i][1]);
-    Serial.println(aLights[i][2]);
-    Serial.println(aLights[i][3]);
+    Serial.println(aLights[i].id);
+    Serial.println(aLights[i].name);
+    Serial.println(aLights[i].type);
+    Serial.println(aLights[i].status);
   }
   Serial.println("------------------");
   Serial.println(index);
-  getLightsStatus();
   refreshScreen;
 }
 
-
-void getLightsStatus() {
-  // get available lights assigned to the selected group from gateway
-  String url = createUrl(tradfriParams_ip, tradfriParams_key, c_group_id, "0", "statuslight", 0);
-  String result = execUrl(url);
-  char *str = (char*)result.c_str();
-  Serial.println(result);
-  String arr[40]; //max 10 lights. 4 values per light
-  //arr[0] = command
-  //arr[1] = light id
-  //arr[2] = status
-  //arr[3] = value
-  //arr[4] = color
-  //...
-
-  char *p = strtok(str, ",");
-  int index = 0;
-
-  while (p != nullptr && index < 20) {
-    arr[index++] = String(p);
-    p = strtok(NULL, ",");
-  }
-
-  //initialize light array. Set all pin to 999 (no light configured)
-  clearLightsArrays(1);
-  int idx = 0;
-  Serial.println(arr[0]);
-  //if (String(arr[0]) == String("listgroup")) {
-  //read received groups from gateway
-  for (int i = 1; i < index; i = i + 4) {
-    aLightsStatus[idx][0] = arr[i].toInt();
-    if (arr[i + 1] == "True") {
-      aLightsStatus[idx][1] = 1;
-    }
-    else {
-      aLightsStatus[idx][1] = 0;
-    }
-    aLightsStatus[idx][2] = arr[i + 2].toInt();
-    aLightsStatus[idx][3] = arr[i + 3].toInt();
-    idx++;
-  }
-  // }
-
-  //setLightList(idx);
-
-  for (int i = 0; i < idx; i++) {
-    Serial.println(aLightsStatus[i][0]);
-    Serial.println(aLightsStatus[i][1]);
-    Serial.println(aLightsStatus[i][2]);
-    Serial.println(aLightsStatus[i][3]);
+int convStatus(String sts){
+  if (sts = "True"){
+    return 1;
+  }else
+  {
+    return 0;
   }
 }
+
+
 // ******************************************************* //
 
 // ******************************************************* //
