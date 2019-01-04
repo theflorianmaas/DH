@@ -1,20 +1,20 @@
 void refreshScreen() {
 
-  for (int c = 0; c < 5; c++) {
-    sendCommand("st1.val=0");
-  }
+  //for (int c = 0; c < 5; c++) {
+  //sendCommand("st1.val=0");
+  //}
   String setValue;
   Serial.println("refersh screen");
-  for (int i = 0; i < NUM_LIGHTS; i++) {
+  for (int i = 1; i < NUM_LIGHTS; i++) {
     //I don't use the library as this is faster
     //[x][0]=id [x][1]=status [x][2]=value [x][3]=color
-    setValue = "vt" + String(i + 1) + ".val=" + aLights[i].type.toInt(); //type
+    setValue = "vt" + String(i) + ".val=" + aLights[i].type.toInt(); //type
     sendCommand(setValue.c_str());
-    setValue = "st" + String(i + 1) + ".val=" + int(aLights[i].status); //status
+    setValue = "st" + String(i) + ".val=" + int(aLights[i].status); //status
     sendCommand(setValue.c_str());
-    setValue = "vl" + String(i + 1) + ".val=" + int(aLights[i].value); //value
+    setValue = "vl" + String(i) + ".val=" + int(aLights[i].value); //value
     sendCommand(setValue.c_str());
-    setValue = "cx" + String(i + 1) + ".val=" + int(aLights[i].color); //color
+    setValue = "cx" + String(i) + ".val=" + int(aLights[i].color); //color
   }
 
   t_icons.enable();
@@ -23,17 +23,15 @@ void refreshScreen() {
   //pBit();
 }
 
-void clearLightsArrays(int type) {
-  if (type == 0) {
-    for (int i = 1; i < NUM_LIGHTS; i++)
-    {
-      aLights[i].id = "";
-      aLights[i].name = "";
-      aLights[i].type = "";
-      aLights[i].status = NOLIGHT;
-      aLights[i].value = 999;
-      aLights[i].color = 0;
-    }
+void clearLightsArrays() {
+  for (int i = 1; i < NUM_LIGHTS; i++)
+  {
+    aLights[i].id = "";
+    aLights[i].name = "";
+    aLights[i].type = "";
+    aLights[i].status = NOLIGHT;
+    aLights[i].value = 0;
+    aLights[i].color = 0;
   }
 }
 
@@ -158,13 +156,12 @@ String createUrl(char* ip, char* key, String group, String light, String cmd, in
   url = url + cmd;
   url = url + "&value=";
   url = url + value;
-  Serial.print(url);
+  Serial.println(url);
   return url;
 }
 
 String execUrl(String url) {
   // This will send the request to the server
-
   if (!http.connect(host, httpPort)) {
     Serial.println("connection failed");
   }
@@ -208,7 +205,6 @@ void setText(String page, String obj, String val) {
 
 
 void setGroupList(int idx) {
-
   for (int i = 0; i < idx; i++) {
     String cmd;
     cmd = "vis t" + String(i) + ",1";
@@ -224,37 +220,32 @@ void setGroupList(int idx) {
       sendCommand(cmd.c_str());
     }
   }
-
 }//setGroupList
-
-void setLightList(int idx) {
-
-  pgMain.show();
-  /*
-    for (int i = 0; i < idx; i++) {
-     String cmd;
-     cmd = "vis t" + String(i) + ",1";
-     sendCommand(cmd.c_str());
-     cmd = "vis g" + String(i) + ",1";
-     sendCommand(cmd.c_str());
-     cmd = "t" + String(i) + ".txt=" + String('"') + aGroups[i][1] + String('"');
-     Serial.println(aLights[i][1]);
-     Serial.println(cmd);
-     sendCommand(cmd.c_str());
-    }
-  */
-}//setGroupList
-
 
 void putGroupID() {
   EEPROM.put(180, c_group_id);
   EEPROM.commit();
   Serial.println(c_group_id);
+  aLights[0].id = String(c_group_id);
   //setText("Tradfri", "t_ip", String(tradfriParams_ip));
 }
 
 int getGroupID() {
   EEPROM.get(180, c_group_id);
   Serial.println(c_group_id);
+  aLights[0].id = String(c_group_id);
   //setText("Tradfri", "t_key", String(tradfriParams_key));
+}
+
+
+void setLight() {
+  String url;
+  if (c_light == 0) {
+    url = createUrl(tradfriParams_ip, tradfriParams_key, aLights[0].id, "0", "setdimmer", aLights[c_light].value);
+  }
+  else //it is a light
+  {
+    url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setdimmer", aLights[c_light].value);
+  }
+  execUrl(url);
 }

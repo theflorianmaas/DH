@@ -1,6 +1,6 @@
 // ------------------------------------------------------------ //
 // EndNode_1_Switch
-// V.0.1 26/11/2018
+// V.0.1 04/01/2019
 // First version 0.1 Development
 //
 // ------------------------------------------------------------ //
@@ -97,6 +97,20 @@ NextionPicture iwifi(nex, 0, 72, "i_wifi");
 NextionVariableNumeric vwifi(nex, 0, 71, "wifi");
 NextionVariableNumeric vdefLight(nex, 0, 68, "defLight");
 NextionVariableNumeric vdefMainSW(nex, 0, 69, "defMainSW");
+NextionVariableNumeric vvl0(nex, 0, 36, "vlg0");
+NextionVariableNumeric vvl1(nex, 0, 23, "vl1");
+NextionVariableNumeric vvl2(nex, 0, 24, "vl2");
+NextionVariableNumeric vvl3(nex, 0, 25, "vl3");
+NextionVariableNumeric vvl4(nex, 0, 26, "vl4");
+NextionVariableNumeric vvl5(nex, 0, 27, "vl5");
+NextionVariableNumeric vvl6(nex, 0, 28, "vl6");
+NextionVariableNumeric vst0(nex, 0, 50, "stg0");
+NextionVariableNumeric vst1(nex, 0, 44, "st1");
+NextionVariableNumeric vst2(nex, 0, 45, "st2");
+NextionVariableNumeric vst3(nex, 0, 46, "st3");
+NextionVariableNumeric vst4(nex, 0, 47, "st4");
+NextionVariableNumeric vst5(nex, 0, 48, "st5");
+NextionVariableNumeric vst6(nex, 0, 49, "st6");
 
 NextionTimer t_icons(nex, 0, 63, "t_icons");
 NextionTimer t_select_type(nex, 0, 43, "t_select_type");
@@ -146,7 +160,7 @@ NextionButton bloadgroups(nex, 5, 24, "b0");
 #define ON  HIGH
 #define OFF LOW
 
-#define NOLIGHT -1
+#define NOLIGHT 999
 
 #define PERMANENT 1
 #define TEMPORARY 2
@@ -226,9 +240,8 @@ void setup()
 
   // initialize arrays and pins
   //initialize light array. Set all pin to 999 (no light configured)
-  clearLightsArrays(0);
-  clearLightsArrays(1);
-
+  clearLightsArrays();
+  
   pinMode(PIN_RELE, OUTPUT);
   digitalWrite(PIN_RELE, LOW);
   Serial.begin(BAUD_RATE);
@@ -284,7 +297,7 @@ void start() {
   getWifiParams();
   getGroupID();
   wifiTryConnect();
-  if (c_group_id != "")
+  if (aLights[0].id != "")
     getLights();
 }
 
@@ -371,7 +384,6 @@ boolean wifiTradfriTestConnect() {
     putTradfriParams(); //scrive valori su eeprom
     Serial.println("Tradfri OK");
   }
-
   return testResult;
 }
 
@@ -429,7 +441,7 @@ void getGroups() {
   for (int i = 1; i < index; i = i + 4) {
     aGroups[idx][0] = arr[i];
     aGroups[idx][1] = arr[i + 1];
-    if (aGroups[idx][0] == c_group_id) {
+    if (aGroups[idx][0] == aLights[0].id) {
       c_group = idx;
     }
     idx++;
@@ -444,7 +456,7 @@ void getMoods() {
 
 void getLights() {
   // get available lights assigned to the selected group from gateway
-  String url = createUrl(tradfriParams_ip, tradfriParams_key, c_group_id, "0", "listlight", 0);
+  String url = createUrl(tradfriParams_ip, tradfriParams_key, aLights[0].id, "0", "listlight", 0);
   String result = execUrl(url);
   char *str = (char*)result.c_str();
   Serial.println(result);
@@ -464,8 +476,8 @@ void getLights() {
     p = strtok(NULL, ",");
   }
 
-  clearLightsArrays(0);
-  int idx = 0;
+  clearLightsArrays();
+  int idx = 1;
   //if (String(arr[0]) == String("listgroup")) {
   //read received groups from gateway
   for (int i = 1; i < index; i = i + 6) {
@@ -478,8 +490,7 @@ void getLights() {
     idx++;
   }
   // }
-  setLightList(idx);
-
+  pgMain.show();
   for (int i = 0; i < idx; i++) {
     Serial.println(aLights[i].id);
     Serial.println(aLights[i].name);
@@ -488,13 +499,14 @@ void getLights() {
   }
   Serial.println("------------------");
   Serial.println(index);
-  refreshScreen;
+  Serial.println(aLights[0].id);
+  refreshScreen();
 }
 
-int convStatus(String sts){
-  if (sts = "True"){
+int convStatus(String sts) {
+  if (sts = "True") {
     return 1;
-  }else
+  } else
   {
     return 0;
   }
@@ -552,44 +564,90 @@ void _bswitch(NextionEventType type, INextionTouchable *widget)
   {
     Serial.println("boia de'");
     //get current status
-    Serial.println(bswitch.getPictureID());
-    if (c_status != bswitch.getPictureID()) {
+    Serial.println(vst0.getValue());
+    Serial.println(vst0.getValue());
+    if (aLights[c_light].status  != vst0.getValue()) {
       pTic();
-      if (c_status == OFF) {
-        c_status = ON;
+      if (aLights[c_light].status == OFF) {
+        aLights[c_light].status = ON;
       }
-      else if (c_status == ON) {
-        c_status = OFF;
+      else if (aLights[c_light].status == ON) {
+        aLights[c_light].status = OFF;
       }
       if (c_switch_mode = SWITCH_MODE_HWSW) {
-        digitalWrite(PIN_RELE, c_status);
+        digitalWrite(PIN_RELE, aLights[c_light].status);
       }
       else {
         digitalWrite(PIN_RELE, ON);
       }
-      refreshScreen();
     }
     else { //se non cmabia stato ed è ON legge valori dimmer
-      if (c_status == ON) {
-
+      if (aLights[c_light].status == ON) {
+        //aLights[c_light].status = vst0.getValue();
+        aLights[c_light].value = vvl0.getValue();
       }
     }
   }
 
   if (type == NEX_EVENT_POP)
   {
-    pTic();
-    Serial.println(bdimmer.getValue());
-    Serial.println("boiona");
+    Serial.println("PUSH");
+    if (aLights[c_light].status == ON) {
+      Serial.println("ON");
+      switch (c_light) {
+        case 0:
+          aLights[c_light].status = vst0.getValue();
+          aLights[c_light].value = vvl0.getValue();
+          break;
+        case 1:
+          aLights[c_light].status = vst1.getValue();
+          aLights[c_light].value = vvl1.getValue();
+          break;
+        case 2:
+          aLights[c_light].status = vst2.getValue();
+          aLights[c_light].value = vvl2.getValue();
+          break;
+        case 3:
+          aLights[c_light].status = vst3.getValue();
+          aLights[c_light].value = vvl3.getValue();
+          break;
+        case 4:
+          aLights[c_light].status = vst4.getValue();
+          aLights[c_light].value = vvl4.getValue();
+          break;
+        case 5:
+          aLights[c_light].status = vst5.getValue();
+          aLights[c_light].value = vvl5.getValue();
+          break;
+        case 6:
+          aLights[c_light].status = vst6.getValue();
+          aLights[c_light].value = vvl6.getValue();
+          break;
+      }
+    }
+    else {
+      Serial.println("OFF");
+      aLights[c_light].status = 0;
+      aLights[c_light].value = 0;
+    }
   }
-
+  pTic();
+  setLight();
+  Serial.println(aLights[c_light].value);
+  Serial.println(bdimmer.getValue());
+  Serial.println(vvl0.getValue());
+  Serial.println("boiona");
 }
+
 
 void _bgroup(NextionEventType type, INextionTouchable *widget)
 {
   if (type == NEX_EVENT_PUSH)
   {
     c_light = 0;
+    aLights[c_light].status = vst0.getValue();
+    aLights[c_light].value = vvl0.getValue();
+    refreshScreen();
   }
   //getGroups();
 }
@@ -599,6 +657,8 @@ void _blight1(NextionEventType type, INextionTouchable *widget)
   if (type == NEX_EVENT_PUSH)
   {
     c_light = 1;
+    aLights[c_light].status = vst1.getValue();
+    aLights[c_light].value = vvl1.getValue();
     refreshScreen();
   }
 }
@@ -608,6 +668,8 @@ void _blight2(NextionEventType type, INextionTouchable *widget)
   if (type == NEX_EVENT_PUSH)
   {
     c_light = 2;
+    aLights[c_light].status = vst2.getValue();
+    aLights[c_light].value = vvl2.getValue();
     refreshScreen();
   }
 }
@@ -617,6 +679,8 @@ void _blight3(NextionEventType type, INextionTouchable *widget)
   if (type == NEX_EVENT_PUSH)
   {
     c_light = 3;
+    aLights[c_light].status = vst3.getValue();
+    aLights[c_light].value = vvl3.getValue();
     refreshScreen();
   }
 }
@@ -626,6 +690,8 @@ void _blight4(NextionEventType type, INextionTouchable *widget)
   if (type == NEX_EVENT_PUSH)
   {
     c_light = 4;
+    aLights[c_light].status = vst4.getValue();
+    aLights[c_light].value = vvl4.getValue();
     refreshScreen();
   }
 }
@@ -635,6 +701,8 @@ void _blight5(NextionEventType type, INextionTouchable *widget)
   if (type == NEX_EVENT_PUSH)
   {
     c_light = 5;
+    aLights[c_light].status = vst5.getValue();
+    aLights[c_light].value = vvl5.getValue();
     refreshScreen();
   }
 }
@@ -644,6 +712,8 @@ void _blight6(NextionEventType type, INextionTouchable *widget)
   if (type == NEX_EVENT_PUSH)
   {
     c_light = 6;
+    aLights[c_light].status = vst6.getValue();
+    aLights[c_light].value = vvl6.getValue();
     refreshScreen();
   }
 }
@@ -784,8 +854,9 @@ void _r_t10(NextionEventType type, INextionTouchable *widget)
 
 void configGroup() {
   aGroups[c_group][0].toCharArray(c_group_id, 10);
+  aLights[0].id = aGroups[c_group][0];
   putGroupID();
-  Serial.println(c_group_id);
+  Serial.println(aLights[0].id);
   getLights();
 }
 
