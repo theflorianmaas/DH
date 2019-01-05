@@ -160,7 +160,7 @@ String createUrl(char* ip, char* key, String group, String light, String cmd, in
   return url;
 }
 
-String execUrl(String url) {
+String execUrl(String url, unsigned long timeout) {
   // This will send the request to the server
   if (!http.connect(host, httpPort)) {
     Serial.println("connection failed");
@@ -169,22 +169,31 @@ String execUrl(String url) {
   http.print(String("GET ") + url + " HTTP/1.1\r\n" +
              "Host: " + host + "\r\n" +
              "Connection: keep-alive\r\n\r\n");
-  unsigned long timeout = millis();
-  while (http.available() == 0) {
-    if (millis() - timeout > 5000) {
-      Serial.println(">>> Client Timeout !");
-      http.stop();
-      return line;
+
+  if (timeout == 0) { // no timeout return immediately
+    return "end";
+  }
+  else { //timeout, wait for the response
+
+    unsigned long iniTime = millis();
+    while (http.available() == 0) {
+      if (millis() - iniTime > timeout) {
+        Serial.println(">>> Client Timeout !");
+        http.stop();
+        return line;
+      }
     }
+
+    // Read all the lines of the reply from server and print them to Serial
+    while (http.available()) {
+      line = http.readStringUntil('\r');
+    }
+    //http.stop();
+    return line;
   }
 
-  // Read all the lines of the reply from server and print them to Serial
-  while (http.available()) {
-    line = http.readStringUntil('\r');
-  }
-  return line;
+
 }
-
 
 void sendCommand(const char* cmd) {
   while (nextionSerial.available()) {
@@ -240,12 +249,13 @@ int getGroupID() {
 
 void setLight() {
   String url;
+  int val = map(aLights[c_light].value, 0, 100, 0, 254);
   if (c_light == 0) {
-    url = createUrl(tradfriParams_ip, tradfriParams_key, aLights[0].id, "0", "setdimmer", aLights[c_light].value);
+    url = createUrl(tradfriParams_ip, tradfriParams_key, aLights[0].id, "0", "setdimmer", val);
   }
   else //it is a light
   {
-    url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setdimmer", aLights[c_light].value);
+    url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setdimmer", val);
   }
-  execUrl(url);
+  execUrl(url, 0);
 }

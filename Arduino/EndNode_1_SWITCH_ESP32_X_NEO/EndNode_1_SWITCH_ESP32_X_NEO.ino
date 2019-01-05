@@ -92,11 +92,13 @@ NextionPicture blight4(nex, 0, 10, "l4");
 NextionPicture blight5(nex, 0, 14, "l5");
 NextionPicture blight6(nex, 0, 17, "l6");
 
+NextionPicture pdummy(nex, 0, 73, "pDummy"); //used to simulate triggers on numeric valiable
+
 NextionPicture bgroup(nex, 0, 19, "g0");
 NextionPicture iwifi(nex, 0, 72, "i_wifi");
 NextionVariableNumeric vwifi(nex, 0, 71, "wifi");
-NextionVariableNumeric vdefLight(nex, 0, 68, "defLight");
-NextionVariableNumeric vdefMainSW(nex, 0, 69, "defMainSW");
+NextionVariableNumeric vdeflight(nex, 0, 68, "defLight");
+NextionVariableNumeric vdefmainsw(nex, 0, 69, "defMainSW");
 NextionVariableNumeric vvl0(nex, 0, 36, "vlg0");
 NextionVariableNumeric vvl1(nex, 0, 23, "vl1");
 NextionVariableNumeric vvl2(nex, 0, 24, "vl2");
@@ -212,10 +214,8 @@ int c_switch_mode = SWITCH_MODE_HWSW;
 
 boolean isDimmerStarted = false;
 
-/*
-
-  // -----------------------------------------------------------------
-  // ---- Wifi section ----*/
+// -----------------------------------------------------------------
+// ---- Wifi section ----*/
 
 char wifiParams_ssid[32]; // = {"Astronomy-Domine"};
 char wifiParams_passcode[64];// = {""};
@@ -241,7 +241,7 @@ void setup()
   // initialize arrays and pins
   //initialize light array. Set all pin to 999 (no light configured)
   clearLightsArrays();
-  
+
   pinMode(PIN_RELE, OUTPUT);
   digitalWrite(PIN_RELE, LOW);
   Serial.begin(BAUD_RATE);
@@ -252,6 +252,9 @@ void setup()
   bconnect.attachCallback(&_bconnect); //wifi connect button
   btradfri.attachCallback(&_btradfri); //tradfri test button
   bswitch.attachCallback(&_bswitch); //main switch
+  bdimmer.attachCallback(&_bdimmer); //dimmer control
+  pdummy.attachCallback(&_pdummy); //default light
+
   bgroup.attachCallback(&_bgroup);
   blight1.attachCallback(&_blight1);
   blight2.attachCallback(&_blight2);
@@ -415,7 +418,7 @@ int getTradfriParams() {
 void getGroups() {
 
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", "0", "listgroup", 0);
-  String result = execUrl(url);
+  String result = execUrl(url, 5000);
   char *str = (char*)result.c_str();
   Serial.println(result);
   String arr[41]; //max 10 groups. 4 values per group
@@ -457,7 +460,7 @@ void getMoods() {
 void getLights() {
   // get available lights assigned to the selected group from gateway
   String url = createUrl(tradfriParams_ip, tradfriParams_key, aLights[0].id, "0", "listlight", 0);
-  String result = execUrl(url);
+  String result = execUrl(url, 5000);
   char *str = (char*)result.c_str();
   Serial.println(result);
   String arr[NUM_LIGHTS * 6 + 1]; //max 10 lights. 4 values per light
@@ -532,7 +535,9 @@ void startTasks() {
 }
 
 
-//--- Callsback funcions ------------------------//
+//--- Callback funcions ------------------------//
+//--- Callback funcions ------------------------//
+//--- Callback funcions ------------------------//
 //void _t_t1(NextionEventType type, INextionTouchable *widget)
 //{
 //Serial.println(bdimmer.getValue());
@@ -560,77 +565,195 @@ void _bconnect(NextionEventType type, INextionTouchable *widget)
 
 void _bswitch(NextionEventType type, INextionTouchable *widget)
 {
-  if (type == NEX_EVENT_PUSH)
-  {
-    Serial.println("boia de'");
-    //get current status
-    Serial.println(vst0.getValue());
-    Serial.println(vst0.getValue());
-    if (aLights[c_light].status  != vst0.getValue()) {
-      pTic();
-      if (aLights[c_light].status == OFF) {
-        aLights[c_light].status = ON;
-      }
-      else if (aLights[c_light].status == ON) {
-        aLights[c_light].status = OFF;
-      }
-      if (c_switch_mode = SWITCH_MODE_HWSW) {
-        digitalWrite(PIN_RELE, aLights[c_light].status);
+  String setValue;
+  Serial.println("PUSH");
+  Serial.println("boia de'");
+  //get current status
+  Serial.println(vst0.getValue());
+  Serial.println(vst0.getValue());
+
+  switch (c_light) {
+    case 0: //It is the group
+      // toggle status
+      if (aLights[c_light].status  != vst0.getValue()) {
+        pTic();
+        if (aLights[c_light].status == OFF) {
+          aLights[c_light].status = ON;
+          aLights[c_light].value = bdimmer.getValue();
+        }
+        else if (aLights[c_light].status == ON) {
+          aLights[c_light].status = OFF;
+          aLights[c_light].value = 0;
+        }
+        if (c_switch_mode = SWITCH_MODE_HWSW) {
+          digitalWrite(PIN_RELE, aLights[c_light].status);
+        }
+        else {
+          digitalWrite(PIN_RELE, ON);
+        }
       }
       else {
-        digitalWrite(PIN_RELE, ON);
+        if (aLights[c_light].status == ON) {
+          aLights[c_light].value = bdimmer.getValue();
+        }
+        else {
+          aLights[c_light].value = 0;
+        }
       }
-    }
-    else { //se non cmabia stato ed è ON legge valori dimmer
-      if (aLights[c_light].status == ON) {
-        //aLights[c_light].status = vst0.getValue();
-        aLights[c_light].value = vvl0.getValue();
-      }
-    }
-  }
+      //set all lights to the same values
 
-  if (type == NEX_EVENT_POP)
-  {
-    Serial.println("PUSH");
-    if (aLights[c_light].status == ON) {
-      Serial.println("ON");
-      switch (c_light) {
-        case 0:
-          aLights[c_light].status = vst0.getValue();
-          aLights[c_light].value = vvl0.getValue();
-          break;
-        case 1:
-          aLights[c_light].status = vst1.getValue();
-          aLights[c_light].value = vvl1.getValue();
-          break;
-        case 2:
-          aLights[c_light].status = vst2.getValue();
-          aLights[c_light].value = vvl2.getValue();
-          break;
-        case 3:
-          aLights[c_light].status = vst3.getValue();
-          aLights[c_light].value = vvl3.getValue();
-          break;
-        case 4:
-          aLights[c_light].status = vst4.getValue();
-          aLights[c_light].value = vvl4.getValue();
-          break;
-        case 5:
-          aLights[c_light].status = vst5.getValue();
-          aLights[c_light].value = vvl5.getValue();
-          break;
-        case 6:
-          aLights[c_light].status = vst6.getValue();
-          aLights[c_light].value = vvl6.getValue();
-          break;
+      for (int i = 1; i < NUM_LIGHTS; i++) {
+        //I don't use the library as this is faster
+        if (aLights[i].status != 999) { //if the lights are visible
+          aLights[i].status = aLights[0].status;
+          aLights[i].value = aLights[0].value;
+        }
+        setValue = "st" + String(i) + ".val=" + int(aLights[i].status); //status
+        sendCommand(setValue.c_str());
+        setValue = "vl" + String(i) + ".val=" + int(aLights[i].value); //value
+        sendCommand(setValue.c_str());
+        //setValue = "cx" + String(i) + ".val=" + int(aLights[i].color); //color
+        //sendCommand(setValue.c_str());
       }
-    }
-    else {
-      Serial.println("OFF");
-      aLights[c_light].status = 0;
-      aLights[c_light].value = 0;
-    }
+      break;
+    case 1:
+      if (aLights[c_light].status  != vst1.getValue()) {
+        pTic();
+        if (aLights[c_light].status == OFF) {
+          aLights[c_light].status = ON;
+          aLights[c_light].value = bdimmer.getValue();
+        }
+        else if (aLights[c_light].status == ON) {
+          aLights[c_light].status = OFF;
+          aLights[c_light].value = 0;
+        }
+      }
+      else {
+        if (aLights[c_light].status == ON) {
+          aLights[c_light].value = bdimmer.getValue();
+        }
+        else {
+          aLights[c_light].value = 0;
+        }
+
+      }
+      break;
+    case 2:
+      if (aLights[c_light].status  != vst2.getValue()) {
+        pTic();
+        if (aLights[c_light].status == OFF) {
+          aLights[c_light].status = ON;
+          aLights[c_light].value = bdimmer.getValue();
+        }
+        else if (aLights[c_light].status == ON) {
+          aLights[c_light].status = OFF;
+          aLights[c_light].value = 0;
+        }
+      }
+      else {
+        if (aLights[c_light].status == ON) {
+          aLights[c_light].value = bdimmer.getValue();
+        }
+        else {
+          aLights[c_light].value = 0;
+        }
+
+      }
+      break;
+    case 3:
+      if (aLights[c_light].status  != vst3.getValue()) {
+        pTic();
+        if (aLights[c_light].status == OFF) {
+          aLights[c_light].status = ON;
+          aLights[c_light].value = bdimmer.getValue();
+        }
+        else if (aLights[c_light].status == ON) {
+          aLights[c_light].status = OFF;
+          aLights[c_light].value = 0;
+        }
+      }
+      else {
+        if (aLights[c_light].status == ON) {
+          aLights[c_light].value = bdimmer.getValue();
+        }
+        else {
+          aLights[c_light].value = 0;
+        }
+
+      }
+      break;
+    case 4:
+      if (aLights[c_light].status  != vst4.getValue()) {
+        pTic();
+        if (aLights[c_light].status == OFF) {
+          aLights[c_light].status = ON;
+          aLights[c_light].value = bdimmer.getValue();
+        }
+        else if (aLights[c_light].status == ON) {
+          aLights[c_light].status = OFF;
+          aLights[c_light].value = 0;
+        }
+      }
+      else {
+        if (aLights[c_light].status == ON) {
+          aLights[c_light].value = bdimmer.getValue();
+        }
+        else {
+          aLights[c_light].value = 0;
+        }
+
+      }
+      break;
+    case 5:
+      if (aLights[c_light].status  != vst5.getValue()) {
+        pTic();
+        if (aLights[c_light].status == OFF) {
+          aLights[c_light].status = ON;
+          aLights[c_light].value = bdimmer.getValue();
+        }
+        else if (aLights[c_light].status == ON) {
+          aLights[c_light].status = OFF;
+          aLights[c_light].value = 0;
+        }
+      }
+      else {
+        if (aLights[c_light].status == ON) {
+          aLights[c_light].value = bdimmer.getValue();
+        }
+        else {
+          aLights[c_light].value = 0;
+        }
+      }
+      break;
+    case 6:
+      if (aLights[c_light].status  != vst6.getValue()) {
+        pTic();
+        if (aLights[c_light].status == OFF) {
+          aLights[c_light].status = ON;
+          aLights[c_light].value = bdimmer.getValue();
+        }
+        else if (aLights[c_light].status == ON) {
+          aLights[c_light].status = OFF;
+          aLights[c_light].value = 0;
+        }
+      }
+      else {
+        if (aLights[c_light].status == ON) {
+          aLights[c_light].value = bdimmer.getValue();
+        }
+        else {
+          aLights[c_light].value = 0;
+        }
+        break;
+      }
   }
+  //}
+  //else {
+  //  Serial.println("OFF");
+  //  aLights[c_light].status = 0;
+  //  aLights[c_light].value = 0;
+  //}
+  //}
   pTic();
   setLight();
   Serial.println(aLights[c_light].value);
@@ -640,97 +763,139 @@ void _bswitch(NextionEventType type, INextionTouchable *widget)
 }
 
 
-void _bgroup(NextionEventType type, INextionTouchable *widget)
+void _bdimmer(NextionEventType type, INextionTouchable * widget)
 {
-  if (type == NEX_EVENT_PUSH)
-  {
-    c_light = 0;
-    aLights[c_light].status = vst0.getValue();
-    aLights[c_light].value = vvl0.getValue();
-    refreshScreen();
+  String setValue;
+  //if it is ON read values
+  switch (c_light) {
+    case 0:
+      aLights[c_light].status = vst0.getValue();
+      aLights[c_light].value = bdimmer.getValue();
+
+      for (int i = 1; i < NUM_LIGHTS; i++) {
+        //I don't use the library as this is faster
+        if (aLights[i].status != 999) { //if the lights are visible
+          aLights[i].status = aLights[c_light].status;
+          aLights[i].value = aLights[c_light].value;
+        }
+        setValue = "st" + String(i) + ".val=" + int(aLights[i].status); //status
+        sendCommand(setValue.c_str());
+        setValue = "vl" + String(i) + ".val=" + int(aLights[i].value); //value
+        sendCommand(setValue.c_str());
+        //setValue = "cx" + String(i) + ".val=" + int(aLights[i].color); //color
+        //sendCommand(setValue.c_str());
+      }
+
+      break;
+    case 1:
+      aLights[c_light].status = vst1.getValue();
+      aLights[c_light].value = bdimmer.getValue();
+      break;
+    case 2:
+      aLights[c_light].status = vst2.getValue();
+      aLights[c_light].value = bdimmer.getValue();
+      break;
+    case 3:
+      aLights[c_light].status = vst3.getValue();
+      aLights[c_light].value = bdimmer.getValue();
+      break;
+    case 4:
+      aLights[c_light].status = vst4.getValue();
+      aLights[c_light].value = bdimmer.getValue();
+      break;
+    case 5:
+      aLights[c_light].status = vst5.getValue();
+      aLights[c_light].value = bdimmer.getValue();
+      break;
+    case 6:
+      aLights[c_light].status = vst6.getValue();
+      aLights[c_light].value = bdimmer.getValue();
+      break;
   }
+  pTic();
+  setLight();
+  Serial.println(aLights[c_light].value);
+  Serial.println(bdimmer.getValue());
+  Serial.println("boiona te");
+}
+
+void _bgroup(NextionEventType type, INextionTouchable * widget)
+{
+  c_light = 0;
+  aLights[c_light].status = vst0.getValue();
+  aLights[c_light].value = vvl0.getValue();
+  pTic();
+  refreshScreen();
   //getGroups();
 }
 
-void _blight1(NextionEventType type, INextionTouchable *widget)
+void _blight1(NextionEventType type, INextionTouchable * widget)
 {
-  if (type == NEX_EVENT_PUSH)
-  {
-    c_light = 1;
-    aLights[c_light].status = vst1.getValue();
-    aLights[c_light].value = vvl1.getValue();
-    refreshScreen();
-  }
+  c_light = 1;
+  aLights[c_light].status = vst1.getValue();
+  aLights[c_light].value = vvl1.getValue();
+  pTic();
+  refreshScreen();
 }
 
-void _blight2(NextionEventType type, INextionTouchable *widget)
+void _blight2(NextionEventType type, INextionTouchable * widget)
 {
-  if (type == NEX_EVENT_PUSH)
-  {
-    c_light = 2;
-    aLights[c_light].status = vst2.getValue();
-    aLights[c_light].value = vvl2.getValue();
-    refreshScreen();
-  }
+  c_light = 2;
+  aLights[c_light].status = vst2.getValue();
+  aLights[c_light].value = vvl2.getValue();
+  pTic();
+  refreshScreen();
 }
 
-void _blight3(NextionEventType type, INextionTouchable *widget)
+void _blight3(NextionEventType type, INextionTouchable * widget)
 {
-  if (type == NEX_EVENT_PUSH)
-  {
-    c_light = 3;
-    aLights[c_light].status = vst3.getValue();
-    aLights[c_light].value = vvl3.getValue();
-    refreshScreen();
-  }
+  c_light = 3;
+  aLights[c_light].status = vst3.getValue();
+  aLights[c_light].value = vvl3.getValue();
+  pTic();
+  refreshScreen();
 }
 
-void _blight4(NextionEventType type, INextionTouchable *widget)
+void _blight4(NextionEventType type, INextionTouchable * widget)
 {
-  if (type == NEX_EVENT_PUSH)
-  {
-    c_light = 4;
-    aLights[c_light].status = vst4.getValue();
-    aLights[c_light].value = vvl4.getValue();
-    refreshScreen();
-  }
+  c_light = 4;
+  aLights[c_light].status = vst4.getValue();
+  aLights[c_light].value = vvl4.getValue();
+  pTic();
+  refreshScreen();
 }
 
-void _blight5(NextionEventType type, INextionTouchable *widget)
+void _blight5(NextionEventType type, INextionTouchable * widget)
 {
-  if (type == NEX_EVENT_PUSH)
-  {
-    c_light = 5;
-    aLights[c_light].status = vst5.getValue();
-    aLights[c_light].value = vvl5.getValue();
-    refreshScreen();
-  }
+  c_light = 5;
+  aLights[c_light].status = vst5.getValue();
+  aLights[c_light].value = vvl5.getValue();
+  pTic();
+  refreshScreen();
 }
 
-void _blight6(NextionEventType type, INextionTouchable *widget)
+void _blight6(NextionEventType type, INextionTouchable * widget)
 {
-  if (type == NEX_EVENT_PUSH)
-  {
-    c_light = 6;
-    aLights[c_light].status = vst6.getValue();
-    aLights[c_light].value = vvl6.getValue();
-    refreshScreen();
-  }
+  c_light = 6;
+  aLights[c_light].status = vst6.getValue();
+  aLights[c_light].value = vvl6.getValue();
+  pTic();
+  refreshScreen();
 }
 
-void _bback(NextionEventType type, INextionTouchable *widget)
+void _bback(NextionEventType type, INextionTouchable * widget)
 {
   Serial.println(NEX_EVENT_PUSH);
   if (type == NEX_EVENT_PUSH)
   {
     //read global variables
-    c_light = vdefLight.getValue();
-    c_switch_mode = vdefMainSW.getValue();
+    c_light = vdeflight.getValue();
+    c_switch_mode = vdefmainsw.getValue();
     refreshScreen();
   }
 }
 
-void _btradfri(NextionEventType type, INextionTouchable *widget)
+void _btradfri(NextionEventType type, INextionTouchable * widget)
 {
 
   char buffer_ip[40];
@@ -752,7 +917,7 @@ void _btradfri(NextionEventType type, INextionTouchable *widget)
 }
 
 
-void _r_t0(NextionEventType type, INextionTouchable *widget)
+void _r_t0(NextionEventType type, INextionTouchable * widget)
 {
   if (type == NEX_EVENT_PUSH)
   {
@@ -761,7 +926,7 @@ void _r_t0(NextionEventType type, INextionTouchable *widget)
   }
 }
 
-void _r_t1(NextionEventType type, INextionTouchable *widget)
+void _r_t1(NextionEventType type, INextionTouchable * widget)
 {
   if (type == NEX_EVENT_PUSH)
   {
@@ -770,7 +935,7 @@ void _r_t1(NextionEventType type, INextionTouchable *widget)
   }
 }
 
-void _r_t2(NextionEventType type, INextionTouchable *widget)
+void _r_t2(NextionEventType type, INextionTouchable * widget)
 {
   if (type == NEX_EVENT_PUSH)
   {
@@ -779,7 +944,7 @@ void _r_t2(NextionEventType type, INextionTouchable *widget)
   }
 }
 
-void _r_t3(NextionEventType type, INextionTouchable *widget)
+void _r_t3(NextionEventType type, INextionTouchable * widget)
 {
   if (type == NEX_EVENT_PUSH)
   {
@@ -788,7 +953,7 @@ void _r_t3(NextionEventType type, INextionTouchable *widget)
   }
 }
 
-void _r_t4(NextionEventType type, INextionTouchable *widget)
+void _r_t4(NextionEventType type, INextionTouchable * widget)
 {
   if (type == NEX_EVENT_PUSH)
   {
@@ -797,7 +962,7 @@ void _r_t4(NextionEventType type, INextionTouchable *widget)
   }
 }
 
-void _r_t5(NextionEventType type, INextionTouchable *widget)
+void _r_t5(NextionEventType type, INextionTouchable * widget)
 {
   if (type == NEX_EVENT_PUSH)
   {
@@ -806,7 +971,7 @@ void _r_t5(NextionEventType type, INextionTouchable *widget)
   }
 }
 
-void _r_t6(NextionEventType type, INextionTouchable *widget)
+void _r_t6(NextionEventType type, INextionTouchable * widget)
 {
   if (type == NEX_EVENT_PUSH)
   {
@@ -815,7 +980,7 @@ void _r_t6(NextionEventType type, INextionTouchable *widget)
   }
 }
 
-void _r_t7(NextionEventType type, INextionTouchable *widget)
+void _r_t7(NextionEventType type, INextionTouchable * widget)
 {
   if (type == NEX_EVENT_PUSH)
   {
@@ -824,7 +989,7 @@ void _r_t7(NextionEventType type, INextionTouchable *widget)
   }
 }
 
-void _r_t8(NextionEventType type, INextionTouchable *widget)
+void _r_t8(NextionEventType type, INextionTouchable * widget)
 {
   if (type == NEX_EVENT_PUSH)
   {
@@ -833,7 +998,7 @@ void _r_t8(NextionEventType type, INextionTouchable *widget)
   }
 }
 
-void _r_t9(NextionEventType type, INextionTouchable *widget)
+void _r_t9(NextionEventType type, INextionTouchable * widget)
 {
   if (type == NEX_EVENT_PUSH)
   {
@@ -843,7 +1008,7 @@ void _r_t9(NextionEventType type, INextionTouchable *widget)
 }
 
 
-void _r_t10(NextionEventType type, INextionTouchable *widget)
+void _r_t10(NextionEventType type, INextionTouchable * widget)
 {
   if (type == NEX_EVENT_PUSH)
   {
@@ -860,11 +1025,17 @@ void configGroup() {
   getLights();
 }
 
-void _bloadgroups(NextionEventType type, INextionTouchable *widget)
+void _bloadgroups(NextionEventType type, INextionTouchable * widget)
 {
   if (type == NEX_EVENT_PUSH)
   {
     Serial.println("eccolo!");
     getGroups();
   }
+}
+
+void _pdummy(NextionEventType type, INextionTouchable * widget)
+{
+  c_light = 0;
+  Serial.println("default light");
 }
