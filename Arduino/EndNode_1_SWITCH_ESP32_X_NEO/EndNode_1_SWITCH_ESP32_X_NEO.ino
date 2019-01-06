@@ -1,3 +1,5 @@
+
+
 // ------------------------------------------------------------ //
 // EndNode_1_Switch
 // V.0.1 04/01/2019
@@ -11,6 +13,9 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include "pitches.h"
+
+#include <Scheduler.h>
+#include <Task.h>
 
 #include <NeoNextion.h>
 #include <NextionPage.h>
@@ -93,6 +98,7 @@ NextionPicture blight5(nex, 0, 14, "l5");
 NextionPicture blight6(nex, 0, 17, "l6");
 
 NextionPicture pdummy(nex, 0, 73, "pDummy"); //used to simulate triggers on numeric valiable
+NextionPicture ptimer(nex, 0, 80, "pDummy"); //used to simulate triggers on numeric valiable
 
 NextionPicture bgroup(nex, 0, 19, "g0");
 NextionPicture iwifi(nex, 0, 72, "i_wifi");
@@ -232,6 +238,9 @@ int res;
 
 Timer t0; //timer to schedule the sensors and actuators values update
 
+
+
+
 /*
    Setup function. Here we do the basics
 */
@@ -254,6 +263,7 @@ void setup()
   bswitch.attachCallback(&_bswitch); //main switch
   bdimmer.attachCallback(&_bdimmer); //dimmer control
   pdummy.attachCallback(&_pdummy); //default light
+  ptimer.attachCallback(&_ptimer); //timer to resfresh light data from gateway
 
   bgroup.attachCallback(&_bgroup);
   blight1.attachCallback(&_blight1);
@@ -276,22 +286,24 @@ void setup()
   r_t8.attachCallback(&_r_t8);
   r_t9.attachCallback(&_r_t9);
 
-  bloadgroups.attachCallback(&_bloadgroups);
+  bmoncolor1.attachCallback(&_bmoncolor1);
+  bmoncolor2.attachCallback(&_bmoncolor2);
+  bmoncolor3.attachCallback(&_bmoncolor3);
 
   nex.init();
   delay(2000);
   refreshScreen();
   delay(100);
   start();
+
+  t_default.setCycle(60000);
+  
   pBit();
-  //startTasks();
 }  //setup()
 
-void loop(void)
-{
-  //t0.update();
+void loop() {
   nex.poll();
-}
+  }
 
 void start() {
   //putTradfriParams();
@@ -489,7 +501,7 @@ void getLights() {
     aLights[idx].type = arr[i + 2];
     aLights[idx].status = convStatus(arr[i + 3]);
     aLights[idx].value = arr[i + 4].toInt();
-    aLights[idx].color = arr[i + 5].toInt();
+    aLights[idx].color = convertColor(arr[i + 5].toInt());
     idx++;
   }
   // }
@@ -507,12 +519,10 @@ void getLights() {
 }
 
 int convStatus(String sts) {
-  if (sts = "True") {
+  if (sts == "True") 
     return 1;
-  } else
-  {
+  else
     return 0;
-  }
 }
 
 
@@ -530,8 +540,7 @@ int convStatus(String sts) {
 // ******************************************************* //
 
 void startTasks() {
-  //t0.every(TIMEt1, sendSensorData);
-  //t0.every(TIMEt0, updatePinValues);
+  t0.every(TIMEt0, getStatusLight);
 }
 
 
@@ -1038,4 +1047,40 @@ void _pdummy(NextionEventType type, INextionTouchable * widget)
 {
   c_light = 0;
   Serial.println("default light");
+  getStatusLight();
+}
+
+void _ptimer(NextionEventType type, INextionTouchable * widget)
+{
+  c_light = 0;
+  Serial.println("timer");
+  getStatusLight();
+}
+
+
+//-----------------------------------------------------//
+// 3 colors bulbs
+//-----------------------------------------------------//
+void _bmoncolor1(NextionEventType type, INextionTouchable * widget)
+{
+  //set cold color
+  String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 1);
+  pTic();
+  execUrl(url, 0);
+}
+
+void _bmoncolor2(NextionEventType type, INextionTouchable * widget)
+{
+  //set normal color
+  String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 2);
+  pTic();
+  execUrl(url, 0);
+}
+
+void _bmoncolor3(NextionEventType type, INextionTouchable * widget)
+{
+  //set warm color
+  String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 3);
+  pTic();
+  execUrl(url, 0);
 }

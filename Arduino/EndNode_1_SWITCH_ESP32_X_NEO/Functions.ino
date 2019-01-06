@@ -16,10 +16,8 @@ void refreshScreen() {
     sendCommand(setValue.c_str());
     setValue = "cx" + String(i) + ".val=" + int(aLights[i].color); //color
   }
-
   t_icons.enable();
   t_select_type.enable();
-  //t_default.enable();
   //pBit();
 }
 
@@ -66,19 +64,6 @@ byte convertColor(byte color) {
   return ret;
 }
 
-
-void execLightCommand(byte pin, byte sts, int value, int color) {
-  if (isDimmerStarted == true && pin == c_light) { //if dimmer started do not update the current light
-    pBit(); //do nothing
-  }
-  else  {
-    byte val = map(value, 0, 254, 0, 100);
-    // aLights[getPinIdx(pin)][2] = sts; //status
-    //aLights[getPinIdx(pin)][3] = val; //status
-    //aLights[getPinIdx(pin)][4] = convertColor(color); //status
-    refreshScreen();
-  }
-}
 
 /*
   void setLightConfig(byte pin, byte type, byte mode) {
@@ -191,8 +176,6 @@ String execUrl(String url, unsigned long timeout) {
     //http.stop();
     return line;
   }
-
-
 }
 
 void sendCommand(const char* cmd) {
@@ -258,4 +241,48 @@ void setLight() {
     url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setdimmer", val);
   }
   execUrl(url, 0);
+}
+
+
+void getStatusLight() {
+
+  String url = createUrl(tradfriParams_ip, tradfriParams_key, aLights[0].id, "0", "statuslight", 0);
+  String result = execUrl(url, 5000);
+  char *str = (char*)result.c_str();
+  Serial.println(result);
+  String arr[41]; //max 10 lights. 4 values per light
+  //arr[0] = command
+  //arr[1] = light id
+  //arr[2] = status
+  //arr[3] = value
+  //arr[4] = color
+  //..x4
+
+  char *p = strtok(str, ",");
+  int index = 0;
+
+  while (p != nullptr && index < 20) {
+    arr[index++] = String(p);
+    p = strtok(NULL, ",");
+  }
+
+  int idx = -1;
+  //read received data from gateway
+  for (int i = 1; i < index; i = i + 4) {
+    //get light index
+    idx = -1;
+    for (int x = 1; x < NUM_LIGHTS; x++) {
+      if (arr[i] == aLights[x].id) {
+        idx = x;
+        break; //found light idx
+      }
+    }
+    if (idx != -1) { //if light found
+      //set the light values
+      aLights[idx].status = convStatus(arr[i + 1]);
+      aLights[idx].value = map(arr[i + 2].toInt(),0,254,0,100);
+      aLights[idx].color = convertColor(arr[i + 3].toInt());
+    }
+  }
+  refreshScreen();
 }
