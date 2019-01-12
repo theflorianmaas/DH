@@ -7,7 +7,7 @@ void refreshScreen() {
   setValue = "vlg0.val=" + String(aLights[0].value); //value
   sendCommand(setValue.c_str());
   Serial.println("refrrsh light");
-  
+
   for (int i = 1; i < NUM_LIGHTS; i++) {
     //I don't use the library as this is faster
     //[x][0]=id [x][1]=status [x][2]=value [x][3]=color
@@ -21,7 +21,6 @@ void refreshScreen() {
   }
   t_icons.enable();
   t_select_type.enable();
-  //pBit();
 }
 
 void clearLightsArrays() {
@@ -67,53 +66,6 @@ byte convertColor(byte color) {
   return ret;
 }
 
-
-/*
-  void setLightConfig(byte pin, byte type, byte mode) {
-  //mode 0=insert 2=delete 1=update
-  byte idx;
-  switch (mode) {
-    case 0: //insert
-      if (getPinIdx(pin) == -1) {//if the pin not exist
-        idx = getFreePinIdx(); //search for the first vacant light
-        if (idx != -1) {
-          aLights[idx][0] = pin; //pin
-          aLights[idx][1] = type; //type
-          aLights[idx][2] = OFF; //status
-          aLights[idx][3] = 0; //value
-          aLights[idx][4] = 1; //color
-          //[x][0]=pin [x][1]=type [x][2]=status [x][3]=value [x][4]=color
-        }
-      }
-      else {//if exists update
-        idx = getPinIdx(pin); //search for the light to update
-        aLights[idx][1] = type; //type
-        aLights[idx][2] = OFF; //status
-        aLights[idx][3] = 0; //value
-        aLights[idx][4] = 1; //color
-      }
-      break;
-    case 1: //delete
-      idx = getPinIdx(pin); //search for the light to delete
-      if (idx != -1) {
-        aLights[idx][0] = NOLIGHT; //pin
-        aLights[idx][2] = 999; //status = not visible
-      }
-      break;
-    case 2: //update
-      idx = getPinIdx(pin); //search for the light to update
-      if (idx != -1) {
-        aLights[idx][1] = type; //type
-        aLights[idx][2] = OFF; //status
-        aLights[idx][3] = 0; //value
-        aLights[idx][4] = 1; //color
-      }
-      break;
-  }
-  //pBit();
-  refreshScreen();
-  }
-*/
 
 void setLightGroup(uint8_t group) {
   c_group = group; //current group
@@ -222,26 +174,15 @@ void putGroupID() {
   EEPROM.commit();
   Serial.println(c_group_id);
   aLights[0].id = String(c_group_id);
-  //setText("Tradfri", "t_ip", String(tradfriParams_ip));
 }
 
 int getGroupID() {
   EEPROM.get(180, c_group_id);
   Serial.println(c_group_id);
   aLights[0].id = String(c_group_id);
-  //setText("Tradfri", "t_key", String(tradfriParams_key));
 }
 
-void getLights() {
-  // get available lights assigned to the selected group from gateway
-  String url = createUrl(tradfriParams_ip, tradfriParams_key, aLights[0].id, "0", "listlight", 0);
-  String result = execUrl(url, 5000);
-  char *str = (char*)result.c_str();
-  Serial.print("lucine: ");
-  Serial.println(result);
-
-  clearLightsArrays();
-
+int countCommas(String result) {
   //counts the number of values in the result
   int cnt = 0;
   Serial.println(result.length());
@@ -250,9 +191,65 @@ void getLights() {
       cnt++;
     }
   }
-  Serial.println(cnt);
+  return cnt;
+}
 
-  String arr[cnt + 1]; //max 10 lights. 6 values per light
+//-----------------------------------
+// Read data from gateway
+//------------------------------------
+void getGroups() {
+
+  String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", "0", "listgroup", 0);
+  String result = execUrl(url, 5000);
+  char *str = (char*)result.c_str();
+  Serial.println(result);
+
+  int cnt = countCommas(result);
+
+  String arr[cnt]; //max 10 groups. 4 values per group
+  //arr[0] = command
+  //arr[1] = group id
+  //arr[2] = group name
+  //arr[3] = not used
+  //arr[4] = not used
+  //...
+
+  char *p = strtok(str, ",");
+  int index = 0;
+
+  while (p != nullptr && index < 20) {
+    arr[index++] = String(p);
+    p = strtok(NULL, ",");
+  }
+
+  // memset(aGroups, 0, sizeof(aGroups)); //reset group array
+  int idx = 0;
+  //if (String(arr[0]) == String("listgroup")) {
+  //read received groups from gateway
+  for (int i = 1; i < index; i = i + 4) {
+    aGroups[idx][0] = arr[i];
+    aGroups[idx][1] = arr[i + 1];
+    if (aGroups[idx][0] == aLights[0].id) {
+      c_group = idx;
+    }
+    idx++;
+  }
+  // }
+  setGroupList(idx);
+}
+
+
+void getLights() {
+  // get available lights assigned to the selected group from gateway
+  String url = createUrl(tradfriParams_ip, tradfriParams_key, aLights[0].id, "0", "listlight", 0);
+  String result = execUrl(url, 5000);
+  char *str = (char*)result.c_str();
+  Serial.println(result);
+
+  clearLightsArrays();
+
+  int cnt = countCommas(result);
+  String arr[cnt]; //max 10 lights. 6 values per light
   //arr[0] = command
   //arr[1] = light id
   //arr[2] = type
@@ -268,13 +265,6 @@ void getLights() {
     p = strtok(NULL, ",");
   }
 
-  /*
-    for (int i = 0; i < sizeof(arr); i++) {
-      Serial.print(i);
-      Serial.print(" ");
-      Serial.println(arr[i]);
-    }
-  */
   int idx = 1;
   //read received groups from gateway
   for (int i = 1; i < index; i = i + 6) {
@@ -290,16 +280,6 @@ void getLights() {
   }
   // }
   pgMain.show();
-  /*
-    for (int i = 1; i < idx; i++) {
-    Serial.println(aLights[i].id);
-    Serial.println(aLights[i].name);
-    Serial.println(aLights[i].type);
-    Serial.println(aLights[i].status);
-    Serial.println(aLights[i].value);
-    Serial.println(aLights[i].color);
-    }
-  */
   calculateGroupStatus();
   refreshScreen();
 }
@@ -327,16 +307,7 @@ void getStatusLight() {
   char *str = (char*)result.c_str();
   Serial.println(result);
 
-  //counts the number of values in the result
-  int cnt = 0;
-  Serial.println(result.length());
-  for (int i = 0; i < result.length(); i++) {
-    if (result[i] == ',') {
-      cnt++;
-    }
-  }
-  Serial.println(cnt);
-
+  int cnt = countCommas(result);
   String arr[cnt]; //max 10 lights. 6 values per light
 
   char *p = strtok(str, ",");
@@ -345,16 +316,6 @@ void getStatusLight() {
   while (p != nullptr && index < cnt) {
     arr[index++] = String(p);
     p = strtok(NULL, ",");
-    Serial.println(p);
-  }
-
-  Serial.println("size of: ");
-
-  Serial.println(sizeof(arr));
-  for (int i = 0; i < cnt; i++) {
-    Serial.print(i);
-    Serial.print(" ");
-    Serial.println(arr[i]);
   }
 
   int idx = -1;
@@ -381,13 +342,6 @@ void getStatusLight() {
 
 void calculateGroupStatus() {
 
-  Serial.println(aLights[1].value);
-  Serial.println(aLights[2].value);
-  Serial.println(aLights[3].value);
-  Serial.println(aLights[4].value);
-  Serial.println(aLights[5].value);
-  Serial.println(aLights[6].value);
-  
   if (aLights[1].status == 1 || aLights[2].status == 1 || aLights[3].status == 1 || aLights[4].status == 1 || aLights[5].status == 1 || aLights[6].status == 1) {
     aLights[0].status = 1;
     int totalLightValue = 0;
@@ -398,7 +352,7 @@ void calculateGroupStatus() {
         numLights++;
       }
     }
-    aLights[0].value = int(totalLightValue/numLights);
+    aLights[0].value = int(totalLightValue / numLights);
   }
   else {
     aLights[0].status = 0;
@@ -409,5 +363,4 @@ void calculateGroupStatus() {
   Serial.print("value ");
   Serial.println(aLights[0].value);
 
-  
 }

@@ -287,6 +287,8 @@ void setup()
   bmoncolor2.attachCallback(&_bmoncolor2);
   bmoncolor3.attachCallback(&_bmoncolor3);
 
+  bloadgroups.attachCallback(&_bloadgroups);
+
   nex.init();
   delay(2000);
   refreshScreen();
@@ -424,46 +426,6 @@ int getTradfriParams() {
 // *******************************************************//
 // Functions                                              //
 // *******************************************************//
-//-----------------------------------
-// Read data from gateway
-//------------------------------------
-void getGroups() {
-
-  String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", "0", "listgroup", 0);
-  String result = execUrl(url, 5000);
-  char *str = (char*)result.c_str();
-  Serial.println(result);
-  String arr[41]; //max 10 groups. 4 values per group
-  //arr[0] = command
-  //arr[1] = group id
-  //arr[2] = group name
-  //arr[3] = not used
-  //arr[4] = not used
-  //...
-
-  char *p = strtok(str, ",");
-  int index = 0;
-
-  while (p != nullptr && index < 20) {
-    arr[index++] = String(p);
-    p = strtok(NULL, ",");
-  }
-
-  // memset(aGroups, 0, sizeof(aGroups)); //reset group array
-  int idx = 0;
-  //if (String(arr[0]) == String("listgroup")) {
-  //read received groups from gateway
-  for (int i = 1; i < index; i = i + 4) {
-    aGroups[idx][0] = arr[i];
-    aGroups[idx][1] = arr[i + 1];
-    if (aGroups[idx][0] == aLights[0].id) {
-      c_group = idx;
-    }
-    idx++;
-  }
-  // }
-  setGroupList(idx);
-}
 
 void getMoods() {
   // get available moods for selected group from gateway
@@ -477,13 +439,6 @@ int convStatus(String sts) {
   else
     return 0;
 }
-
-
-// ******************************************************* //
-
-// ******************************************************* //
-
-// ******************************************************* //
 
 
 // ******************************************************* //
