@@ -188,9 +188,8 @@ NextionButton bloadgroups(nex, 5, 24, "b0");
 #define IN 1
 #define OUT 0
 
-#define TIMEt0 10000 //update sensor data
-#define TIMEt1 3000 //send data to coordinator
-#define TIMEt2 11000 //set time
+#define TIMEt0 5000 //update lights data
+#define TIMEt1 1000 //calculate group values
 
 #define BAUD_RATE     115200  // Baud for both Xbee and serial monitor
 //#define NUM_BYTE_ARR  3 // Number of bytes of the array used to store long integers in the payload
@@ -237,8 +236,6 @@ char* host = "192.168.1.33";
 int res;
 
 Timer t0; //timer to schedule the sensors and actuators values update
-
-
 
 
 /*
@@ -296,14 +293,15 @@ void setup()
   delay(100);
   start();
 
-  t_default.setCycle(60000);
-  
+  t_default.setCycle(30000);
+
   pBit();
 }  //setup()
 
 void loop() {
   nex.poll();
-  }
+  t0.update();
+}
 
 void start() {
   //putTradfriParams();
@@ -314,6 +312,8 @@ void start() {
   wifiTryConnect();
   if (aLights[0].id != "")
     getLights();
+  getStatusLight();
+  startTasks();
 }
 
 
@@ -469,57 +469,10 @@ void getMoods() {
   // get available moods for selected group from gateway
 }
 
-void getLights() {
-  // get available lights assigned to the selected group from gateway
-  String url = createUrl(tradfriParams_ip, tradfriParams_key, aLights[0].id, "0", "listlight", 0);
-  String result = execUrl(url, 5000);
-  char *str = (char*)result.c_str();
-  Serial.println(result);
-  String arr[NUM_LIGHTS * 6 + 1]; //max 10 lights. 4 values per light
-  //arr[0] = command
-  //arr[1] = light id
-  //arr[2] = type
-  //arr[3] = status
-  //arr[4] = value
-  //...
 
-  char *p = strtok(str, ",");
-  int index = 0;
-
-  while (p != nullptr && index < NUM_LIGHTS * 6 + 1) {
-    arr[index++] = String(p);
-    p = strtok(NULL, ",");
-  }
-
-  clearLightsArrays();
-  int idx = 1;
-  //if (String(arr[0]) == String("listgroup")) {
-  //read received groups from gateway
-  for (int i = 1; i < index; i = i + 6) {
-    aLights[idx].id = arr[i];
-    aLights[idx].name = arr[i + 1];
-    aLights[idx].type = arr[i + 2];
-    aLights[idx].status = convStatus(arr[i + 3]);
-    aLights[idx].value = arr[i + 4].toInt();
-    aLights[idx].color = convertColor(arr[i + 5].toInt());
-    idx++;
-  }
-  // }
-  pgMain.show();
-  for (int i = 0; i < idx; i++) {
-    Serial.println(aLights[i].id);
-    Serial.println(aLights[i].name);
-    Serial.println(aLights[i].type);
-    Serial.println(aLights[i].status);
-  }
-  Serial.println("------------------");
-  Serial.println(index);
-  Serial.println(aLights[0].id);
-  refreshScreen();
-}
 
 int convStatus(String sts) {
-  if (sts == "True") 
+  if (sts == "True")
     return 1;
   else
     return 0;
@@ -540,7 +493,9 @@ int convStatus(String sts) {
 // ******************************************************* //
 
 void startTasks() {
-  t0.every(TIMEt0, getStatusLight);
+  // t0.every(TIMEt0, getStatusLight);
+  t0.every(TIMEt1, calculateGroupStatus);
+
 }
 
 
@@ -756,13 +711,6 @@ void _bswitch(NextionEventType type, INextionTouchable *widget)
         break;
       }
   }
-  //}
-  //else {
-  //  Serial.println("OFF");
-  //  aLights[c_light].status = 0;
-  //  aLights[c_light].value = 0;
-  //}
-  //}
   pTic();
   setLight();
   Serial.println(aLights[c_light].value);
@@ -834,6 +782,7 @@ void _bgroup(NextionEventType type, INextionTouchable * widget)
   aLights[c_light].status = vst0.getValue();
   aLights[c_light].value = vvl0.getValue();
   pTic();
+  getStatusLight();
   refreshScreen();
   //getGroups();
 }
@@ -1052,7 +1001,7 @@ void _pdummy(NextionEventType type, INextionTouchable * widget)
 
 void _ptimer(NextionEventType type, INextionTouchable * widget)
 {
-  c_light = 0;
+  //c_light = 0;
   Serial.println("timer");
   getStatusLight();
 }
