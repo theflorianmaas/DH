@@ -15,6 +15,7 @@ from multiprocessing.managers import SyncManager
 
 HOST = ''
 PORT8 = 5555
+PORT9 = 5556
 AUTHKEY = str("123456").encode("utf-8")
 
 parser = argparse.ArgumentParser()
@@ -25,7 +26,6 @@ parser.add_argument('plight', type=int,	help='default light. 0 = All lights')
 parser.add_argument('pommand', type=str,	help='command for group or light')
 parser.add_argument('palue', type=int, help='value to execute command')
 args = parser.parse_args()
-print(args)
 
 def get_index(id, list_):
 	for i, s in enumerate(list_):	
@@ -47,9 +47,19 @@ def QueueServerClient(HOST, PORT, AUTHKEY):
 #------- Run once --------------------------------#
 # create three connected managers
 qmLightManager = QueueServerClient(HOST, PORT8, AUTHKEY)
+qmLightResponseManager = QueueServerClient(HOST, PORT9, AUTHKEY)
 # Get the queue objects from the clients
-qmLightCommand = qmLightManager.get_queue()
+qLightCommand = qmLightManager.get_queue()
+qLightResponse = qmLightResponseManager.get_queue()
 
-qmLightCommand.put(args)
+qLightCommand.put(args)
+# initialize output
+print("")
+
+while True:
+	if not qLightResponse.empty():
+		res = qLightResponse.get()
+		print(res)
+		break;
 
 

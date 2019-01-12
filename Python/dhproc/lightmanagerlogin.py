@@ -20,6 +20,7 @@ from multiprocessing.managers import SyncManager
 
 HOST = ''
 PORT8 = 5555
+PORT9 = 5556
 AUTHKEY = str("123456").encode("utf-8")
 
 ip_host = "192.168.1.75"
@@ -56,8 +57,10 @@ def QueueServerClient(HOST, PORT, AUTHKEY):
 #------- Run once --------------------------------#
 # create three connected managers
 qmLightManager = QueueServerClient(HOST, PORT8, AUTHKEY)
+qmLightResponseManager = QueueServerClient(HOST, PORT9, AUTHKEY)
 # Get the queue objects from the clients
-qmLightCommand = qmLightManager.get_queue()
+qLightCommand = qmLightManager.get_queue()
+qLightResponse = qmLightResponseManager.get_queue()
 	
 try:
 	identity = conf[ip_host].get('identity')
@@ -115,9 +118,10 @@ lights = [dev for dev in devices if dev.has_light_control]
 
 def run():	
 	# arg1=IP, arg2=key, arg3=group, arg4=light, arg5=command, arg6=value
-	if not qmLightCommand.empty():
+	output = "no command"
+	if not qLightCommand.empty():
 		print("Command received")
-		args = qmLightCommand.get()
+		args = qLightCommand.get()
 		group = args.pgroup
 		light = args.plight
 		command = args.pommand
@@ -126,7 +130,7 @@ def run():
 			value = 254
 		elif value < 0:
 			value = 0 	
-	
+		print(args)
 		#return the group list
 		if group == 0 and command == "listgroup":
 			output = "listgroup,"
@@ -135,7 +139,6 @@ def run():
 				output = output + getGroupName(str(groupName)) + ","
 				output = output + "0,"
 				output = output + "0,"
-			print(output)
 				
 		#return the status of a group
 		if group != 0 and command == "statusgroup":
@@ -150,7 +153,6 @@ def run():
 				output = output + "0,"
 				#print(groups[idx].mood)
 				#print(groups[idx].mood_id)
-				print(output)	
 		
 		#return the light list
 		if group != 0 and light == 0 and command == "listlight":
@@ -170,7 +172,6 @@ def run():
 						output = output + str(lights[x].light_control.lights[0].state) + "," 
 						output = output + str(lights[x].light_control.lights[0].dimmer) + "," 
 						output = output + str(get_color_temp_idx(lights[x].light_control.lights[0].hex_color)) + "," 
-				print(output)
 				
 		#return the lights status of a group
 		if group != 0 and light == 0 and command == "statuslight":
@@ -187,28 +188,33 @@ def run():
 						output = output + str(lights[x].path[1]) + "," 
 						output = output + str(sts) + "," 
 						output = output + str(dim) + "," 
-						output = output + str(get_color_temp_idx(color)) + "," 
-				print(output)
-				
+						output = output + str(get_color_temp_idx(color)) + "," 		
+		
 		#-- Set group dimmer ---------------------------------------
 		if group != 0 and light == 0 and command == "setdimmer":
 			x = get_index(group, groups)
 			cmd = groups[x].set_dimmer(value, transition_time=20)	
 			api(cmd)
-	
+			output = command	
 	
 		#-- Set lights dimmer ---------------------------------------
 		if group == 0 and light != 0 and command == "setdimmer":
 			x = get_index(light, lights)
 			cmd = lights[x].light_control.set_dimmer(value, transition_time=20)	
-			api(cmd)	
+			api(cmd)
+			output = command	
 		
 		#-- Set lights ---------------------------------------
 		if group == 0 and light != 0 and value != 0 and command == "setcolor":
 			x = get_index(light, lights)
 			colorHex = get_color_temp(value)
 			cmd = lights[x].light_control.set_hex_color(colorHex)	
-			api(cmd)	
+			api(cmd)
+			output = command
+			
+		qLightResponse.put(output)
+		print(output)
+				
 										
 
 def getLightType(can_dimmer, can_color_temp, can_color):
