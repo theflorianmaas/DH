@@ -10,6 +10,9 @@ PORT4 = 5015
 PORT5 = 5016
 PORT6 = 5017
 PORT7 = 5018
+PORT8 = 5555
+PORT9 = 5556
+
 AUTHKEY = str("123456").encode("utf-8")
 
 description = 'Queue Server'
@@ -39,6 +42,9 @@ qQuery = CreateQueueServer(HOST, PORT4, AUTHKEY, 'qQuery', description)
 qResult = CreateQueueServer(HOST, PORT5, AUTHKEY, 'qResult', description)
 qQuery2 = CreateQueueServer(HOST, PORT6, AUTHKEY, 'qQuery2', description)
 qResult2 = CreateQueueServer(HOST, PORT7, AUTHKEY, 'qResult2', description)
+qLightCommand = CreateQueueServer(HOST, PORT8, AUTHKEY, 'qLightCommand', description)
+qLightResponse = CreateQueueServer(HOST, PORT9, AUTHKEY, 'qLightResponse', description)
+
 
 while True:
 	a=1

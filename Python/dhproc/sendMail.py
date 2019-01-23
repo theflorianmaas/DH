@@ -1,6 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 # Ver 16 - 23 March 2017 -
+# set password 
+## update users set user_email_password_hash =
+## DES_ENCRYPT('password', user_name)
+## where user_id = 1
 
 from email.mime.text import MIMEText
 from email.header import Header

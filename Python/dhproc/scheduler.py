@@ -37,9 +37,9 @@ proc = row[1].decode("utf-8")
 
 while True:
 	try:
-		output ("Executiong procedure: " + proc)
+		#output ("Executiong procedure: " + proc)
 		cur.callproc(proc)
-		output ("Procedure executed: " + proc)
+		#output ("Procedure executed: " + proc)
 	except mysql.connector.Error as err:
 		output ("database error... " + proc + "- " + str(err))	
 	db.commit()	

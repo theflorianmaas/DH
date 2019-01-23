@@ -112,9 +112,11 @@ def isResponseOK(response):
 	return res	
 
 def getLightId(pin, node):
+	cur.execute("START TRANSACTION")
 	sql = "SELECT smartlight_id, tbactuator_id FROM vwsmartlight WHERE pinnumber = " + pin + " AND tbnode_id = " + node
 	cur.execute(sql)
 	row = cur.fetchone()
+	cur.execute("COMMIT")
 	return row			
 	
 #--------------------------------------------------------------------------------------------------------#
@@ -123,11 +125,11 @@ def getLightId(pin, node):
 	
 def AUTOreceiveDataFromCoordinator(qIN, qSQL):  # CR0=sensors CR1=nodes CR3=Actuators CR5=All CommExecutedTrue = "CX1" CommExecutedFalse = "CX0"
 	global endSerialChars
-	#print("Coda in: ",qIN.qsize())
+	keepAlive()
 	if not qIN.empty(): # if there is data to process
 		readSerial = qIN.get()	
 		arrayData = str(readSerial).split(',')
-		output("Parsing received data: " + str(len(arrayData)))
+		#output("Parsing received data: " + str(len(arrayData)))
 		dNum = int((len(arrayData)-1)/(pnum+1))
 		if dNum != 0: #if data received on serial
 			#--- Write data to database ---#
@@ -214,6 +216,10 @@ def QueueServerClient(HOST, PORT, AUTHKEY):
     manager.connect() # This starts the connected client
     return manager
 
+def keepAlive(): # keep mysql connection active
+	cur.execute("SELECT * FROM tbum LIMIT 1")
+	cur.execute("COMMIT")
+	
 		
 #------- Main section ----------------------------#
 #------- Run once --------------------------------#

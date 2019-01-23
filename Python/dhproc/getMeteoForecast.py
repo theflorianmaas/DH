@@ -58,28 +58,28 @@ def getForecast():
 		forecast_day_4 = parsed_json['forecast']['simpleforecast']['forecastday'][3]['icon']
 		t1min = int(parsed_json['forecast']['simpleforecast']['forecastday'][0]['low']['celsius'])
 		if (t1min < 0):
-			t1min = abs(t1min)+900
+			t1min = abs(t1min)+9000
 		t1max = int(parsed_json['forecast']['simpleforecast']['forecastday'][0]['high']['celsius'])
 		if (t1max < 0):
-			t1max = abs(t1max)+900
+			t1max = abs(t1max)+9000
 		t2min = int(parsed_json['forecast']['simpleforecast']['forecastday'][1]['low']['celsius'])
 		if (t2min < 0):
-			t2min = abs(t2min)+900
+			t2min = abs(t2min)+9000
 		t2max = int(parsed_json['forecast']['simpleforecast']['forecastday'][1]['high']['celsius'])
 		if (t2max < 0):
-			t2max = abs(t2max)+900
+			t2max = abs(t2max)+9000
 		t3min = int(parsed_json['forecast']['simpleforecast']['forecastday'][2]['low']['celsius'])
 		if (t3min < 0):
-			t3min = abs(t3min)+900
+			t3min = abs(t3min)+9000
 		t3max = int(parsed_json['forecast']['simpleforecast']['forecastday'][2]['high']['celsius'])
 		if (t3max < 0):
-			t3max = abs(t3max)+900
+			t3max = abs(t3max)+9000
 		t4min = int(parsed_json['forecast']['simpleforecast']['forecastday'][3]['low']['celsius'])
 		if (t4min < 0):
-			t4min = abs(t4min)+900
+			t4min = abs(t4min)+9000
 		t4max = int(parsed_json['forecast']['simpleforecast']['forecastday'][3]['high']['celsius'])
 		if (t4max < 0):
-			t4max = abs(t4max)+900
+			t4max = abs(t4max)+9000
 		f.close()
 		return "Ok"
 	except: 

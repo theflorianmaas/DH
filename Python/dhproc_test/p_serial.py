@@ -15,6 +15,10 @@ import multiprocessing as mp
 from multiprocessing import Queue
 from multiprocessing.managers import SyncManager
 
+from os import system, devnull
+from subprocess import call, STDOUT
+from threading import Thread
+from time import sleep 
 #import queue
 
 ctrlStr = "*../"
@@ -82,6 +86,80 @@ CommNotExecuted = b"X"
 #----------------------------- 
 # End Global Variable declaration  
 #-----------------------------  
+
+# Gpio pin manager
+class Gpio:
+    def __init__(self):
+        self.gpios = ["55", "57"]
+        self.gpioval = [0, 0]
+        self.gpiodir = [0, 0]
+        self.current = 0
+        self.OUTPUT = 1
+        self.INPUT = 0
+        self.HIGH = 1
+        self.LOW = 0
+        for num in self.gpios:
+            try:
+                with open("/sys/class/gpio/export", "w") as create:
+                    create.write(num)
+                with open("/sys/class/gpio/gpio" + self.gpios[current] + "/value", "r") as reads:
+                    self.gpioval[self.current] = reads.read()
+                with open("/sys/class/gpio/gpio" + self.gpios[current] + "/direction", "r") as readdir:
+                    self.gpiodir[self.current] = (1 if "out" in readdir.read() else 0)
+                self.current += 1
+            except:
+                sleep(0.000001)
+
+    def pinMode(self, pin=0, direction=0):
+        try:
+            gpio = self.gpios[int(pin)]
+            if int(direction) != self.gpiodir[pin]:
+                with open("/sys/class/gpio/gpio" + gpio + "/direction", "w") as writer:
+                    writer.write("in" if direction < 1 else "out")
+                self.gpiodir[pin] = (0 if direction < 1 else 1)
+            return True
+        except ValueError:
+            print ("ERROR: pinMode, value inserted wasn't an int")
+            return False
+        except:
+            print ("ERROR: pinMode, error using pinMode")
+            return False
+
+    def digitalWrite(self, pin=2, value=0):
+        try:
+            gpio = self.gpios[int(pin)]
+            if self.gpiodir[pin] != 1:
+                with open("/sys/class/gpio/gpio" + gpio + "/direction", "w") as re:
+                    re.write("out")
+                self.gpiodir[pin] = 1
+            if self.gpioval[pin] != int(value):
+                with open("/sys/class/gpio/gpio" + gpio + "/value", "w") as writes:
+                    writes.write("0" if value < 1 else "1")
+                self.gpioval[pin] = (0 if value < 1 else 1)
+            return True
+        except ValueError:
+            print ("ERROR: digitalWrite, value inserted wasn't an int")
+            return False
+        except:
+            print ("ERROR: digitalWrite, error running")
+            return False
+
+    def digitalRead(self, pin=2):
+        try:
+            gpio = self.gpios[int(pin)]
+            if self.gpiodir[pin] != 0:
+                with open("/sys/class/gpio/gpio" + gpio + "/direction", "w") as re:
+                    re.write("in")
+                self.gpiodir[pin] = 0
+            with open("/sys/class/gpio/gpio" + gpio + "/value", "r") as reader:
+                self.gpioval[pin] = int(reader.read().replace('\n', ''))
+            return self.gpioval[pin]
+        except ValueError:
+            print ("ERROR: digitalRead, value inserted wasn't an int")
+            return -1
+        except:
+            print ("ERROR: digitalRead, error running")
+            return -1
 
 
 #-- function to extract integer from strings
@@ -265,26 +343,29 @@ def isResponseOK(response):
 #---- get serial incoming data ---------------------------------------------------------------------#
 #--------------------------------------------------------------------------------------------------------#
 def getSerialData(qIN, qOUT, qResponse):
-	print("xxxxx")
+	print("init serial")
 	serCoord.flushInput()
 	readSerial = ""
 	serCoord.timeout = 1
 	while True:
 		#output("Waiting for data on serial")
+		gpio.digitalWrite(0,gpio.LOW) #write high value to pin
 		serialBuffer = serCoord.inWaiting()
 		if serialBuffer > 0: #data available on serial
+			gpio.digitalWrite(0,gpio.HIGH)
 			readSerial = serCoord.readline()
 			readSerial.rstrip(endSerialChars)
-			output("Data received from serial")
+			#output("Data received from serial")
 			if isResponse(readSerial) == True:
 			#	while not qResponse.empty():
 			#		qResponse.get()
 			#qResponse.put(readSerial)
-				output("Response received")			
+				#output("Response received")	
+				aa=1		
 			else:	
 				qIN.put(readSerial)	
 				print("Data received:", serialBuffer)
-				print("Q size:", qIn.qsize()) 	
+				#print("Q size:", qIn.qsize()) 	
 
 		while not qOUT.empty():
 			print("Q OUT size:", qOUT.qsize()) 
@@ -334,6 +415,8 @@ def QueueServerClient(HOST, PORT, AUTHKEY):
 #------- Main section ----------------------------#
 #------- Run once --------------------------------#
 log("I", "Initialize coordinator")
+gpio = Gpio()
+gpio.pinMode(0, gpio.OUTPUT)
 ret = 0
 curInit = db.cursor()
 #truncate output tables
@@ -355,7 +438,7 @@ while ret == 0:
 	IXString = "IX" # to send Address data to the coordinator
 	IAString = "IA" # to send Actuators data to the coordinator
 	IMString = "IM" # to send Methods data to the coordinator
-	#ret = initCoordinator()
+	ret = initCoordinator()
 	ret = 1
 	
 #------- End run once    -------------------------#
