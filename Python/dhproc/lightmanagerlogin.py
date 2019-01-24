@@ -62,49 +62,63 @@ qmLightResponseManager = QueueServerClient(HOST, PORT9, AUTHKEY)
 # Get the queue objects from the clients
 qLightCommand = qmLightManager.get_queue()
 qLightResponse = qmLightResponseManager.get_queue()
-	
-try:
-	identity = conf[ip_host].get('identity')
-	psk = conf[ip_host].get('key')
-	api_factory = APIFactory(host=ip_host, psk_id=identity, psk=psk)
-except KeyError:
-	identity = uuid.uuid4().hex
-	api_factory = APIFactory(host=ip_host, psk_id=identity)
 
+api_factory = APIFactory(host=ip_host, psk_id="", psk="")
+api = api_factory.request
+lights = []
+groups = []
+
+def connect():
+	print("connect")
+	global conf
+	global api_factory	
+	global lights
+	global groups
+	global api
 	try:
-		psk = api_factory.generate_psk(key)
-		print('Generated PSK: ', psk)
+		identity = conf[ip_host].get('identity')
+		psk = conf[ip_host].get('key')
+		api_factory = APIFactory(host=ip_host, psk_id=identity, psk=psk)
+	except KeyError:
+		identity = uuid.uuid4().hex
+		api_factory = APIFactory(host=ip_host, psk_id=identity)
 
-		conf[ip_host] = {'identity': identity,'key': psk}
-		save_json(CONFIG_FILE, conf)
-	except AttributeError:
-		raise PytradfriError("Please provide the 'Security Code' on the back of your Tradfri gateway using the -K flag.")
+		try:
+			psk = api_factory.generate_psk(key)
+			print('Generated PSK: ', psk)
 
+			conf[ip_host] = {'identity': identity,'key': psk}
+			save_json(CONFIG_FILE, conf)
+		except AttributeError:
+			raise PytradfriError("Please provide the 'Security Code' on the back of your Tradfri gateway using the -K flag.")
+
+	api = api_factory.request
+	gateway = Gateway()
+
+	#get all devices
+	devices_command = gateway.get_devices()
+	devices_commands = api(devices_command)
+	devices = api(devices_commands)
+	# create list of available bulbs
+	lamps = [dev for dev in devices if dev.has_light_control]
+
+	# get all available groups
+	groups_command = gateway.get_groups()
+	groups_commands = api(groups_command)
+	groupc = api(groups_commands)
+	groups = [dev for dev in groupc]
+	
+	lights = [dev for dev in devices if dev.has_light_control]
+	#-------------------------------------------------------------------
+	
 
 def outputq(x):
 	print(str(datetime.datetime.now().time())[:8] + " "+ str(x))
 	sys.stdout.flush()
 	
-api = api_factory.request
+threading.Timer(900, connect).start()	#reconnect every 15 minutes
+connect()
 
-gateway = Gateway()
-
-#get all devices
-devices_command = gateway.get_devices()
-devices_commands = api(devices_command)
-devices = api(devices_commands)
-# create list of available bulbs
-lamps = [dev for dev in devices if dev.has_light_control]
-
-# get all available groups
-groups_command = gateway.get_groups()
-groups_commands = api(groups_command)
-groupc = api(groups_commands)
-groups = [dev for dev in groupc]
-	
-lights = [dev for dev in devices if dev.has_light_control]
-#-------------------------------------------------------------------
-	
 # supported_features 1=mono 23=color
 #device info  TRADFRI bulb E27 W opal 1000lm
 #device info  TRADFRI bulb E27 opal 1000lm
@@ -198,14 +212,14 @@ def run():
 			x = get_index(group, groups)
 			cmd = groups[x].set_dimmer(value, transition_time=20)	
 			api(cmd)
-			output = command	
+			output = command + " group"
 	
 		#-- Set lights dimmer ---------------------------------------
 		if group == 0 and light != 0 and command == "setdimmer":
 			x = get_index(light, lights)
 			cmd = lights[x].light_control.set_dimmer(value, transition_time=20)	
 			api(cmd)
-			output = command	
+			output = command + " light"
 		
 		#-- Set lights ---------------------------------------
 		if group == 0 and light != 0 and value != 0 and command == "setcolor":

@@ -287,6 +287,13 @@ void setup()
   bmoncolor2.attachCallback(&_bmoncolor2);
   bmoncolor3.attachCallback(&_bmoncolor3);
 
+  brgbcolor1.attachCallback(&_brgbcolor1);
+  brgbcolor2.attachCallback(&_brgbcolor2);
+  brgbcolor3.attachCallback(&_brgbcolor3);
+  brgbcolor4.attachCallback(&_brgbcolor4);
+  brgbcolor5.attachCallback(&_brgbcolor5);
+  brgbcolor6.attachCallback(&_brgbcolor6);
+
   bloadgroups.attachCallback(&_bloadgroups);
 
   nex.init();
@@ -985,6 +992,58 @@ void _bmoncolor3(NextionEventType type, INextionTouchable * widget)
 {
   //set warm color
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 3);
+  pTic();
+  execUrl(url, 0);
+}
+
+
+//-----------------------------------------------------//
+// RGB colors bulbs
+//-----------------------------------------------------//
+void _brgbcolor1(NextionEventType type, INextionTouchable * widget)
+{
+  //set cold color //white
+  String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 1);
+  pTic();
+  execUrl(url, 0);
+}
+
+void _brgbcolor2(NextionEventType type, INextionTouchable * widget)
+{
+  //set cold color //green
+  String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 19);
+  pTic();
+  execUrl(url, 0);
+}
+
+void _brgbcolor3(NextionEventType type, INextionTouchable * widget)
+{
+  //set cold color //orange
+  String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 8);
+  pTic();
+  execUrl(url, 0);
+}
+
+void _brgbcolor4(NextionEventType type, INextionTouchable * widget)
+{
+  //set cold color //red
+  String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 11);
+  pTic();
+  execUrl(url, 0);
+}
+
+void _brgbcolor5(NextionEventType type, INextionTouchable * widget)
+{
+  //set cold color //purple
+  String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 16);
+  pTic();
+  execUrl(url, 0);
+}
+
+void _brgbcolor6(NextionEventType type, INextionTouchable * widget)
+{
+  //set cold color //blue
+  String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 17);
   pTic();
   execUrl(url, 0);
 }
