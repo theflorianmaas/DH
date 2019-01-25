@@ -1,8 +1,7 @@
 
-
 // ------------------------------------------------------------ //
 // EndNode_1_Switch
-// V.0.1 04/01/2019
+// V.0.1 23/01/2019
 // First version 0.1 Development
 //
 // ------------------------------------------------------------ //
@@ -14,8 +13,9 @@
 #include <ESP8266HTTPClient.h>
 #include "pitches.h"
 
-#include <Scheduler.h>
-#include <Task.h>
+//#include <Scheduler.h>
+//#include <Task.h>
+#include <TaskScheduler.h>
 
 #include <NeoNextion.h>
 #include <NextionPage.h>
@@ -155,6 +155,10 @@ NextionButton bloadgroups(nex, 5, 24, "b0");
 //-----------------------------------------------------------
 
 //-----------------------------------------------------------
+void calculateGroupStatus();
+void getStatusLight();
+void disableTask();
+void enableTask();
 //-----------------------------------------------------------
 
 #define receivedOK 0
@@ -188,8 +192,14 @@ NextionButton bloadgroups(nex, 5, 24, "b0");
 #define IN 1
 #define OUT 0
 
-#define TIMEt0 5000 //update lights data
-#define TIMEt1 1000 //calculate group values
+#define TIMEt0 1000 //calculate group values
+#define TIMEt1 30000 //update lights data - 
+#define TIMEt2 5000 //suspend the scheduled task for 5 seconds
+
+Task t0(TIMEt0, TASK_FOREVER, &calculateGroupStatus);
+Task t1(TIMEt1, TASK_FOREVER, &getStatusLight);
+Task t2(TIMEt2, TASK_FOREVER, &enableTask);
+Scheduler runner;
 
 #define BAUD_RATE     115200  // Baud for both Xbee and serial monitor
 //#define NUM_BYTE_ARR  3 // Number of bytes of the array used to store long integers in the payload
@@ -234,9 +244,6 @@ const int httpPort = 90;
 char* host = "192.168.1.33";
 
 int res;
-
-Timer t0; //timer to schedule the sensors and actuators values update
-
 
 /*
    Setup function. Here we do the basics
@@ -304,12 +311,23 @@ void setup()
 
   t_default.setCycle(30000);
 
+  //activate timers
+  runner.init();
+  Serial.println("Initialized scheduler");
+  runner.addTask(t0);
+  runner.addTask(t1);
+  runner.addTask(t2);
+  Serial.println("added t1");
+  t0.disable();
+  t1.disable();
+  t2.disable();
+
   pBit();
 }  //setup()
 
 void loop() {
   nex.poll();
-  t0.update();
+  runner.execute();
 }
 
 void start() {
@@ -322,7 +340,7 @@ void start() {
   if (aLights[0].id != "")
     getLights();
   getStatusLight();
-  startTasks();
+  enableTask();
 }
 
 
@@ -454,23 +472,28 @@ int convStatus(String sts) {
 
 // ******************************************************* //
 
-void startTasks() {
-  // t0.every(TIMEt0, getStatusLight);
-  t0.every(TIMEt1, calculateGroupStatus);
-
+void disableTask() {
+  t0.disable();
+  t1.disable();
+  t2.disable(); //reset time
+  t2.enable();
 }
 
+void enableTask() {
+  if (!t2.isFirstIteration()) {
+    t0.enable();
+    t1.enable();
+    t2.disable();
+  }
+}
 
 //--- Callback funcions ------------------------//
 //--- Callback funcions ------------------------//
 //--- Callback funcions ------------------------//
-//void _t_t1(NextionEventType type, INextionTouchable *widget)
-//{
-//Serial.println(bdimmer.getValue());
-//}
 
 void _bconnect(NextionEventType type, INextionTouchable *widget)
 {
+  disableTask();
   char buffer_ssid[40];
   char buffer_pass[40];
   if (type == NEX_EVENT_PUSH)
@@ -491,6 +514,7 @@ void _bconnect(NextionEventType type, INextionTouchable *widget)
 
 void _bswitch(NextionEventType type, INextionTouchable *widget)
 {
+  disableTask();
   String setValue;
   Serial.println("PUSH");
   Serial.println("boia de'");
@@ -684,6 +708,7 @@ void _bswitch(NextionEventType type, INextionTouchable *widget)
 
 void _bdimmer(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   String setValue;
   //if it is ON read values
   switch (c_light) {
@@ -740,6 +765,7 @@ void _bdimmer(NextionEventType type, INextionTouchable * widget)
 
 void _bgroup(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   c_light = 0;
   aLights[c_light].status = vst0.getValue();
   aLights[c_light].value = vvl0.getValue();
@@ -751,6 +777,7 @@ void _bgroup(NextionEventType type, INextionTouchable * widget)
 
 void _blight1(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   c_light = 1;
   aLights[c_light].status = vst1.getValue();
   aLights[c_light].value = vvl1.getValue();
@@ -760,6 +787,7 @@ void _blight1(NextionEventType type, INextionTouchable * widget)
 
 void _blight2(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   c_light = 2;
   aLights[c_light].status = vst2.getValue();
   aLights[c_light].value = vvl2.getValue();
@@ -769,6 +797,7 @@ void _blight2(NextionEventType type, INextionTouchable * widget)
 
 void _blight3(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   c_light = 3;
   aLights[c_light].status = vst3.getValue();
   aLights[c_light].value = vvl3.getValue();
@@ -778,6 +807,7 @@ void _blight3(NextionEventType type, INextionTouchable * widget)
 
 void _blight4(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   c_light = 4;
   aLights[c_light].status = vst4.getValue();
   aLights[c_light].value = vvl4.getValue();
@@ -787,6 +817,7 @@ void _blight4(NextionEventType type, INextionTouchable * widget)
 
 void _blight5(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   c_light = 5;
   aLights[c_light].status = vst5.getValue();
   aLights[c_light].value = vvl5.getValue();
@@ -796,6 +827,7 @@ void _blight5(NextionEventType type, INextionTouchable * widget)
 
 void _blight6(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   c_light = 6;
   aLights[c_light].status = vst6.getValue();
   aLights[c_light].value = vvl6.getValue();
@@ -805,6 +837,7 @@ void _blight6(NextionEventType type, INextionTouchable * widget)
 
 void _bback(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   Serial.println(NEX_EVENT_PUSH);
   if (type == NEX_EVENT_PUSH)
   {
@@ -817,7 +850,7 @@ void _bback(NextionEventType type, INextionTouchable * widget)
 
 void _btradfri(NextionEventType type, INextionTouchable * widget)
 {
-
+  disableTask();
   char buffer_ip[40];
   char buffer_key[40];
   if (type == NEX_EVENT_PUSH)
@@ -839,6 +872,7 @@ void _btradfri(NextionEventType type, INextionTouchable * widget)
 
 void _r_t0(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   if (type == NEX_EVENT_PUSH)
   {
     c_group = 0;
@@ -848,6 +882,7 @@ void _r_t0(NextionEventType type, INextionTouchable * widget)
 
 void _r_t1(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   if (type == NEX_EVENT_PUSH)
   {
     c_group = 1;
@@ -857,6 +892,7 @@ void _r_t1(NextionEventType type, INextionTouchable * widget)
 
 void _r_t2(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   if (type == NEX_EVENT_PUSH)
   {
     c_group = 2;
@@ -866,6 +902,7 @@ void _r_t2(NextionEventType type, INextionTouchable * widget)
 
 void _r_t3(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   if (type == NEX_EVENT_PUSH)
   {
     c_group = 3;
@@ -875,6 +912,7 @@ void _r_t3(NextionEventType type, INextionTouchable * widget)
 
 void _r_t4(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   if (type == NEX_EVENT_PUSH)
   {
     c_group = 4;
@@ -884,6 +922,7 @@ void _r_t4(NextionEventType type, INextionTouchable * widget)
 
 void _r_t5(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   if (type == NEX_EVENT_PUSH)
   {
     c_group = 5;
@@ -893,6 +932,7 @@ void _r_t5(NextionEventType type, INextionTouchable * widget)
 
 void _r_t6(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   if (type == NEX_EVENT_PUSH)
   {
     c_group = 6;
@@ -902,6 +942,7 @@ void _r_t6(NextionEventType type, INextionTouchable * widget)
 
 void _r_t7(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   if (type == NEX_EVENT_PUSH)
   {
     c_group = 7;
@@ -911,6 +952,7 @@ void _r_t7(NextionEventType type, INextionTouchable * widget)
 
 void _r_t8(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   if (type == NEX_EVENT_PUSH)
   {
     c_group = 8;
@@ -920,6 +962,7 @@ void _r_t8(NextionEventType type, INextionTouchable * widget)
 
 void _r_t9(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   if (type == NEX_EVENT_PUSH)
   {
     c_group = 9;
@@ -930,6 +973,7 @@ void _r_t9(NextionEventType type, INextionTouchable * widget)
 
 void _r_t10(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   if (type == NEX_EVENT_PUSH)
   {
     c_group = 10;
@@ -937,16 +981,9 @@ void _r_t10(NextionEventType type, INextionTouchable * widget)
   }
 }
 
-void configGroup() {
-  aGroups[c_group][0].toCharArray(c_group_id, 10);
-  aLights[0].id = aGroups[c_group][0];
-  putGroupID();
-  Serial.println(aLights[0].id);
-  getLights();
-}
-
 void _bloadgroups(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   if (type == NEX_EVENT_PUSH)
   {
     Serial.println("eccolo!");
@@ -964,8 +1001,8 @@ void _pdummy(NextionEventType type, INextionTouchable * widget)
 void _ptimer(NextionEventType type, INextionTouchable * widget)
 {
   //c_light = 0;
-  Serial.println("timer");
-  getStatusLight();
+  //Serial.println("timer");
+  //getStatusLight();
 }
 
 
@@ -974,6 +1011,7 @@ void _ptimer(NextionEventType type, INextionTouchable * widget)
 //-----------------------------------------------------//
 void _bmoncolor1(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   //set cold color
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 1);
   pTic();
@@ -982,6 +1020,7 @@ void _bmoncolor1(NextionEventType type, INextionTouchable * widget)
 
 void _bmoncolor2(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   //set normal color
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 2);
   pTic();
@@ -990,6 +1029,7 @@ void _bmoncolor2(NextionEventType type, INextionTouchable * widget)
 
 void _bmoncolor3(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   //set warm color
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 3);
   pTic();
@@ -1002,6 +1042,7 @@ void _bmoncolor3(NextionEventType type, INextionTouchable * widget)
 //-----------------------------------------------------//
 void _brgbcolor1(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   //set cold color //white
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 1);
   pTic();
@@ -1010,6 +1051,7 @@ void _brgbcolor1(NextionEventType type, INextionTouchable * widget)
 
 void _brgbcolor2(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   //set cold color //green
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 19);
   pTic();
@@ -1018,6 +1060,7 @@ void _brgbcolor2(NextionEventType type, INextionTouchable * widget)
 
 void _brgbcolor3(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   //set cold color //orange
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 8);
   pTic();
@@ -1026,6 +1069,7 @@ void _brgbcolor3(NextionEventType type, INextionTouchable * widget)
 
 void _brgbcolor4(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   //set cold color //red
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 11);
   pTic();
@@ -1034,6 +1078,7 @@ void _brgbcolor4(NextionEventType type, INextionTouchable * widget)
 
 void _brgbcolor5(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   //set cold color //purple
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 16);
   pTic();
@@ -1042,6 +1087,7 @@ void _brgbcolor5(NextionEventType type, INextionTouchable * widget)
 
 void _brgbcolor6(NextionEventType type, INextionTouchable * widget)
 {
+  disableTask();
   //set cold color //blue
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 17);
   pTic();

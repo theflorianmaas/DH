@@ -298,6 +298,14 @@ void setLight() {
   execUrl(url, 0);
 }
 
+void configGroup() {
+  aGroups[c_group][0].toCharArray(c_group_id, 10);
+  aLights[0].id = aGroups[c_group][0];
+  putGroupID();
+  Serial.println(aLights[0].id);
+  getLights();
+}
+
 
 void getStatusLight() {
 
