@@ -13,7 +13,7 @@
 */
 
 #define SSID "Astronomy-Domine"
-#define PASSWORD "37F0DE5CFEfrank61"
+#define PASSWORD "*************"
 
 #define SERVER_HOST_NAME "192.168.1.33"
 
