@@ -10,12 +10,9 @@
 #include <SoftwareSerial.h>
 #include <EEPROM.h>
 #include <ESP8266WiFi.h>
-#include <ESP8266HTTPClient.h>
+#include <ESPAsyncTCP.h>
 #include "pitches.h"
-
-//#include <Scheduler.h>
-//#include <Task.h>
-#include <TaskScheduler.h>
+#include "config.h"
 
 #include <NeoNextion.h>
 #include <NextionPage.h>
@@ -151,7 +148,6 @@ NextionRadioButton r_t8(nex, 5, 20, "g8");
 NextionRadioButton r_t9(nex, 5, 22, "g9");
 NextionRadioButton r_t10(nex, 5, 23, "g10");
 NextionButton bloadgroups(nex, 5, 24, "b0");
-
 //-----------------------------------------------------------
 
 //-----------------------------------------------------------
@@ -159,25 +155,14 @@ void calculateGroupStatus();
 void getStatusLight();
 void disableTask();
 void enableTask();
+void clearLightsArrays();
 //-----------------------------------------------------------
-
-#define receivedOK 0
-#define noResponse 1
-#define dataError  2
-#define xbeeError  3
-#define nodeStatusOk 0
-#define nodeStatusNotOk 1
 
 //Service Led status
 #define ON  HIGH
 #define OFF LOW
 
 #define NOLIGHT 999
-
-#define PERMANENT 1
-#define TEMPORARY 2
-#define FLIPFLOP  3
-#define TIMER     4
 
 // Output type for Actuator
 #define DIGITAL       0
@@ -192,18 +177,12 @@ void enableTask();
 #define IN 1
 #define OUT 0
 
-#define TIMEt0 1000 //calculate group values
-#define TIMEt1 30000 //update lights data - 
-#define TIMEt2 5000 //suspend the scheduled task for 5 seconds
+#define TIMEt0 5000 //calculate group values
+#define TIMEt1 5000 //update lights data - 
 
-Task t0(TIMEt0, TASK_FOREVER, &calculateGroupStatus);
-Task t1(TIMEt1, TASK_FOREVER, &getStatusLight);
-Task t2(TIMEt2, TASK_FOREVER, &enableTask);
-Scheduler runner;
+Timer t0; //timer to schedule the sensors and actuators values update
 
-#define BAUD_RATE     115200  // Baud for both Xbee and serial monitor
-//#define NUM_BYTE_ARR  3 // Number of bytes of the array used to store long integers in the payload
-
+#define BAUD_RATE   115200  // Baud for both Xbee and serial monitor
 #define NUM_LIGHTS  7 //max number of lights available (# of lights+1) 
 
 String aGroups[11][2]; //current groups available in the gateway...
@@ -240,18 +219,16 @@ char tradfriParams_ip[15] = {"192.168.1.75"};
 char tradfriParams_key[20] = {"FdkbvH1mxUFhb"};
 
 WiFiClient http;    //Declare object of class HTTPClient
-const int httpPort = 90;
-char* host = "192.168.1.33";
-
-int res;
+AsyncClient* client = new AsyncClient;
+String line;
+bool loadString = false;
 
 /*
    Setup function. Here we do the basics
 */
 void setup()
 {
-
-  // initialize arrays and pins
+  //initialize arrays and pins
   //initialize light array. Set all pin to 999 (no light configured)
   clearLightsArrays();
 
@@ -309,25 +286,14 @@ void setup()
   delay(100);
   start();
 
-  t_default.setCycle(30000);
-
-  //activate timers
-  runner.init();
-  Serial.println("Initialized scheduler");
-  runner.addTask(t0);
-  runner.addTask(t1);
-  runner.addTask(t2);
-  Serial.println("added t1");
-  t0.disable();
-  t1.disable();
-  t2.disable();
-
+  t_default.setCycle(60000);
   pBit();
 }  //setup()
 
 void loop() {
   nex.poll();
-  runner.execute();
+  t0.update();
+  wifiCheckConnect();
 }
 
 void start() {
@@ -339,6 +305,7 @@ void start() {
   wifiTryConnect();
   if (aLights[0].id != "")
     getLights();
+  delay(3000);
   getStatusLight();
   enableTask();
 }
@@ -352,10 +319,9 @@ boolean wifiTryConnect() {
   Serial.print("Provo connessione ");
   //prova la connessione
   WiFi.mode(WIFI_STA);
-  Serial.println(wifiParams_ssid);
-  Serial.println(wifiParams_passcode);
+  //Serial.println(wifiParams_ssid);
+  //Serial.println(wifiParams_passcode);
   WiFi.begin((char*)wifiParams_ssid, (char*)wifiParams_passcode);
-
   unsigned long timeout = millis() + 5000;
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
@@ -363,6 +329,7 @@ boolean wifiTryConnect() {
     if (timeout < millis()) { //exit loop after 10 seconds
       break;
     }
+    nex.poll();
   }
   if (WiFi.status() == WL_CONNECTED) { //connessione attiva
     //se connesso aggiorna variabile wifi su schermo a 1 altrimenti 0
@@ -371,11 +338,18 @@ boolean wifiTryConnect() {
     putWifiParams(); //scrive valori su eeprom
     Serial.println("Connesso");
     //crea HTTP Client
-    delay(100);
-    if (!http.connect(host, httpPort)) {
-      Serial.println("connection failed");
+    nex.poll();
+    //connecy TCP client
+    client->onData(&handleData, client);
+    client->onConnect(&onConnect, client);
+
+    while (!client->connected()) {
+      Serial.print('.');
+      delay(500);
+      client->connect(SERVER_HOST_NAME, TCP_PORT);
+      nex.poll();
+      return true;
     }
-    return true;
   }
   else {
     iwifi.hide();
@@ -385,21 +359,17 @@ boolean wifiTryConnect() {
   }
 }
 
-boolean wifiCheckConnect() {
-  if (WiFi.status() == WL_CONNECTED) { //connessione attiva
-    //se connesso aggiorna variabile wifi su schermo a 1 altrimenti 0
-    iwifi.show();
-    putWifiParams(); //scrive valori su eeprom
-    Serial.println("Connesso");
-    return true;
-  }
-  else {
+
+void wifiCheckConnect() {
+  if (WiFi.status() != WL_CONNECTED) { //connessione attiva
     iwifi.hide();
     Serial.println("Non connesso");
-    wifiTryConnect();
-    return false;
+    while (true) {
+      if (wifiTryConnect() == true) {
+        break;
+      }
+    }
   }
-
 }
 
 void putWifiParams() {
@@ -473,27 +443,22 @@ int convStatus(String sts) {
 // ******************************************************* //
 
 void disableTask() {
-  t0.disable();
-  t1.disable();
-  t2.disable(); //reset time
-  t2.enable();
+  t0.stop(0);
 }
 
 void enableTask() {
-  if (!t2.isFirstIteration()) {
-    t0.enable();
-    t1.enable();
-    t2.disable();
-  }
+  //if (!t2.isFirstIteration()) {
+  t0.every(TIMEt1, calculateGroupStatus);
+  t0.every(TIMEt0, getStatusLight);
+  //}
 }
 
 //--- Callback funcions ------------------------//
 //--- Callback funcions ------------------------//
 //--- Callback funcions ------------------------//
 
-void _bconnect(NextionEventType type, INextionTouchable *widget)
+void _bconnect(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   char buffer_ssid[40];
   char buffer_pass[40];
   if (type == NEX_EVENT_PUSH)
@@ -510,11 +475,11 @@ void _bconnect(NextionEventType type, INextionTouchable *widget)
     if (wifiTryConnect())
       bconnect.setText("Connected!");
   }
+  nex.poll();
 }
 
-void _bswitch(NextionEventType type, INextionTouchable *widget)
+void _bswitch(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   String setValue;
   Serial.println("PUSH");
   Serial.println("boia de'");
@@ -698,17 +663,18 @@ void _bswitch(NextionEventType type, INextionTouchable *widget)
       }
   }
   pTic();
+  nex.poll();
   setLight();
   Serial.println(aLights[c_light].value);
   Serial.println(bdimmer.getValue());
   Serial.println(vvl0.getValue());
   Serial.println("boiona");
+  nex.poll();
 }
 
 
 void _bdimmer(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   String setValue;
   //if it is ON read values
   switch (c_light) {
@@ -757,7 +723,9 @@ void _bdimmer(NextionEventType type, INextionTouchable * widget)
       break;
   }
   pTic();
+  nex.poll();
   setLight();
+  nex.poll();
   Serial.println(aLights[c_light].value);
   Serial.println(bdimmer.getValue());
   Serial.println("boiona te");
@@ -765,92 +733,100 @@ void _bdimmer(NextionEventType type, INextionTouchable * widget)
 
 void _bgroup(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   c_light = 0;
   aLights[c_light].status = vst0.getValue();
   aLights[c_light].value = vvl0.getValue();
   pTic();
+  nex.poll();
   getStatusLight();
+  nex.poll();
   refreshScreen();
+  nex.poll();
   //getGroups();
 }
 
 void _blight1(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   c_light = 1;
   aLights[c_light].status = vst1.getValue();
   aLights[c_light].value = vvl1.getValue();
   pTic();
+  nex.poll();
   refreshScreen();
+  nex.poll();
 }
 
 void _blight2(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   c_light = 2;
   aLights[c_light].status = vst2.getValue();
   aLights[c_light].value = vvl2.getValue();
   pTic();
+  nex.poll();
   refreshScreen();
+  nex.poll();
 }
 
 void _blight3(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   c_light = 3;
   aLights[c_light].status = vst3.getValue();
   aLights[c_light].value = vvl3.getValue();
   pTic();
+  nex.poll();
   refreshScreen();
+  nex.poll();
 }
 
 void _blight4(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   c_light = 4;
   aLights[c_light].status = vst4.getValue();
   aLights[c_light].value = vvl4.getValue();
   pTic();
+  nex.poll();
   refreshScreen();
+  nex.poll();
 }
 
 void _blight5(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   c_light = 5;
   aLights[c_light].status = vst5.getValue();
   aLights[c_light].value = vvl5.getValue();
   pTic();
+  nex.poll();
   refreshScreen();
+  nex.poll();
 }
 
 void _blight6(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   c_light = 6;
   aLights[c_light].status = vst6.getValue();
   aLights[c_light].value = vvl6.getValue();
   pTic();
+  nex.poll();
   refreshScreen();
+  nex.poll();
 }
 
 void _bback(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   Serial.println(NEX_EVENT_PUSH);
   if (type == NEX_EVENT_PUSH)
   {
     //read global variables
     c_light = vdeflight.getValue();
     c_switch_mode = vdefmainsw.getValue();
+    nex.poll();
     refreshScreen();
+    nex.poll();
   }
 }
 
 void _btradfri(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   char buffer_ip[40];
   char buffer_key[40];
   if (type == NEX_EVENT_PUSH)
@@ -866,13 +842,11 @@ void _btradfri(NextionEventType type, INextionTouchable * widget)
 
     putTradfriParams();
   }
-
 }
 
 
 void _r_t0(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   if (type == NEX_EVENT_PUSH)
   {
     c_group = 0;
@@ -882,7 +856,6 @@ void _r_t0(NextionEventType type, INextionTouchable * widget)
 
 void _r_t1(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   if (type == NEX_EVENT_PUSH)
   {
     c_group = 1;
@@ -892,7 +865,6 @@ void _r_t1(NextionEventType type, INextionTouchable * widget)
 
 void _r_t2(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   if (type == NEX_EVENT_PUSH)
   {
     c_group = 2;
@@ -902,7 +874,6 @@ void _r_t2(NextionEventType type, INextionTouchable * widget)
 
 void _r_t3(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   if (type == NEX_EVENT_PUSH)
   {
     c_group = 3;
@@ -912,7 +883,6 @@ void _r_t3(NextionEventType type, INextionTouchable * widget)
 
 void _r_t4(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   if (type == NEX_EVENT_PUSH)
   {
     c_group = 4;
@@ -922,7 +892,6 @@ void _r_t4(NextionEventType type, INextionTouchable * widget)
 
 void _r_t5(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   if (type == NEX_EVENT_PUSH)
   {
     c_group = 5;
@@ -932,7 +901,6 @@ void _r_t5(NextionEventType type, INextionTouchable * widget)
 
 void _r_t6(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   if (type == NEX_EVENT_PUSH)
   {
     c_group = 6;
@@ -942,7 +910,6 @@ void _r_t6(NextionEventType type, INextionTouchable * widget)
 
 void _r_t7(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   if (type == NEX_EVENT_PUSH)
   {
     c_group = 7;
@@ -952,7 +919,6 @@ void _r_t7(NextionEventType type, INextionTouchable * widget)
 
 void _r_t8(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   if (type == NEX_EVENT_PUSH)
   {
     c_group = 8;
@@ -962,7 +928,6 @@ void _r_t8(NextionEventType type, INextionTouchable * widget)
 
 void _r_t9(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   if (type == NEX_EVENT_PUSH)
   {
     c_group = 9;
@@ -973,7 +938,6 @@ void _r_t9(NextionEventType type, INextionTouchable * widget)
 
 void _r_t10(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   if (type == NEX_EVENT_PUSH)
   {
     c_group = 10;
@@ -983,11 +947,13 @@ void _r_t10(NextionEventType type, INextionTouchable * widget)
 
 void _bloadgroups(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   if (type == NEX_EVENT_PUSH)
   {
     Serial.println("eccolo!");
+    nex.poll();
     getGroups();
+    refreshScreen();
+    nex.poll();
   }
 }
 
@@ -1011,29 +977,26 @@ void _ptimer(NextionEventType type, INextionTouchable * widget)
 //-----------------------------------------------------//
 void _bmoncolor1(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   //set cold color
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 1);
   pTic();
-  execUrl(url, 0);
+  execUrl(url);
 }
 
 void _bmoncolor2(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   //set normal color
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 2);
   pTic();
-  execUrl(url, 0);
+  execUrl(url);
 }
 
 void _bmoncolor3(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   //set warm color
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 3);
   pTic();
-  execUrl(url, 0);
+  execUrl(url);
 }
 
 
@@ -1042,54 +1005,48 @@ void _bmoncolor3(NextionEventType type, INextionTouchable * widget)
 //-----------------------------------------------------//
 void _brgbcolor1(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   //set cold color //white
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 1);
   pTic();
-  execUrl(url, 0);
+  execUrl(url);
 }
 
 void _brgbcolor2(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   //set cold color //green
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 19);
   pTic();
-  execUrl(url, 0);
+  execUrl(url);
 }
 
 void _brgbcolor3(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   //set cold color //orange
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 8);
   pTic();
-  execUrl(url, 0);
+  execUrl(url);
 }
 
 void _brgbcolor4(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   //set cold color //red
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 11);
   pTic();
-  execUrl(url, 0);
+  execUrl(url);
 }
 
 void _brgbcolor5(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   //set cold color //purple
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 16);
   pTic();
-  execUrl(url, 0);
+  execUrl(url);
 }
 
 void _brgbcolor6(NextionEventType type, INextionTouchable * widget)
 {
-  disableTask();
   //set cold color //blue
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 17);
   pTic();
-  execUrl(url, 0);
+  execUrl(url);
 }

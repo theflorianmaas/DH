@@ -6,7 +6,7 @@ void refreshScreen() {
   sendCommand(setValue.c_str());
   setValue = "vlg0.val=" + String(aLights[0].value); //value
   sendCommand(setValue.c_str());
-  Serial.println("refrrsh light");
+  Serial.println("refresh light");
 
   for (int i = 1; i < NUM_LIGHTS; i++) {
     //I don't use the library as this is faster
@@ -19,8 +19,10 @@ void refreshScreen() {
     sendCommand(setValue.c_str());
     setValue = "cx" + String(i) + ".val=" + int(aLights[i].color); //color
   }
-  t_icons.enable();
-  t_select_type.enable();
+  setValue = "t_icons.en=1";
+  sendCommand(setValue.c_str());
+  setValue = "t_select_type.en=1";
+  sendCommand(setValue.c_str());
 }
 
 void clearLightsArrays() {
@@ -100,48 +102,90 @@ String createUrl(char* ip, char* key, String group, String light, String cmd, in
   return url;
 }
 
-String execUrl(String url, unsigned long timeout) {
+/* event callbacks */
+static void handleData(void* arg, AsyncClient* client, void *data, size_t len) {
+  Serial.printf("\n data received from %s \n", client->remoteIP().toString().c_str());
+  Serial.write((uint8_t*)data, len);
+  Serial.println("");
+  Serial.print("Datax: ");
+  Serial.println(len);
+
+  uint8_t * d = (uint8_t*)data;
+  for (size_t i = 0; i < len; i++) {
+    //Serial.print(char(d[i]));
+    //Serial.print("-");
+    //Serial.println(char(d[i]));
+    if (d[i] == 167 || d[i]  == 63) {
+      //Serial.println("Vero");
+      loadString = true;
+      line = "";
+    }
+    else if (d[i]  == 35) {
+      //Serial.println("Falso");
+      loadString = false;
+    }
+    if (loadString == true) {
+      line = line + String(char(d[i]));
+      //Serial.print(line);
+    }
+  }
+
+  if (loadString == false)
+  {
+    Serial.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    line = line.substring(line.indexOf("§") + 2);
+    Serial.println(line);
+    String command = line.substring(0, line.indexOf(","));
+    Serial.print("command: ");
+    Serial.println(command);
+
+    if (command == "statuslight") {
+      getStatusLightResult();
+    }
+    else if (command == "listlight") {
+      getLightsResult();
+    }
+    else if (command == "listgroup") {
+      getGroupsResult();
+    }
+  }
+}
+
+void onConnect(void* arg, AsyncClient* client) {
+  Serial.printf("\n client has been connected to %s on port %d \n", SERVER_HOST_NAME, TCP_PORT);
+}
+
+void execUrl(String url) {
   // This will send the request to the server
-  if (!http.connect(host, httpPort)) {
-    Serial.println("connection failed");
-  }
-  String line;
-  http.print(String("GET ") + url + " HTTP/1.1\r\n" +
-             "Host: " + host + "\r\n" +
-             "Connection: keep-alive\r\n\r\n");
 
-  if (timeout == 0) { // no timeout return immediately
-    return "end";
+  while (!client->connected()) {
+    Serial.print('.');
+    delay(500);
+    client->connect(SERVER_HOST_NAME, TCP_PORT);
+    nex.poll();
   }
-  else { //timeout, wait for the response
 
-    unsigned long iniTime = millis();
-    while (http.available() == 0) {
-      if (millis() - iniTime > timeout) {
-        Serial.println(">>> Client Timeout !");
-        http.stop();
-        return line;
-      }
-    }
-    // Read all the lines of the reply from server and print them to Serial
-    while (http.available()) {
-      line = http.readStringUntil('#');
-    }
-    //http.stop();
-    String linex = line.substring(line.indexOf("§") + 2);
-    return linex;
-  }
+  String line = "GET " + url + " HTTP/1.1\r\n";
+  line += "Host: " + String(SERVER_HOST_NAME) + ":" + String(TCP_PORT) + "\r\n";
+  line += "Connection: keep-alive\r\n\r\n";
+
+  Serial.println(line);
+
+  char message[line.length() + 1];
+  strcpy(message, line.c_str());
+  client->write(message);
+  nex.poll();
 }
 
 void sendCommand(const char* cmd) {
   while (nextionSerial.available()) {
     nextionSerial.read();
   }//end while
-  Serial.println(cmd);
   nextionSerial.print(cmd);
   nextionSerial.write(0xFF);
   nextionSerial.write(0xFF);
   nextionSerial.write(0xFF);
+  //Serial.println(cmd);
 }//end sendCommand
 
 void setText(String page, String obj, String val) {
@@ -198,13 +242,17 @@ int countCommas(String result) {
 // Read data from gateway
 //------------------------------------
 void getGroups() {
-
+  disableTask(); //stop timers
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", "0", "listgroup", 0);
-  String result = execUrl(url, 5000);
-  char *str = (char*)result.c_str();
-  Serial.println(result);
+  execUrl(url);
+  nex.poll();
+}
 
-  int cnt = countCommas(result);
+void getGroupsResult() {
+  char *str = (char*)line.c_str();
+  Serial.println(line);
+
+  int cnt = countCommas(line);
 
   String arr[cnt]; //max 10 groups. 4 values per group
   //arr[0] = command
@@ -236,20 +284,26 @@ void getGroups() {
   }
   // }
   setGroupList(idx);
+  nex.poll();
+  enableTask();  //restart timers
 }
 
 
 void getLights() {
   // get available lights assigned to the selected group from gateway
   String url = createUrl(tradfriParams_ip, tradfriParams_key, aLights[0].id, "0", "listlight", 0);
-  String result = execUrl(url, 5000);
-  char *str = (char*)result.c_str();
-  Serial.println(result);
+  execUrl(url);
+  nex.poll();
+}
+
+void getLightsResult() {
+  char *str = (char*)line.c_str();
+  Serial.println(line);
 
   clearLightsArrays();
 
-  int cnt = countCommas(result);
-  String arr[cnt]; //max 10 lights. 6 values per light
+  int cnt = countCommas(line);
+  String arr[cnt]; //6 values per light
   //arr[0] = command
   //arr[1] = light id
   //arr[2] = type
@@ -266,7 +320,7 @@ void getLights() {
   }
 
   int idx = 1;
-  //read received groups from gateway
+  //read received lights from gateway
   for (int i = 1; i < index; i = i + 6) {
     if (arr[i] != "") {
       aLights[idx].id = arr[i];
@@ -275,13 +329,20 @@ void getLights() {
       aLights[idx].status = convStatus(arr[i + 3]);
       aLights[idx].value = arr[i + 4].toInt();
       aLights[idx].color = convertColor(arr[i + 5].toInt());
+      Serial.println(aLights[idx].id);
       idx++;
     }
   }
-  // }
-  pgMain.show();
+
+  //pgMain.show();
+  sendCommand("page Main");
+
+  nex.poll();
   calculateGroupStatus();
+  nex.poll();
   refreshScreen();
+  nex.poll();
+
 }
 
 
@@ -295,7 +356,8 @@ void setLight() {
   {
     url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setdimmer", val);
   }
-  execUrl(url, 0);
+  execUrl(url);
+  nex.poll();
 }
 
 void configGroup() {
@@ -304,6 +366,7 @@ void configGroup() {
   putGroupID();
   Serial.println(aLights[0].id);
   getLights();
+  nex.poll();
 }
 
 
@@ -311,11 +374,14 @@ void getStatusLight() {
 
   String url = "/dh/readFile.php";
   //String url = createUrl(tradfriParams_ip, tradfriParams_key, aLights[0].id, "0", "statuslight", 0);
-  String result = execUrl(url, 3000);
-  char *str = (char*)result.c_str();
-  Serial.println(result);
+  execUrl(url);
+}
 
-  int cnt = countCommas(result);
+void getStatusLightResult() {
+  char *str = (char*)line.c_str();
+  Serial.println(line);
+
+  int cnt = countCommas(line);
   String arr[cnt]; //max 10 lights. 6 values per light
 
   char *p = strtok(str, ",");
@@ -328,7 +394,8 @@ void getStatusLight() {
 
   int idx = -1;
   //read received data from gateway
-  for (int i = 0; i < index; i = i + 4) {
+  for (int i = 1; i < index; i = i + 4) {
+    Serial.println(arr[i]);
     //get light index
     idx = -1;
     for (int x = 1; x < NUM_LIGHTS; x++) {
@@ -344,12 +411,14 @@ void getStatusLight() {
       aLights[idx].color = convertColor(arr[i + 3].toInt());
     }
   }
+  nex.poll();
   calculateGroupStatus();
+  nex.poll();
   refreshScreen();
+  nex.poll();
 }
 
 void calculateGroupStatus() {
-
   if (aLights[1].status == 1 || aLights[2].status == 1 || aLights[3].status == 1 || aLights[4].status == 1 || aLights[5].status == 1 || aLights[6].status == 1) {
     aLights[0].status = 1;
     int totalLightValue = 0;
@@ -366,9 +435,5 @@ void calculateGroupStatus() {
     aLights[0].status = 0;
     aLights[0].value = 0;
   }
-  Serial.print("status ");
-  Serial.println(aLights[0].status);
-  Serial.print("value ");
-  Serial.println(aLights[0].value);
-
+  nex.poll();
 }
