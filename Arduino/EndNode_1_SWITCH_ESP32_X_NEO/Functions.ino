@@ -132,9 +132,7 @@ static void handleData(void* arg, AsyncClient* client, void *data, size_t len) {
 
   if (loadString == false)
   {
-    Serial.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     line = line.substring(line.indexOf("§") + 2);
-    Serial.println(line);
     String command = line.substring(0, line.indexOf(","));
     Serial.print("command: ");
     Serial.println(command);
@@ -157,13 +155,14 @@ void onConnect(void* arg, AsyncClient* client) {
 
 void execUrl(String url) {
   // This will send the request to the server
-
-  while (!client->connected()) {
+ 
+  while (client->freeable()){
     Serial.print('.');
     delay(500);
     client->connect(SERVER_HOST_NAME, TCP_PORT);
     nex.poll();
   }
+
 
   String line = "GET " + url + " HTTP/1.1\r\n";
   line += "Host: " + String(SERVER_HOST_NAME) + ":" + String(TCP_PORT) + "\r\n";
@@ -288,7 +287,6 @@ void getGroupsResult() {
   enableTask();  //restart timers
 }
 
-
 void getLights() {
   // get available lights assigned to the selected group from gateway
   String url = createUrl(tradfriParams_ip, tradfriParams_key, aLights[0].id, "0", "listlight", 0);
@@ -355,8 +353,10 @@ void setLight() {
   else //it is a light
   {
     url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setdimmer", val);
-  }
+  }\
   execUrl(url);
+  nex.poll();
+  calculateGroupStatus();
   nex.poll();
 }
 

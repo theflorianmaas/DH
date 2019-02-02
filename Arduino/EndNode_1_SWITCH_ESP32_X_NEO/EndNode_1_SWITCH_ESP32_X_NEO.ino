@@ -177,8 +177,8 @@ void clearLightsArrays();
 #define IN 1
 #define OUT 0
 
-#define TIMEt0 5000 //calculate group values
-#define TIMEt1 5000 //update lights data - 
+#define TIMEt0 20000 //update lights data
+#define TIMEt1 5000 //wifi connection check
 
 Timer t0; //timer to schedule the sensors and actuators values update
 
@@ -293,7 +293,7 @@ void setup()
 void loop() {
   nex.poll();
   t0.update();
-  wifiCheckConnect();
+  //wifiCheckConnect();
 }
 
 void start() {
@@ -319,8 +319,6 @@ boolean wifiTryConnect() {
   Serial.print("Provo connessione ");
   //prova la connessione
   WiFi.mode(WIFI_STA);
-  //Serial.println(wifiParams_ssid);
-  //Serial.println(wifiParams_passcode);
   WiFi.begin((char*)wifiParams_ssid, (char*)wifiParams_passcode);
   unsigned long timeout = millis() + 5000;
   while (WiFi.status() != WL_CONNECTED) {
@@ -333,7 +331,7 @@ boolean wifiTryConnect() {
   }
   if (WiFi.status() == WL_CONNECTED) { //connessione attiva
     //se connesso aggiorna variabile wifi su schermo a 1 altrimenti 0
-    iwifi.show();
+    //iwifi.show();
     vwifi.setValue(1);
     putWifiParams(); //scrive valori su eeprom
     Serial.println("Connesso");
@@ -348,28 +346,62 @@ boolean wifiTryConnect() {
       delay(500);
       client->connect(SERVER_HOST_NAME, TCP_PORT);
       nex.poll();
+      wifiCheckConnect();
       return true;
     }
   }
   else {
-    iwifi.hide();
+    //iwifi.hide();
     vwifi.setValue(0);
     Serial.println("Non connesso");
+    wifiCheckConnect();
     return false;
   }
 }
 
-
 void wifiCheckConnect() {
   if (WiFi.status() != WL_CONNECTED) { //connessione attiva
-    iwifi.hide();
+    wifiOff();
     Serial.println("Non connesso");
-    while (true) {
-      if (wifiTryConnect() == true) {
-        break;
-      }
+    WiFi.reconnect();
+    nex.poll();
+    if (WiFi.status() == WL_CONNECTED) {
+      wifiRed();
+      wifiOn();
+      Serial.println("riconnesso WIFI");
     }
   }
+  else {
+    if (client->freeable()) {
+      wifiRed();
+      client->connect(SERVER_HOST_NAME, TCP_PORT);
+      Serial.println("tentata riconnessione TCP");
+      nex.poll();
+    }
+    else {
+      wifiGreen();
+    }
+  }
+}
+
+void wifiOn() {
+  String cmd = "vis i_wifi,1";
+  sendCommand(cmd.c_str());
+}
+
+void wifiOff() {
+  String cmd = "vis i_wifi,0";
+  sendCommand(cmd.c_str());
+}
+
+void wifiGreen() {
+  String cmd = "i_wifi.pic=54";
+  sendCommand(cmd.c_str());
+}
+
+void wifiRed() {
+  String cmd = "i_wifi.pic=53";
+  sendCommand(cmd.c_str());
 }
 
 void putWifiParams() {
@@ -385,18 +417,6 @@ void getWifiParams() {
   EEPROM.get(33, wifiParams_passcode);
   setText("Wifi", "t_ssid", String(wifiParams_ssid));
   setText("Wifi", "t_pass", String(wifiParams_passcode));
-}
-
-boolean wifiTradfriTestConnect() {
-
-  //aggiunegere test qui
-  boolean testResult = true;
-  if (testResult == true) { //connessione attiva
-    //se connesso aggiorna variabile wifi su schermo a 1 altrimenti 0
-    putTradfriParams(); //scrive valori su eeprom
-    Serial.println("Tradfri OK");
-  }
-  return testResult;
 }
 
 void putTradfriParams() {
@@ -426,8 +446,6 @@ void getMoods() {
   // get available moods for selected group from gateway
 }
 
-
-
 int convStatus(String sts) {
   if (sts == "True")
     return 1;
@@ -443,12 +461,11 @@ int convStatus(String sts) {
 // ******************************************************* //
 
 void disableTask() {
-  t0.stop(0);
+  //t0.stop(0);
 }
 
 void enableTask() {
-  //if (!t2.isFirstIteration()) {
-  t0.every(TIMEt1, calculateGroupStatus);
+  t0.every(TIMEt1, wifiCheckConnect);
   t0.every(TIMEt0, getStatusLight);
   //}
 }
