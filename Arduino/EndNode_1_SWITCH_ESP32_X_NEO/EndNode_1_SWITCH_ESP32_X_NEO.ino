@@ -177,7 +177,7 @@ void clearLightsArrays();
 #define IN 1
 #define OUT 0
 
-#define TIMEt0 20000 //update lights data
+#define TIMEt0 1000 //update lights data
 #define TIMEt1 5000 //wifi connection check
 
 Timer t0; //timer to schedule the sensors and actuators values update
@@ -504,188 +504,195 @@ void _bswitch(NextionEventType type, INextionTouchable * widget)
   Serial.println(vst0.getValue());
   Serial.println(vst0.getValue());
 
-  switch (c_light) {
-    case 0: //It is the group
-      // toggle status
-      if (aLights[c_light].status  != vst0.getValue()) {
-        pTic();
-        if (aLights[c_light].status == OFF) {
-          aLights[c_light].status = ON;
-          aLights[c_light].value = bdimmer.getValue();
-        }
-        else if (aLights[c_light].status == ON) {
-          aLights[c_light].status = OFF;
-          aLights[c_light].value = 0;
-        }
-        if (c_switch_mode = SWITCH_MODE_HWSW) {
-          digitalWrite(PIN_RELE, aLights[c_light].status);
+  if (type == NEX_EVENT_PUSH)
+  {
+    isDimmerStarted = true;
+  }
+  else if (type == NEX_EVENT_POP) {
+    isDimmerStarted = false;
+    switch (c_light) {
+      case 0: //It is the group
+        // toggle status
+        if (aLights[c_light].status  != vst0.getValue()) {
+          pTic();
+          if (aLights[c_light].status == OFF) {
+            aLights[c_light].status = ON;
+            aLights[c_light].value = bdimmer.getValue();
+          }
+          else if (aLights[c_light].status == ON) {
+            aLights[c_light].status = OFF;
+            aLights[c_light].value = 0;
+          }
+          if (c_switch_mode = SWITCH_MODE_HWSW) {
+            digitalWrite(PIN_RELE, aLights[c_light].status);
+          }
+          else {
+            digitalWrite(PIN_RELE, ON);
+          }
         }
         else {
-          digitalWrite(PIN_RELE, ON);
+          if (aLights[c_light].status == ON) {
+            aLights[c_light].value = bdimmer.getValue();
+          }
+          else {
+            aLights[c_light].value = 0;
+          }
         }
-      }
-      else {
-        if (aLights[c_light].status == ON) {
-          aLights[c_light].value = bdimmer.getValue();
-        }
-        else {
-          aLights[c_light].value = 0;
-        }
-      }
-      //set all lights to the same values
+        //set all lights to the same values
 
-      for (int i = 1; i < NUM_LIGHTS; i++) {
-        //I don't use the library as this is faster
-        if (aLights[i].status != 999) { //if the lights are visible
-          aLights[i].status = aLights[0].status;
-          aLights[i].value = aLights[0].value;
-        }
-        setValue = "st" + String(i) + ".val=" + int(aLights[i].status); //status
-        sendCommand(setValue.c_str());
-        setValue = "vl" + String(i) + ".val=" + int(aLights[i].value); //value
-        sendCommand(setValue.c_str());
-        //setValue = "cx" + String(i) + ".val=" + int(aLights[i].color); //color
-        //sendCommand(setValue.c_str());
-      }
-      break;
-    case 1:
-      if (aLights[c_light].status  != vst1.getValue()) {
-        pTic();
-        if (aLights[c_light].status == OFF) {
-          aLights[c_light].status = ON;
-          aLights[c_light].value = bdimmer.getValue();
-        }
-        else if (aLights[c_light].status == ON) {
-          aLights[c_light].status = OFF;
-          aLights[c_light].value = 0;
-        }
-      }
-      else {
-        if (aLights[c_light].status == ON) {
-          aLights[c_light].value = bdimmer.getValue();
-        }
-        else {
-          aLights[c_light].value = 0;
-        }
-
-      }
-      break;
-    case 2:
-      if (aLights[c_light].status  != vst2.getValue()) {
-        pTic();
-        if (aLights[c_light].status == OFF) {
-          aLights[c_light].status = ON;
-          aLights[c_light].value = bdimmer.getValue();
-        }
-        else if (aLights[c_light].status == ON) {
-          aLights[c_light].status = OFF;
-          aLights[c_light].value = 0;
-        }
-      }
-      else {
-        if (aLights[c_light].status == ON) {
-          aLights[c_light].value = bdimmer.getValue();
-        }
-        else {
-          aLights[c_light].value = 0;
-        }
-
-      }
-      break;
-    case 3:
-      if (aLights[c_light].status  != vst3.getValue()) {
-        pTic();
-        if (aLights[c_light].status == OFF) {
-          aLights[c_light].status = ON;
-          aLights[c_light].value = bdimmer.getValue();
-        }
-        else if (aLights[c_light].status == ON) {
-          aLights[c_light].status = OFF;
-          aLights[c_light].value = 0;
-        }
-      }
-      else {
-        if (aLights[c_light].status == ON) {
-          aLights[c_light].value = bdimmer.getValue();
-        }
-        else {
-          aLights[c_light].value = 0;
-        }
-
-      }
-      break;
-    case 4:
-      if (aLights[c_light].status  != vst4.getValue()) {
-        pTic();
-        if (aLights[c_light].status == OFF) {
-          aLights[c_light].status = ON;
-          aLights[c_light].value = bdimmer.getValue();
-        }
-        else if (aLights[c_light].status == ON) {
-          aLights[c_light].status = OFF;
-          aLights[c_light].value = 0;
-        }
-      }
-      else {
-        if (aLights[c_light].status == ON) {
-          aLights[c_light].value = bdimmer.getValue();
-        }
-        else {
-          aLights[c_light].value = 0;
-        }
-
-      }
-      break;
-    case 5:
-      if (aLights[c_light].status  != vst5.getValue()) {
-        pTic();
-        if (aLights[c_light].status == OFF) {
-          aLights[c_light].status = ON;
-          aLights[c_light].value = bdimmer.getValue();
-        }
-        else if (aLights[c_light].status == ON) {
-          aLights[c_light].status = OFF;
-          aLights[c_light].value = 0;
-        }
-      }
-      else {
-        if (aLights[c_light].status == ON) {
-          aLights[c_light].value = bdimmer.getValue();
-        }
-        else {
-          aLights[c_light].value = 0;
-        }
-      }
-      break;
-    case 6:
-      if (aLights[c_light].status  != vst6.getValue()) {
-        pTic();
-        if (aLights[c_light].status == OFF) {
-          aLights[c_light].status = ON;
-          aLights[c_light].value = bdimmer.getValue();
-        }
-        else if (aLights[c_light].status == ON) {
-          aLights[c_light].status = OFF;
-          aLights[c_light].value = 0;
-        }
-      }
-      else {
-        if (aLights[c_light].status == ON) {
-          aLights[c_light].value = bdimmer.getValue();
-        }
-        else {
-          aLights[c_light].value = 0;
+        for (int i = 1; i < NUM_LIGHTS; i++) {
+          //I don't use the library as this is faster
+          if (aLights[i].status != 999) { //if the lights are visible
+            aLights[i].status = aLights[0].status;
+            aLights[i].value = aLights[0].value;
+          }
+          setValue = "st" + String(i) + ".val=" + int(aLights[i].status); //status
+          sendCommand(setValue.c_str());
+          setValue = "vl" + String(i) + ".val=" + int(aLights[i].value); //value
+          sendCommand(setValue.c_str());
+          //setValue = "cx" + String(i) + ".val=" + int(aLights[i].color); //color
+          //sendCommand(setValue.c_str());
         }
         break;
-      }
+      case 1:
+        if (aLights[c_light].status  != vst1.getValue()) {
+          pTic();
+          if (aLights[c_light].status == OFF) {
+            aLights[c_light].status = ON;
+            aLights[c_light].value = bdimmer.getValue();
+          }
+          else if (aLights[c_light].status == ON) {
+            aLights[c_light].status = OFF;
+            aLights[c_light].value = 0;
+          }
+        }
+        else {
+          if (aLights[c_light].status == ON) {
+            aLights[c_light].value = bdimmer.getValue();
+          }
+          else {
+            aLights[c_light].value = 0;
+          }
+
+        }
+        break;
+      case 2:
+        if (aLights[c_light].status  != vst2.getValue()) {
+          pTic();
+          if (aLights[c_light].status == OFF) {
+            aLights[c_light].status = ON;
+            aLights[c_light].value = bdimmer.getValue();
+          }
+          else if (aLights[c_light].status == ON) {
+            aLights[c_light].status = OFF;
+            aLights[c_light].value = 0;
+          }
+        }
+        else {
+          if (aLights[c_light].status == ON) {
+            aLights[c_light].value = bdimmer.getValue();
+          }
+          else {
+            aLights[c_light].value = 0;
+          }
+
+        }
+        break;
+      case 3:
+        if (aLights[c_light].status  != vst3.getValue()) {
+          pTic();
+          if (aLights[c_light].status == OFF) {
+            aLights[c_light].status = ON;
+            aLights[c_light].value = bdimmer.getValue();
+          }
+          else if (aLights[c_light].status == ON) {
+            aLights[c_light].status = OFF;
+            aLights[c_light].value = 0;
+          }
+        }
+        else {
+          if (aLights[c_light].status == ON) {
+            aLights[c_light].value = bdimmer.getValue();
+          }
+          else {
+            aLights[c_light].value = 0;
+          }
+
+        }
+        break;
+      case 4:
+        if (aLights[c_light].status  != vst4.getValue()) {
+          pTic();
+          if (aLights[c_light].status == OFF) {
+            aLights[c_light].status = ON;
+            aLights[c_light].value = bdimmer.getValue();
+          }
+          else if (aLights[c_light].status == ON) {
+            aLights[c_light].status = OFF;
+            aLights[c_light].value = 0;
+          }
+        }
+        else {
+          if (aLights[c_light].status == ON) {
+            aLights[c_light].value = bdimmer.getValue();
+          }
+          else {
+            aLights[c_light].value = 0;
+          }
+
+        }
+        break;
+      case 5:
+        if (aLights[c_light].status  != vst5.getValue()) {
+          pTic();
+          if (aLights[c_light].status == OFF) {
+            aLights[c_light].status = ON;
+            aLights[c_light].value = bdimmer.getValue();
+          }
+          else if (aLights[c_light].status == ON) {
+            aLights[c_light].status = OFF;
+            aLights[c_light].value = 0;
+          }
+        }
+        else {
+          if (aLights[c_light].status == ON) {
+            aLights[c_light].value = bdimmer.getValue();
+          }
+          else {
+            aLights[c_light].value = 0;
+          }
+        }
+        break;
+      case 6:
+        if (aLights[c_light].status  != vst6.getValue()) {
+          pTic();
+          if (aLights[c_light].status == OFF) {
+            aLights[c_light].status = ON;
+            aLights[c_light].value = bdimmer.getValue();
+          }
+          else if (aLights[c_light].status == ON) {
+            aLights[c_light].status = OFF;
+            aLights[c_light].value = 0;
+          }
+        }
+        else {
+          if (aLights[c_light].status == ON) {
+            aLights[c_light].value = bdimmer.getValue();
+          }
+          else {
+            aLights[c_light].value = 0;
+          }
+          break;
+        }
+    }
+    pTic();
+    nex.poll();
+    setLight();
+    Serial.println(aLights[c_light].value);
+    Serial.println(bdimmer.getValue());
+    Serial.println(vvl0.getValue());
+    Serial.println("boiona");
   }
-  pTic();
-  nex.poll();
-  setLight();
-  Serial.println(aLights[c_light].value);
-  Serial.println(bdimmer.getValue());
-  Serial.println(vvl0.getValue());
-  Serial.println("boiona");
   nex.poll();
 }
 

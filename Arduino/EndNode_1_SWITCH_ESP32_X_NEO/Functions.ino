@@ -1,28 +1,30 @@
 void refreshScreen() {
 
-  String setValue;
-  Serial.println("refrrsh group");
-  setValue = "stg0.val=" + String(aLights[0].status); //status
-  sendCommand(setValue.c_str());
-  setValue = "vlg0.val=" + String(aLights[0].value); //value
-  sendCommand(setValue.c_str());
-  Serial.println("refresh light");
+  if (isDimmerStarted == false) { //if dimmer is not started
+    String setValue;
+    Serial.println("refrrsh group");
+    setValue = "stg0.val=" + String(aLights[0].status); //status
+    sendCommand(setValue.c_str());
+    setValue = "vlg0.val=" + String(aLights[0].value); //value
+    sendCommand(setValue.c_str());
+    Serial.println("refresh light");
 
-  for (int i = 1; i < NUM_LIGHTS; i++) {
-    //I don't use the library as this is faster
-    //[x][0]=id [x][1]=status [x][2]=value [x][3]=color
-    setValue = "vt" + String(i) + ".val=" + aLights[i].type.toInt(); //type
+    for (int i = 1; i < NUM_LIGHTS; i++) {
+      //I don't use the library as this is faster
+      //[x][0]=id [x][1]=status [x][2]=value [x][3]=color
+      setValue = "vt" + String(i) + ".val=" + aLights[i].type.toInt(); //type
+      sendCommand(setValue.c_str());
+      setValue = "st" + String(i) + ".val=" + int(aLights[i].status); //status
+      sendCommand(setValue.c_str());
+      setValue = "vl" + String(i) + ".val=" + int(aLights[i].value); //value
+      sendCommand(setValue.c_str());
+      setValue = "cx" + String(i) + ".val=" + int(aLights[i].color); //color
+    }
+    setValue = "t_icons.en=1";
     sendCommand(setValue.c_str());
-    setValue = "st" + String(i) + ".val=" + int(aLights[i].status); //status
+    setValue = "t_select_type.en=1";
     sendCommand(setValue.c_str());
-    setValue = "vl" + String(i) + ".val=" + int(aLights[i].value); //value
-    sendCommand(setValue.c_str());
-    setValue = "cx" + String(i) + ".val=" + int(aLights[i].color); //color
   }
-  setValue = "t_icons.en=1";
-  sendCommand(setValue.c_str());
-  setValue = "t_select_type.en=1";
-  sendCommand(setValue.c_str());
 }
 
 void clearLightsArrays() {
@@ -155,8 +157,8 @@ void onConnect(void* arg, AsyncClient* client) {
 
 void execUrl(String url) {
   // This will send the request to the server
- 
-  while (client->freeable()){
+
+  while (client->freeable()) {
     Serial.print('.');
     delay(500);
     client->connect(SERVER_HOST_NAME, TCP_PORT);
