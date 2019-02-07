@@ -2,12 +2,11 @@ void refreshScreen() {
 
   if (isDimmerStarted == false) { //if dimmer is not started
     String setValue;
-    Serial.println("refrrsh group");
+    Serial.println("refresh group");
     setValue = "stg0.val=" + String(aLights[0].status); //status
     sendCommand(setValue.c_str());
     setValue = "vlg0.val=" + String(aLights[0].value); //value
     sendCommand(setValue.c_str());
-    Serial.println("refresh light");
 
     for (int i = 1; i < NUM_LIGHTS; i++) {
       //I don't use the library as this is faster
@@ -100,35 +99,23 @@ String createUrl(char* ip, char* key, String group, String light, String cmd, in
   url = url + cmd;
   url = url + "&value=";
   url = url + value;
-  Serial.println(url);
+  //Serial.println(url);
   return url;
 }
 
 /* event callbacks */
 static void handleData(void* arg, AsyncClient* client, void *data, size_t len) {
-  Serial.printf("\n data received from %s \n", client->remoteIP().toString().c_str());
-  Serial.write((uint8_t*)data, len);
-  Serial.println("");
-  Serial.print("Datax: ");
-  Serial.println(len);
-
   uint8_t * d = (uint8_t*)data;
   for (size_t i = 0; i < len; i++) {
-    //Serial.print(char(d[i]));
-    //Serial.print("-");
-    //Serial.println(char(d[i]));
     if (d[i] == 167 || d[i]  == 63) {
-      //Serial.println("Vero");
       loadString = true;
       line = "";
     }
     else if (d[i]  == 35) {
-      //Serial.println("Falso");
       loadString = false;
     }
     if (loadString == true) {
       line = line + String(char(d[i]));
-      //Serial.print(line);
     }
   }
 
@@ -136,8 +123,6 @@ static void handleData(void* arg, AsyncClient* client, void *data, size_t len) {
   {
     line = line.substring(line.indexOf("§") + 2);
     String command = line.substring(0, line.indexOf(","));
-    Serial.print("command: ");
-    Serial.println(command);
 
     if (command == "statuslight") {
       getStatusLightResult();
@@ -159,18 +144,17 @@ void execUrl(String url) {
   // This will send the request to the server
 
   while (client->freeable()) {
+    wifiOff();
     Serial.print('.');
     delay(500);
     client->connect(SERVER_HOST_NAME, TCP_PORT);
+    wifiOn();
     nex.poll();
   }
-
 
   String line = "GET " + url + " HTTP/1.1\r\n";
   line += "Host: " + String(SERVER_HOST_NAME) + ":" + String(TCP_PORT) + "\r\n";
   line += "Connection: keep-alive\r\n\r\n";
-
-  Serial.println(line);
 
   char message[line.length() + 1];
   strcpy(message, line.c_str());
@@ -186,12 +170,10 @@ void sendCommand(const char* cmd) {
   nextionSerial.write(0xFF);
   nextionSerial.write(0xFF);
   nextionSerial.write(0xFF);
-  //Serial.println(cmd);
 }//end sendCommand
 
 void setText(String page, String obj, String val) {
   String cmd = page + "." + obj + ".txt=" + String('"') + val + String('"');
-  // Serial.println(cmd.c_str());
   sendCommand(cmd.c_str());
 }//setText
 
@@ -204,8 +186,6 @@ void setGroupList(int idx) {
     cmd = "vis gx" + String(i) + ",1";
     sendCommand(cmd.c_str());
     cmd = "t" + String(i) + ".txt=" + String('"') + aGroups[i][1] + String('"');
-    Serial.println(aGroups[i][1]);
-    Serial.println(cmd);
     sendCommand(cmd.c_str());
     if (i == c_group) {
       cmd = "gx" + String(i) + ".val=1";
@@ -217,13 +197,11 @@ void setGroupList(int idx) {
 void putGroupID() {
   EEPROM.put(180, c_group_id);
   EEPROM.commit();
-  Serial.println(c_group_id);
   aLights[0].id = String(c_group_id);
 }
 
 int getGroupID() {
   EEPROM.get(180, c_group_id);
-  Serial.println(c_group_id);
   aLights[0].id = String(c_group_id);
 }
 
@@ -329,7 +307,6 @@ void getLightsResult() {
       aLights[idx].status = convStatus(arr[i + 3]);
       aLights[idx].value = arr[i + 4].toInt();
       aLights[idx].color = convertColor(arr[i + 5].toInt());
-      Serial.println(aLights[idx].id);
       idx++;
     }
   }
@@ -366,16 +343,13 @@ void configGroup() {
   aGroups[c_group][0].toCharArray(c_group_id, 10);
   aLights[0].id = aGroups[c_group][0];
   putGroupID();
-  Serial.println(aLights[0].id);
   getLights();
   nex.poll();
 }
 
 
 void getStatusLight() {
-
   String url = "/dh/readFile.php";
-  //String url = createUrl(tradfriParams_ip, tradfriParams_key, aLights[0].id, "0", "statuslight", 0);
   execUrl(url);
 }
 
@@ -397,7 +371,6 @@ void getStatusLightResult() {
   int idx = -1;
   //read received data from gateway
   for (int i = 1; i < index; i = i + 4) {
-    Serial.println(arr[i]);
     //get light index
     idx = -1;
     for (int x = 1; x < NUM_LIGHTS; x++) {

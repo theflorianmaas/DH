@@ -1,7 +1,7 @@
 
 // ------------------------------------------------------------ //
 // EndNode_1_Switch
-// V.0.1 23/01/2019
+// V.0.1 07/02/2019
 // First version 0.1 Development
 //
 // ------------------------------------------------------------ //
@@ -25,34 +25,6 @@
 #include <NextionTimer.h>
 #include <NextionVariableNumeric.h>
 #include <NextionRadioButton.h>
-
-// ------------------------------------------------------------ //
-//-----------------------------------------------------------
-#define PINNODE 0
-//-----------------------------------------------------------
-// reserved pins
-//-----------------------------------------------------------
-#define NEXTION_RX 5 //D2
-#define NEXTION_TX 4 //D1
-#define PIN_RELE   2 //D4
-#define PIN_TONE   12 //D6
-
-//-----------------------------------------------------------
-// Nextion Display
-//-----------------------------------------------------------
-//-----------------------------------------------------------
-#define ON  1
-#define OFF 0
-#define PAGE_MAIN           0
-#define PAGE_AC             1
-#define PAGE_TV             2
-#define PAGE_SETTINGS       3
-#define PAGE_OPTIONS        4
-#define PAGE_CONFIG_LIGHTS  5
-#define PAGE_WIFI           6
-
-#define SWITCH_MODE_HWSW    0
-#define SWITCH_MODE_SW      1
 
 SoftwareSerial nextionSerial(NEXTION_RX, NEXTION_TX);// Nextion TX to pin 11 and RX to pin 10 of Arduino
 Nextion nex(nextionSerial); //create a Nextion object named myNextion using the nextion serial port @ 9600bps
@@ -157,33 +129,7 @@ void disableTask();
 void enableTask();
 void clearLightsArrays();
 //-----------------------------------------------------------
-
-//Service Led status
-#define ON  HIGH
-#define OFF LOW
-
-#define NOLIGHT 999
-
-// Output type for Actuator
-#define DIGITAL       0
-#define ANALOG        1
-#define SERVO         2
-#define TONE          4
-#define HVAC          5
-#define TV            6
-#define LEDRGB        7
-#define THERMOSTAT    9
-
-#define IN 1
-#define OUT 0
-
-#define TIMEt0 1000 //update lights data
-#define TIMEt1 5000 //wifi connection check
-
 Timer t0; //timer to schedule the sensors and actuators values update
-
-#define BAUD_RATE   115200  // Baud for both Xbee and serial monitor
-#define NUM_LIGHTS  7 //max number of lights available (# of lights+1) 
 
 String aGroups[11][2]; //current groups available in the gateway...
 int aMoods[1][5] = {0, 0, 0, 0, 0}; //[0][0] group/mood - moods of the selected group
@@ -297,8 +243,6 @@ void loop() {
 }
 
 void start() {
-  //putTradfriParams();
-  //putWifiParams();
   getTradfriParams();
   getWifiParams();
   getGroupID();
@@ -320,19 +264,18 @@ boolean wifiTryConnect() {
   //prova la connessione
   WiFi.mode(WIFI_STA);
   WiFi.begin((char*)wifiParams_ssid, (char*)wifiParams_passcode);
-  unsigned long timeout = millis() + 5000;
+  //unsigned long timeout = millis() + 5000;
   while (WiFi.status() != WL_CONNECTED) {
+    wifiOff();
     delay(500);
     Serial.print(".");
-    if (timeout < millis()) { //exit loop after 10 seconds
-      break;
-    }
+    wifiOn();
     nex.poll();
   }
   if (WiFi.status() == WL_CONNECTED) { //connessione attiva
     //se connesso aggiorna variabile wifi su schermo a 1 altrimenti 0
     //iwifi.show();
-    vwifi.setValue(1);
+    vwifi.setValue(ON);
     putWifiParams(); //scrive valori su eeprom
     Serial.println("Connesso");
     //crea HTTP Client
@@ -351,8 +294,7 @@ boolean wifiTryConnect() {
     }
   }
   else {
-    //iwifi.hide();
-    vwifi.setValue(0);
+    vwifi.setValue(OFF);
     Serial.println("Non connesso");
     wifiCheckConnect();
     return false;
@@ -522,7 +464,7 @@ void _bswitch(NextionEventType type, INextionTouchable * widget)
           else if (aLights[c_light].status == ON) {
             aLights[c_light].status = OFF;
             aLights[c_light].value = 0;
-          }
+          }       
           if (c_switch_mode = SWITCH_MODE_HWSW) {
             digitalWrite(PIN_RELE, aLights[c_light].status);
           }
