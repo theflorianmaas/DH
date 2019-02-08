@@ -145,7 +145,7 @@ typedef struct  {
 
 light aLights[NUM_LIGHTS]; //lights of the selected group [x][0]=id [x][1]=name [x][2]=type [x][3]=status
 int aLightsStatus[11][4]; //lights status values of the selected group [x][0]=id [x][1]=status [x][2]=value, color=[x][3]
-int c_light; //current light
+int c_light = 0; //current light
 int c_group; //current group
 char c_group_id[10]; //current group id
 int c_mood; //current mood
@@ -190,7 +190,6 @@ void setup()
   bswitch.attachCallback(&_bswitch); //main switch
   bdimmer.attachCallback(&_bdimmer); //dimmer control
   pdummy.attachCallback(&_pdummy); //default light
-  ptimer.attachCallback(&_ptimer); //timer to resfresh light data from gateway
 
   bgroup.attachCallback(&_bgroup);
   blight1.attachCallback(&_blight1);
@@ -464,7 +463,7 @@ void _bswitch(NextionEventType type, INextionTouchable * widget)
           else if (aLights[c_light].status == ON) {
             aLights[c_light].status = OFF;
             aLights[c_light].value = 0;
-          }       
+          }
           if (c_switch_mode = SWITCH_MODE_HWSW) {
             digitalWrite(PIN_RELE, aLights[c_light].status);
           }
@@ -915,7 +914,7 @@ void _bloadgroups(NextionEventType type, INextionTouchable * widget)
 {
   if (type == NEX_EVENT_PUSH)
   {
-    Serial.println("eccolo!");
+    pTic();
     nex.poll();
     getGroups();
     refreshScreen();
@@ -929,14 +928,6 @@ void _pdummy(NextionEventType type, INextionTouchable * widget)
   Serial.println("default light");
   getStatusLight();
 }
-
-void _ptimer(NextionEventType type, INextionTouchable * widget)
-{
-  //c_light = 0;
-  //Serial.println("timer");
-  //getStatusLight();
-}
-
 
 //-----------------------------------------------------//
 // 3 colors bulbs
