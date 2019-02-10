@@ -67,7 +67,7 @@ NextionPicture blight5(nex, 0, 14, "l5");
 NextionPicture blight6(nex, 0, 17, "l6");
 
 NextionPicture pdummy(nex, 0, 73, "pDummy"); //used to simulate triggers on numeric valiable
-NextionPicture ptimer(nex, 0, 80, "pDummy"); //used to simulate triggers on numeric valiable
+NextionPicture psettings(nex, 0, 67, "p0"); //settings icon
 
 NextionPicture bgroup(nex, 0, 19, "g0");
 NextionPicture iwifi(nex, 0, 72, "i_wifi");
@@ -153,6 +153,7 @@ bool c_status = OFF; //switch current status
 int c_switch_mode = SWITCH_MODE_HWSW;
 
 boolean isDimmerStarted = false;
+boolean runningTimer = true;
 
 // -----------------------------------------------------------------
 // ---- Wifi section ----*/
@@ -190,6 +191,7 @@ void setup()
   bswitch.attachCallback(&_bswitch); //main switch
   bdimmer.attachCallback(&_bdimmer); //dimmer control
   pdummy.attachCallback(&_pdummy); //default light
+  psettings.attachCallback(&_psettings); //settings icon
 
   bgroup.attachCallback(&_bgroup);
   blight1.attachCallback(&_blight1);
@@ -237,8 +239,8 @@ void setup()
 
 void loop() {
   nex.poll();
-  t0.update();
-  //wifiCheckConnect();
+  if (runningTimer == true)
+    t0.update();
 }
 
 void start() {
@@ -374,8 +376,6 @@ int getTradfriParams() {
   setText("Tradfri", "t_ip", String(tradfriParams_ip));
   setText("Tradfri", "t_key", String(tradfriParams_key));
 }
-
-
 // ******************************************************* //
 
 
@@ -768,16 +768,14 @@ void _blight6(NextionEventType type, INextionTouchable * widget)
 
 void _bback(NextionEventType type, INextionTouchable * widget)
 {
-  Serial.println(NEX_EVENT_PUSH);
-  if (type == NEX_EVENT_PUSH)
-  {
-    //read global variables
-    c_light = vdeflight.getValue();
-    c_switch_mode = vdefmainsw.getValue();
-    nex.poll();
-    refreshScreen();
-    nex.poll();
-  }
+  //read global variables
+  c_light = vdeflight.getValue();
+  c_switch_mode = vdefmainsw.getValue();
+  nex.poll();
+  refreshScreen();
+  nex.poll();
+  runningTimer = true;
+  pTic();
 }
 
 void _btradfri(NextionEventType type, INextionTouchable * widget)
@@ -917,6 +915,12 @@ void _pdummy(NextionEventType type, INextionTouchable * widget)
   c_light = 0;
   Serial.println("default light");
   getStatusLight();
+}
+
+void _psettings(NextionEventType type, INextionTouchable * widget)
+{
+  pTic();
+  runningTimer = false;
 }
 
 //-----------------------------------------------------//

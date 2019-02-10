@@ -172,6 +172,7 @@ void sendCommand(const char* cmd) {
   nextionSerial.write(0xFF);
   nextionSerial.write(0xFF);
   nextionSerial.write(0xFF);
+  //Serial.println(cmd);
 }//end sendCommand
 
 void setText(String page, String obj, String val) {
@@ -210,7 +211,6 @@ int getGroupID() {
 int countCommas(String result) {
   //counts the number of values in the result
   int cnt = 0;
-  Serial.println(result.length());
   for (int i = 0; i < result.length(); i++) {
     if (result[i] == ',') {
       cnt++;
@@ -312,18 +312,14 @@ void getLightsResult() {
       idx++;
     }
   }
-
-  //pgMain.show();
+  runningTimer = true;
   sendCommand("page Main");
-
   nex.poll();
   calculateGroupStatus();
   nex.poll();
   refreshScreen();
   nex.poll();
-
 }
-
 
 void setLight() {
   String url;
@@ -334,7 +330,7 @@ void setLight() {
   else //it is a light
   {
     url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setdimmer", val);
-  }\
+  }
   execUrl(url);
   nex.poll();
   calculateGroupStatus();
@@ -345,8 +341,11 @@ void configGroup() {
   aGroups[c_group][0].toCharArray(c_group_id, 10);
   aLights[0].id = aGroups[c_group][0];
   putGroupID();
+  pTic();
+  sendCommand("page Main");
   getLights();
   nex.poll();
+
 }
 
 
