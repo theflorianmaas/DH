@@ -156,6 +156,8 @@ void execUrl(String url) {
   line += "Host: " + String(SERVER_HOST_NAME) + ":" + String(TCP_PORT) + "\r\n";
   line += "Connection: keep-alive\r\n\r\n";
 
+  Serial.println(url);
+
   char message[line.length() + 1];
   strcpy(message, line.c_str());
   client->write(message);

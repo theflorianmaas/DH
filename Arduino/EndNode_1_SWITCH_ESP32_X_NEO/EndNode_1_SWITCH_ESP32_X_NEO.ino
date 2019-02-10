@@ -439,12 +439,6 @@ void _bconnect(NextionEventType type, INextionTouchable * widget)
 void _bswitch(NextionEventType type, INextionTouchable * widget)
 {
   String setValue;
-  Serial.println("PUSH");
-  Serial.println("boia de'");
-  //get current status
-  Serial.println(vst0.getValue());
-  Serial.println(vst0.getValue());
-
   if (type == NEX_EVENT_PUSH)
   {
     isDimmerStarted = true;
@@ -629,10 +623,6 @@ void _bswitch(NextionEventType type, INextionTouchable * widget)
     pTic();
     nex.poll();
     setLight();
-    Serial.println(aLights[c_light].value);
-    Serial.println(bdimmer.getValue());
-    Serial.println(vvl0.getValue());
-    Serial.println("boiona");
   }
   nex.poll();
 }
