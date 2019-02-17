@@ -14,6 +14,10 @@
 #include "pitches.h"
 #include "config.h"
 
+#include <IRremoteESP8266.h>
+#include <IRsend.h>
+#include <ir_Midea.h>
+
 #include <NeoNextion.h>
 #include <NextionPage.h>
 #include <NextionButton.h>
@@ -107,6 +111,25 @@ INextionStringValued t_ip(nex, 7, 2, "t_ip");
 INextionStringValued t_key(nex, 7, 3, "t_key");
 NextionButton btradfri(nex, 7, 6, "btradfri");
 
+//----- AC ----------------------------//
+NextionPicture acon(nex, 1, 7, "pon");
+NextionPicture acfunup(nex, 1, 12, "pfu");
+NextionPicture acfundown(nex, 1, 11, "pfd");
+NextionPicture actempup(nex, 1, 9, "ptu");
+NextionPicture actempdown(nex, 1, 10, "ptd");
+NextionPicture acswing(nex, 1, 14, "ps");
+NextionPicture acmode(nex, 1, 13, "pm");
+
+//----- TV ----------------------------//
+NextionPicture tvon(nex, 2, 7, "pon");
+NextionPicture tvvolup(nex, 2, 12, "pu");
+NextionPicture tvvoldown(nex, 2, 11, "pd");
+NextionPicture tvchannelup(nex, 2, 9, "pr");
+NextionPicture tvchanneldown(nex, 2, 10, "pl");
+NextionPicture tvsource(nex, 2, 14, "px");
+NextionPicture tvok(nex, 2, 13, "pok");
+NextionPicture tvret(nex, 2, 15, "pret");
+
 //----- Group select ----------------------------//
 NextionRadioButton r_t0(nex, 5, 13, "g0");
 NextionRadioButton r_t1(nex, 5, 14, "g1");
@@ -170,16 +193,32 @@ AsyncClient* client = new AsyncClient;
 String line;
 bool loadString = false;
 
+
+// ------------------------------------------------------------------
+// Remote control section -------------------------------------------
+// ------------------------------------------------------------------
+IRsend irTV(LED_IR);
+
+// ---------- AC Remote control section ------------------------//
+// Support for Midea, Hokkaido HVAC, Type:R51M/E remote control //
+IRMideaAC irAC(LED_IR);
+
 /*
    Setup function. Here we do the basics
 */
 void setup()
 {
+  irTV.begin();
+  irAC.begin();
   //initialize arrays and pins
   //initialize light array. Set all pin to 999 (no light configured)
   clearLightsArrays();
 
   pinMode(PIN_RELE, OUTPUT);
+  pinMode(LED_RED, OUTPUT);
+  pinMode(LED_GREEN, OUTPUT);
+  digitalWrite(LED_RED, LOW);
+  digitalWrite(LED_GREEN, LOW);
   digitalWrite(PIN_RELE, LOW);
   Serial.begin(BAUD_RATE);
   nextionSerial.begin(57600);
@@ -227,8 +266,27 @@ void setup()
 
   bloadgroups.attachCallback(&_bloadgroups);
 
+  //----- AC ----------------------------//
+  acon.attachCallback(&_acon);
+  acfunup.attachCallback(&_acfunup);
+  acfundown.attachCallback(&_acfundown);
+  actempup.attachCallback(&_actempup);
+  actempdown.attachCallback(&_actempdown);
+  acswing.attachCallback(&_acswing);
+  acmode.attachCallback(&_acmode);
+
+  //----- TV ----------------------------//
+  tvon.attachCallback(&_tvon);
+  tvvolup.attachCallback(&_tvvolup);
+  tvvoldown.attachCallback(&_tvvoldown);
+  tvchannelup.attachCallback(&_tvchannelup);
+  tvchanneldown.attachCallback(&_tvchanneldown);
+  tvsource.attachCallback(&_tvsource);
+  tvok.attachCallback(&_tvok);
+  tvret.attachCallback(&_tvret);
+
   nex.init();
-  delay(2000);
+  delay(1000);
   refreshScreen();
   delay(100);
   start();
@@ -266,6 +324,7 @@ boolean wifiTryConnect() {
   WiFi.mode(WIFI_STA);
   WiFi.begin((char*)wifiParams_ssid, (char*)wifiParams_passcode);
   //unsigned long timeout = millis() + 5000;
+  WiFi.reconnect();
   while (WiFi.status() != WL_CONNECTED) {
     wifiOff();
     delay(500);
@@ -329,21 +388,27 @@ void wifiCheckConnect() {
 
 void wifiOn() {
   String cmd = "vis i_wifi,1";
+  digitalWrite(LED_GREEN, HIGH);
   sendCommand(cmd.c_str());
 }
 
 void wifiOff() {
   String cmd = "vis i_wifi,0";
+  digitalWrite(LED_GREEN, LOW);
   sendCommand(cmd.c_str());
 }
 
 void wifiGreen() {
   String cmd = "i_wifi.pic=54";
+  digitalWrite(LED_GREEN, HIGH);
+  digitalWrite(LED_RED, LOW);
   sendCommand(cmd.c_str());
 }
 
 void wifiRed() {
   String cmd = "i_wifi.pic=53";
+  digitalWrite(LED_GREEN, LOW);
+  digitalWrite(LED_RED, HIGH);
   sendCommand(cmd.c_str());
 }
 
@@ -1000,4 +1065,95 @@ void _brgbcolor6(NextionEventType type, INextionTouchable * widget)
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 17);
   pTic();
   execUrl(url);
+}
+
+void _tvon(NextionEventType type, INextionTouchable * widget)
+{
+  pTic();
+  tv_remote(TV0NOFF, TV_SONY);
+}
+
+void _tvvolup(NextionEventType type, INextionTouchable * widget)
+{
+  pTic();
+  tv_remote(TVVOLUMEUP, TV_SONY);
+}
+
+void _tvvoldown(NextionEventType type, INextionTouchable * widget)
+{
+  pTic();
+  tv_remote(TVVOLUMEDOWN, TV_SONY);
+}
+
+void _tvchannelup(NextionEventType type, INextionTouchable * widget)
+{
+  pTic();
+  tv_remote(TVCHANNELUP, TV_SONY);
+}
+
+void _tvchanneldown(NextionEventType type, INextionTouchable * widget)
+{
+  pTic();
+  tv_remote(TVCHANNELDOWN, TV_SONY);
+}
+
+void _tvsource(NextionEventType type, INextionTouchable * widget)
+{
+  pTic();
+  tv_remote(TVHDMI, TV_SONY);
+}
+
+void _tvok(NextionEventType type, INextionTouchable * widget)
+{
+  pTic();
+  tv_remote(TVKEYOK, TV_SONY);
+}
+
+void _tvret(NextionEventType type, INextionTouchable * widget)
+{
+  pTic();
+  //tv_remote(TVKEYRETURN, TV_SONY);
+}
+
+//------AC--------------------------------------------
+void _acon(NextionEventType type, INextionTouchable * widget)
+{
+  pTic();
+  ac_remote(ACCON, AC_MIDEA);
+}
+
+void _acfunup(NextionEventType type, INextionTouchable * widget)
+{
+  pTic();
+  ac_remote(ACCON, AC_MIDEA);
+}
+
+void _acfundown(NextionEventType type, INextionTouchable * widget)
+{
+  pTic();
+  ac_remote(ACCON, AC_MIDEA);
+}
+
+void _actempup(NextionEventType type, INextionTouchable * widget)
+{
+  pTic();
+  ac_remote(ACCON, AC_MIDEA);
+}
+
+void _actempdown(NextionEventType type, INextionTouchable * widget)
+{
+  pTic();
+  ac_remote(ACCON, AC_MIDEA);
+}
+
+void _acswing(NextionEventType type, INextionTouchable * widget)
+{
+  pTic();
+  ac_remote(ACCON, AC_MIDEA);
+}
+
+void _acmode(NextionEventType type, INextionTouchable * widget)
+{
+  pTic();
+  ac_remote(ACCON, AC_MIDEA);
 }
