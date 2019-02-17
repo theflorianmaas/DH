@@ -72,6 +72,8 @@ NextionPicture blight6(nex, 0, 17, "l6");
 
 NextionPicture pdummy(nex, 0, 73, "pDummy"); //used to simulate triggers on numeric valiable
 NextionPicture psettings(nex, 0, 67, "p0"); //settings icon
+NextionPicture ptv(nex, 0, 14, "tv"); //settings icon
+NextionPicture pac(nex, 0, 9, "ac"); //settings icon
 
 NextionPicture bgroup(nex, 0, 19, "g0");
 NextionPicture iwifi(nex, 0, 72, "i_wifi");
@@ -119,6 +121,7 @@ NextionPicture actempup(nex, 1, 9, "ptu");
 NextionPicture actempdown(nex, 1, 10, "ptd");
 NextionPicture acswing(nex, 1, 14, "ps");
 NextionPicture acmode(nex, 1, 13, "pm");
+NextionPicture bbackac(nex, 1, 8, "p1");
 
 //----- TV ----------------------------//
 NextionPicture tvon(nex, 2, 7, "pon");
@@ -129,6 +132,7 @@ NextionPicture tvchanneldown(nex, 2, 10, "pl");
 NextionPicture tvsource(nex, 2, 14, "px");
 NextionPicture tvok(nex, 2, 13, "pok");
 NextionPicture tvret(nex, 2, 15, "pret");
+NextionPicture bbacktv(nex, 2, 8, "p1");
 
 //----- Group select ----------------------------//
 NextionRadioButton r_t0(nex, 5, 13, "g0");
@@ -231,6 +235,8 @@ void setup()
   bdimmer.attachCallback(&_bdimmer); //dimmer control
   pdummy.attachCallback(&_pdummy); //default light
   psettings.attachCallback(&_psettings); //settings icon
+  ptv.attachCallback(&_ptv); //tv icon
+  pac.attachCallback(&_pac); //ac icon
 
   bgroup.attachCallback(&_bgroup);
   blight1.attachCallback(&_blight1);
@@ -240,7 +246,6 @@ void setup()
   blight5.attachCallback(&_blight5);
   blight6.attachCallback(&_blight6);
   bback.attachCallback(&_bback);
-  //t_t1.attachCallback(&_t_t1);
 
   r_t0.attachCallback(&_r_t0);
   r_t1.attachCallback(&_r_t1);
@@ -274,6 +279,7 @@ void setup()
   actempdown.attachCallback(&_actempdown);
   acswing.attachCallback(&_acswing);
   acmode.attachCallback(&_acmode);
+  bbackac.attachCallback(&_bbackac);
 
   //----- TV ----------------------------//
   tvon.attachCallback(&_tvon);
@@ -284,6 +290,7 @@ void setup()
   tvsource.attachCallback(&_tvsource);
   tvok.attachCallback(&_tvok);
   tvret.attachCallback(&_tvret);
+  bbacktv.attachCallback(&_bbacktv);
 
   nex.init();
   delay(1000);
@@ -312,7 +319,6 @@ void start() {
   getStatusLight();
   enableTask();
 }
-
 
 // *******************************************************//
 // Functions  NEXTION                                            //
@@ -550,8 +556,6 @@ void _bswitch(NextionEventType type, INextionTouchable * widget)
           sendCommand(setValue.c_str());
           setValue = "vl" + String(i) + ".val=" + int(aLights[i].value); //value
           sendCommand(setValue.c_str());
-          //setValue = "cx" + String(i) + ".val=" + int(aLights[i].color); //color
-          //sendCommand(setValue.c_str());
         }
         break;
       case 1:
@@ -595,7 +599,6 @@ void _bswitch(NextionEventType type, INextionTouchable * widget)
           else {
             aLights[c_light].value = 0;
           }
-
         }
         break;
       case 3:
@@ -617,7 +620,6 @@ void _bswitch(NextionEventType type, INextionTouchable * widget)
           else {
             aLights[c_light].value = 0;
           }
-
         }
         break;
       case 4:
@@ -639,7 +641,6 @@ void _bswitch(NextionEventType type, INextionTouchable * widget)
           else {
             aLights[c_light].value = 0;
           }
-
         }
         break;
       case 5:
@@ -712,10 +713,7 @@ void _bdimmer(NextionEventType type, INextionTouchable * widget)
         sendCommand(setValue.c_str());
         setValue = "vl" + String(i) + ".val=" + int(aLights[i].value); //value
         sendCommand(setValue.c_str());
-        //setValue = "cx" + String(i) + ".val=" + int(aLights[i].color); //color
-        //sendCommand(setValue.c_str());
       }
-
       break;
     case 1:
       aLights[c_light].status = vst1.getValue();
@@ -843,6 +841,32 @@ void _bback(NextionEventType type, INextionTouchable * widget)
   pTic();
 }
 
+
+void _bbacktv(NextionEventType type, INextionTouchable * widget)
+{
+  //read global variables
+  c_light = vdeflight.getValue();
+  c_switch_mode = vdefmainsw.getValue();
+  nex.poll();
+  refreshScreen();
+  nex.poll();
+  runningTimer = true;
+  pTic();
+}
+
+
+void _bbackac(NextionEventType type, INextionTouchable * widget)
+{
+  //read global variables
+  c_light = vdeflight.getValue();
+  c_switch_mode = vdefmainsw.getValue();
+  nex.poll();
+  refreshScreen();
+  nex.poll();
+  runningTimer = true;
+  pTic();
+}
+
 void _btradfri(NextionEventType type, INextionTouchable * widget)
 {
   char buffer_ip[40];
@@ -857,7 +881,6 @@ void _btradfri(NextionEventType type, INextionTouchable * widget)
       tradfriParams_ip[i] = buffer_ip[i];
       tradfriParams_key[i] = buffer_key[i];
     }
-
     putTradfriParams();
   }
 }
@@ -983,6 +1006,18 @@ void _pdummy(NextionEventType type, INextionTouchable * widget)
 }
 
 void _psettings(NextionEventType type, INextionTouchable * widget)
+{
+  pTic();
+  runningTimer = false;
+}
+
+void _ptv(NextionEventType type, INextionTouchable * widget)
+{
+  pTic();
+  runningTimer = false;
+}
+
+void _pac(NextionEventType type, INextionTouchable * widget)
 {
   pTic();
   runningTimer = false;
