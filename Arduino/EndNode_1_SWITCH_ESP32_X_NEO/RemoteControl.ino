@@ -12,10 +12,10 @@ void tv_remote(int command, int brand) {
         irTV.sendSony(0x490, 12, 2);
         break;
       case TVCHANNELUP:
-        irTV.sendSony(0x90, 12, 2);
+        irTV.sendSony(0x890, 12, 2);
         break;
       case TVCHANNELDOWN:
-        irTV.sendSony(0x890, 12, 2);
+        irTV.sendSony(0x90, 12, 2);
         break;
       case TVKEYUP:
         irTV.sendSony(0x2f0, 12, 2);
@@ -48,5 +48,32 @@ void tv_remote(int command, int brand) {
 //AC Commands
 void ac_remote(int command, int brand) {
   // Support for Midea, Hokkaido HVAC, Type:R51M/E remote control //
-
+  switch (command) {
+    case ACCOFF:
+      irAC.off();
+      break;
+    case ACCON:
+      irAC.on();
+      break;
+  }
 }
+
+
+/*
+  void begin();
+  void on();
+  void off();
+  void setPower(const bool state);
+  bool getPower();
+  void setTemp(const uint8_t temp, const bool useCelsius = false);
+  uint8_t getTemp(const bool useCelsius = false);
+  void setFan(const uint8_t fan);
+  uint8_t getFan();
+  void setMode(const uint8_t mode);
+  uint8_t getMode();
+  void setRaw(uint64_t newState);
+  uint64_t getRaw();
+  static bool validChecksum(const uint64_t state);
+  void setSleep(const bool state);
+  bool getSleep();
+*/

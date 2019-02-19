@@ -122,6 +122,9 @@ NextionPicture actempdown(nex, 1, 10, "ptd");
 NextionPicture acswing(nex, 1, 14, "ps");
 NextionPicture acmode(nex, 1, 13, "pm");
 NextionPicture bbackac(nex, 1, 8, "p1");
+NextionVariableNumeric acvst(nex, 1, 15, "st");
+NextionVariableNumeric acvmd(nex, 1, 16, "md");
+NextionVariableNumeric acvsw(nex, 1, 17, "sw");
 
 //----- TV ----------------------------//
 NextionPicture tvon(nex, 2, 7, "pon");
@@ -1150,11 +1153,36 @@ void _tvret(NextionEventType type, INextionTouchable * widget)
   //tv_remote(TVKEYRETURN, TV_SONY);
 }
 
+#define ACCOFF      0
+#define ACCON       1
+#define ACCTEMP     2
+#define ACCMODE     3
+#define ACCFAN      4
+#define ACCSWING    5
+
+//AC methods HVAC
+#define ACFAN1        3
+#define ACFAN2        4
+#define ACFAN3        5
+#define ACFANAUTO     6
+#define ACMODECOOL    7
+#define ACMODEDRY     8
+#define ACMODEHEAT    9
+#define ACMODEAUTO    10
+#define ACTEMPERATURE 11
+#define ACSWING       12
+
 //------AC--------------------------------------------
 void _acon(NextionEventType type, INextionTouchable * widget)
 {
   pTic();
-  ac_remote(ACCON, AC_MIDEA);
+  if (acvst.getValue()==0){
+    ac_remote(ACCOFF, AC_MIDEA);
+  }
+  else
+  if (acvst.getValue()==1){
+    ac_remote(ACCON, AC_MIDEA);
+  }
 }
 
 void _acfunup(NextionEventType type, INextionTouchable * widget)
