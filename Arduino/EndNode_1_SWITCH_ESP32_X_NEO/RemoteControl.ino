@@ -48,15 +48,51 @@ void tv_remote(int command, int brand) {
 //AC Commands
 void ac_remote(int command, int brand) {
   // Support for Midea, Hokkaido HVAC, Type:R51M/E remote control //
-  switch (command) {
-    case ACCOFF:
-      irAC.off();
-      break;
-    case ACCON:
+  if (command == ACPOWER)  {
+    uint8_t sts = acvst.getValue();
+    if (sts == ACON)
       irAC.on();
-      break;
+    else if (sts == ACOFF)
+      irAC.off();
+  }
+  else if (command == ACTEMPUP)  {
+    irAC.setTemp(irAC.getTemp(false) + 1, false);
+  }
+  else if (command == ACTEMPDOWN)  {
+    irAC.setTemp(irAC.getTemp(false) - 1, false);
+  }
+  else if (command == ACMODE)  {
+    uint8_t mode = acvmd.getValue();
+    if (mode == ACMODEAUTO) {
+      irAC.setMode(kMideaACAuto);
+    }
+    else if (mode == ACMODECOOL) {
+      irAC.setMode(kMideaACCool);
+    }
+    else if (mode == ACMODEHEAT) {
+      irAC.setMode(kMideaACHeat);
+    }
+    else if (mode == ACMODEDRY) {
+      irAC.setMode(kMideaACDry);
+    }
+  }
+  else if (command == ACFAN)  {
+     uint8_t fansts = acvfa.getValue();
+    if (fansts == ACFANAUTO) {
+      irAC.setFan(kMideaACFanAuto);
+    }
+    else if (fansts == ACFANLOW) {
+      irAC.setFan(kMideaACFanLow);
+    }
+    else if (fansts == ACFANMED) {
+      irAC.setFan(kMideaACFanMed);
+    }
+    else if (fansts == ACFANMAX) {
+      irAC.setFan(kMideaACFanHigh);
+    }
   }
 }
+
 
 
 /*

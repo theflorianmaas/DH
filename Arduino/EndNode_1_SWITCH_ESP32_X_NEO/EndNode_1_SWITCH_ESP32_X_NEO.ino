@@ -1,7 +1,7 @@
 
 // ------------------------------------------------------------ //
 // EndNode_1_Switch
-// V.0.1 07/02/2019
+// V.0.1 19/02/2019
 // First version 0.1 Development
 //
 // ------------------------------------------------------------ //
@@ -115,8 +115,8 @@ NextionButton btradfri(nex, 7, 6, "btradfri");
 
 //----- AC ----------------------------//
 NextionPicture acon(nex, 1, 7, "pon");
-NextionPicture acfunup(nex, 1, 12, "pfu");
-NextionPicture acfundown(nex, 1, 11, "pfd");
+NextionPicture acfanup(nex, 1, 12, "pfu");
+NextionPicture acfandown(nex, 1, 11, "pfd");
 NextionPicture actempup(nex, 1, 9, "ptu");
 NextionPicture actempdown(nex, 1, 10, "ptd");
 NextionPicture acswing(nex, 1, 14, "ps");
@@ -125,6 +125,7 @@ NextionPicture bbackac(nex, 1, 8, "p1");
 NextionVariableNumeric acvst(nex, 1, 15, "st");
 NextionVariableNumeric acvmd(nex, 1, 16, "md");
 NextionVariableNumeric acvsw(nex, 1, 17, "sw");
+NextionVariableNumeric acvfa(nex, 1, 18, "fa");
 
 //----- TV ----------------------------//
 NextionPicture tvon(nex, 2, 7, "pon");
@@ -217,6 +218,7 @@ void setup()
 {
   irTV.begin();
   irAC.begin();
+  irAC.stateReset();
   //initialize arrays and pins
   //initialize light array. Set all pin to 999 (no light configured)
   clearLightsArrays();
@@ -276,8 +278,8 @@ void setup()
 
   //----- AC ----------------------------//
   acon.attachCallback(&_acon);
-  acfunup.attachCallback(&_acfunup);
-  acfundown.attachCallback(&_acfundown);
+  acfanup.attachCallback(&_acfanup);
+  acfandown.attachCallback(&_acfandown);
   actempup.attachCallback(&_actempup);
   actempdown.attachCallback(&_actempdown);
   acswing.attachCallback(&_acswing);
@@ -1176,47 +1178,47 @@ void _tvret(NextionEventType type, INextionTouchable * widget)
 void _acon(NextionEventType type, INextionTouchable * widget)
 {
   pTic();
-  if (acvst.getValue()==0){
-    ac_remote(ACCOFF, AC_MIDEA);
-  }
-  else
-  if (acvst.getValue()==1){
-    ac_remote(ACCON, AC_MIDEA);
-  }
+  ac_remote(ACPOWER, AC_MIDEA);
 }
 
-void _acfunup(NextionEventType type, INextionTouchable * widget)
+void _acfanup(NextionEventType type, INextionTouchable * widget)
 {
   pTic();
-  ac_remote(ACCON, AC_MIDEA);
+  ac_remote(ACFAN, AC_MIDEA);
 }
 
-void _acfundown(NextionEventType type, INextionTouchable * widget)
+void _acfandown(NextionEventType type, INextionTouchable * widget)
 {
   pTic();
-  ac_remote(ACCON, AC_MIDEA);
+  ac_remote(ACFAN, AC_MIDEA);
 }
 
 void _actempup(NextionEventType type, INextionTouchable * widget)
 {
   pTic();
-  ac_remote(ACCON, AC_MIDEA);
+  ac_remote(ACTEMPUP, AC_MIDEA);
 }
 
 void _actempdown(NextionEventType type, INextionTouchable * widget)
 {
   pTic();
-  ac_remote(ACCON, AC_MIDEA);
+  ac_remote(ACTEMPDOWN, AC_MIDEA);
 }
 
 void _acswing(NextionEventType type, INextionTouchable * widget)
 {
   pTic();
-  ac_remote(ACCON, AC_MIDEA);
+  delay(10);
+  if (acvsw.getValue() == 0) {
+    ac_remote(ACSWING, AC_MIDEA);
+  }
+  else if (acvst.getValue() == 1) {
+    ac_remote(ACSWING, AC_MIDEA);
+  }
 }
 
 void _acmode(NextionEventType type, INextionTouchable * widget)
 {
   pTic();
-  ac_remote(ACCON, AC_MIDEA);
+  ac_remote(ACMODE, AC_MIDEA);
 }

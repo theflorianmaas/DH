@@ -87,24 +87,25 @@
 #define TVKEYRETURN   29
 
 //AC commands HVAC
-#define ACCOFF      0
-#define ACCON       1
-#define ACCTEMP     2
-#define ACCMODE     3
-#define ACCFAN      4
-#define ACCSWING    5
+#define ACPOWER      99
+#define ACON          0
+#define ACOFF         1
+#define ACFAN         2
+#define ACTEMPUP      4
+#define ACTEMPDOWN    5
+#define ACMODE        6
+#define ACSWINGON     7
+#define ACSWINGOFF    8
 
-//AC methods HVAC
-#define ACFAN1        3
-#define ACFAN2        4
-#define ACFAN3        5
-#define ACFANAUTO     6
-#define ACMODECOOL    7
-#define ACMODEDRY     8
-#define ACMODEHEAT    9
-#define ACMODEAUTO    10
-#define ACTEMPERATURE 11
-#define ACSWING       12
+#define ACMODEAUTO   0
+#define ACMODECOOL   1
+#define ACMODEHEAT   2
+#define ACMODEDRY    3
+
+#define ACFANAUTO    0
+#define ACFANLOW     1
+#define ACFANMED     2
+#define ACFANMAX     3
 
 
 #endif // CONFIG_H
