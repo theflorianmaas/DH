@@ -103,12 +103,22 @@ NextionTimer t_t1(nex, 0, 4, "tm1");
 //----- Settings ----------------------------//
 NextionPicture bback(nex, 3, 1, "p0");
 
+//----- Options ----------------------------//
+NextionRadioButton r_l0(nex, 4, 4, "l0");
+NextionRadioButton r_l1(nex, 4, 5, "l1");
+NextionRadioButton r_l2(nex, 4, 6, "l2");
+NextionRadioButton r_l3(nex, 4, 7, "l3");
+NextionRadioButton r_l4(nex, 4, 8, "l4");
+NextionRadioButton r_l5(nex, 4, 9, "l5");
+NextionRadioButton r_l6(nex, 4, 10, "l6");
+NextionRadioButton r_msHWSW(nex, 4, 18, "msHWSW");
+NextionRadioButton r_msSW(nex, 4, 19, "msSW");
+
+
 //----- Wifi ----------------------------//
 INextionStringValued t_ssid(nex, 6, 2, "t_ssid");
 INextionStringValued t_pass(nex, 6, 3, "t_pass");
 NextionButton bconnect(nex, 6, 6, "bconn");
-
-//----- Wifi ----------------------------//
 INextionStringValued t_ip(nex, 7, 2, "t_ip");
 INextionStringValued t_key(nex, 7, 3, "t_key");
 NextionButton btradfri(nex, 7, 6, "btradfri");
@@ -263,6 +273,10 @@ void setup()
   r_t8.attachCallback(&_r_t8);
   r_t9.attachCallback(&_r_t9);
 
+  //----- Options ------------------------//
+  r_msHWSW.attachCallback(&_r_msHWSW);
+  r_msSW.attachCallback(&_r_msSW);
+
   bmoncolor1.attachCallback(&_bmoncolor1);
   bmoncolor2.attachCallback(&_bmoncolor2);
   bmoncolor3.attachCallback(&_bmoncolor3);
@@ -321,6 +335,12 @@ void start() {
   if (aLights[0].id != "")
     getLights();
   delay(3000);
+  if (vdefmainsw.getValue() == SWITCH_MODE_HWSW) {
+    c_switch_mode = SWITCH_MODE_HWSW;
+  }
+  else   if (vdefmainsw.getValue() == SWITCH_MODE_SW) {
+    c_switch_mode = SWITCH_MODE_SW;
+  }
   getStatusLight();
   enableTask();
 }
@@ -534,7 +554,7 @@ void _bswitch(NextionEventType type, INextionTouchable * widget)
             aLights[c_light].status = OFF;
             aLights[c_light].value = 0;
           }
-          if (c_switch_mode = SWITCH_MODE_HWSW) {
+          if (c_switch_mode == SWITCH_MODE_HWSW) {
             digitalWrite(PIN_RELE, aLights[c_light].status);
           }
           else {
@@ -837,13 +857,14 @@ void _blight6(NextionEventType type, INextionTouchable * widget)
 void _bback(NextionEventType type, INextionTouchable * widget)
 {
   //read global variables
+  Serial.println("Eccomiiiii");
+  pTic();
   c_light = vdeflight.getValue();
   c_switch_mode = vdefmainsw.getValue();
   nex.poll();
   refreshScreen();
   nex.poll();
   runningTimer = true;
-  pTic();
 }
 
 
@@ -889,7 +910,6 @@ void _btradfri(NextionEventType type, INextionTouchable * widget)
     putTradfriParams();
   }
 }
-
 
 void _r_t0(NextionEventType type, INextionTouchable * widget)
 {
@@ -1005,8 +1025,9 @@ void _bloadgroups(NextionEventType type, INextionTouchable * widget)
 
 void _pdummy(NextionEventType type, INextionTouchable * widget)
 {
-  c_light = 0;
-  Serial.println("default light");
+  c_light = vdeflight.getValue();
+  Serial.print("default light ");
+  Serial.println(c_light);
   getStatusLight();
 }
 
@@ -1221,4 +1242,17 @@ void _acmode(NextionEventType type, INextionTouchable * widget)
 {
   pTic();
   ac_remote(ACMODE, AC_MIDEA);
+}
+
+void _r_msHWSW(NextionEventType type, INextionTouchable * widget)
+{
+  pTic();
+  c_switch_mode == SWITCH_MODE_HWSW;
+}
+
+void _r_msSW(NextionEventType type, INextionTouchable * widget)
+{
+  pTic();
+  c_switch_mode == SWITCH_MODE_SW;
+  digitalWrite(PIN_RELE, ON);
 }
