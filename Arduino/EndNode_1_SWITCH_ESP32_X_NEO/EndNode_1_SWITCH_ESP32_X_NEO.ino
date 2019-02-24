@@ -1,7 +1,6 @@
-
 // ------------------------------------------------------------ //
 // EndNode_1_Switch
-// V.0.1 19/02/2019
+// V.0.1 24/02/2019
 // First version 0.1 Development
 //
 // ------------------------------------------------------------ //
@@ -42,6 +41,7 @@ NextionPage pgOptions(nex, 4, 0, "Options");
 NextionPage pgConfigLights(nex, 5, 0, "Config_Lights");
 NextionPage pgWifi(nex, 6, 0, "Wifi");
 NextionPage pgTradfri(nex, 7, 0, "Tradfri");
+NextionPage pgReset(nex, 8, 0, "Reset");
 
 //----- Main ---------------------------//
 NextionPicture bswitch(nex, 0, 6, "s1");
@@ -114,7 +114,6 @@ NextionRadioButton r_l6(nex, 4, 10, "l6");
 NextionRadioButton r_msHWSW(nex, 4, 18, "msHWSW");
 NextionRadioButton r_msSW(nex, 4, 19, "msSW");
 
-
 //----- Wifi ----------------------------//
 INextionStringValued t_ssid(nex, 6, 2, "t_ssid");
 INextionStringValued t_pass(nex, 6, 3, "t_pass");
@@ -161,6 +160,9 @@ NextionRadioButton r_t8(nex, 5, 20, "g8");
 NextionRadioButton r_t9(nex, 5, 22, "g9");
 NextionRadioButton r_t10(nex, 5, 23, "g10");
 NextionButton bloadgroups(nex, 5, 24, "b0");
+
+//----- Reset ----------------------------//
+NextionButton breset(nex, 8, 2, "rs");
 //-----------------------------------------------------------
 
 //-----------------------------------------------------------
@@ -310,6 +312,8 @@ void setup()
   tvok.attachCallback(&_tvok);
   tvret.attachCallback(&_tvret);
   bbacktv.attachCallback(&_bbacktv);
+  //----- Reset ----------------------------//
+  breset.attachCallback(&_breset);
 
   nex.init();
   delay(1000);
@@ -1255,4 +1259,10 @@ void _r_msSW(NextionEventType type, INextionTouchable * widget)
   pTic();
   c_switch_mode == SWITCH_MODE_SW;
   digitalWrite(PIN_RELE, ON);
+}
+
+void _breset(NextionEventType type, INextionTouchable * widget)
+{
+  pTic();
+  ESP.restart();
 }
