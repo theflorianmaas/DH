@@ -223,7 +223,6 @@ int countCommas(String result) {
 // Read data from gateway
 //------------------------------------
 void getGroups() {
-  disableTask(); //stop timers
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", "0", "listgroup", 0);
   execUrl(url);
   nex.poll();

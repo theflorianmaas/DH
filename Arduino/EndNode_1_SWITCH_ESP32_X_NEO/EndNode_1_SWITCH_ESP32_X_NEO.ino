@@ -168,7 +168,6 @@ NextionButton breset(nex, 8, 2, "rs");
 //-----------------------------------------------------------
 void calculateGroupStatus();
 void getStatusLight();
-void disableTask();
 void enableTask();
 void clearLightsArrays();
 //-----------------------------------------------------------
@@ -201,8 +200,8 @@ boolean runningTimer = true;
 // -----------------------------------------------------------------
 // ---- Wifi section ----*/
 
-char wifiParams_ssid[32]; // = {"Astronomy-Domine"};
-char wifiParams_passcode[64];// = {""};
+char wifiParams_ssid[32]; // = {"ssid"};
+char wifiParams_passcode[64]; // = {"password"};
 
 // ---- Tradfri section ----*/
 char tradfriParams_ip[15] = {"192.168.1.75"};
@@ -332,6 +331,8 @@ void loop() {
 }
 
 void start() {
+  //putWifiParams();
+  //putTradfriParams();;
   getTradfriParams();
   getWifiParams();
   getGroupID();
@@ -425,12 +426,14 @@ void wifiOn() {
   String cmd = "vis i_wifi,1";
   digitalWrite(LED_GREEN, HIGH);
   sendCommand(cmd.c_str());
+  nex.poll();
 }
 
 void wifiOff() {
   String cmd = "vis i_wifi,0";
   digitalWrite(LED_GREEN, LOW);
   sendCommand(cmd.c_str());
+  nex.poll();
 }
 
 void wifiGreen() {
@@ -438,6 +441,7 @@ void wifiGreen() {
   digitalWrite(LED_GREEN, HIGH);
   digitalWrite(LED_RED, LOW);
   sendCommand(cmd.c_str());
+  nex.poll();
 }
 
 void wifiRed() {
@@ -445,6 +449,7 @@ void wifiRed() {
   digitalWrite(LED_GREEN, LOW);
   digitalWrite(LED_RED, HIGH);
   sendCommand(cmd.c_str());
+  nex.poll();
 }
 
 void putWifiParams() {
@@ -500,10 +505,6 @@ int convStatus(String sts) {
 // ******************************************************* //
 
 // ******************************************************* //
-
-void disableTask() {
-  //t0.stop(0);
-}
 
 void enableTask() {
   t0.every(TIMEt1, wifiCheckConnect);
@@ -775,7 +776,7 @@ void _bdimmer(NextionEventType type, INextionTouchable * widget)
   nex.poll();
   Serial.println(aLights[c_light].value);
   Serial.println(bdimmer.getValue());
-  Serial.println("boiona te");
+  Serial.println("boiona de!");
 }
 
 void _bgroup(NextionEventType type, INextionTouchable * widget)
@@ -1033,6 +1034,7 @@ void _pdummy(NextionEventType type, INextionTouchable * widget)
   Serial.print("default light ");
   Serial.println(c_light);
   getStatusLight();
+  nex.poll();
 }
 
 void _psettings(NextionEventType type, INextionTouchable * widget)
@@ -1062,6 +1064,7 @@ void _bmoncolor1(NextionEventType type, INextionTouchable * widget)
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 1);
   pTic();
   execUrl(url);
+  nex.poll();
 }
 
 void _bmoncolor2(NextionEventType type, INextionTouchable * widget)
@@ -1070,6 +1073,7 @@ void _bmoncolor2(NextionEventType type, INextionTouchable * widget)
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 2);
   pTic();
   execUrl(url);
+  nex.poll();
 }
 
 void _bmoncolor3(NextionEventType type, INextionTouchable * widget)
@@ -1078,6 +1082,7 @@ void _bmoncolor3(NextionEventType type, INextionTouchable * widget)
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 3);
   pTic();
   execUrl(url);
+  nex.poll();
 }
 
 
@@ -1090,6 +1095,7 @@ void _brgbcolor1(NextionEventType type, INextionTouchable * widget)
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 1);
   pTic();
   execUrl(url);
+  nex.poll();
 }
 
 void _brgbcolor2(NextionEventType type, INextionTouchable * widget)
@@ -1098,6 +1104,7 @@ void _brgbcolor2(NextionEventType type, INextionTouchable * widget)
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 19);
   pTic();
   execUrl(url);
+  nex.poll();
 }
 
 void _brgbcolor3(NextionEventType type, INextionTouchable * widget)
@@ -1106,6 +1113,7 @@ void _brgbcolor3(NextionEventType type, INextionTouchable * widget)
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 8);
   pTic();
   execUrl(url);
+  nex.poll();
 }
 
 void _brgbcolor4(NextionEventType type, INextionTouchable * widget)
@@ -1114,6 +1122,7 @@ void _brgbcolor4(NextionEventType type, INextionTouchable * widget)
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 11);
   pTic();
   execUrl(url);
+  nex.poll();
 }
 
 void _brgbcolor5(NextionEventType type, INextionTouchable * widget)
@@ -1122,6 +1131,7 @@ void _brgbcolor5(NextionEventType type, INextionTouchable * widget)
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 16);
   pTic();
   execUrl(url);
+  nex.poll();
 }
 
 void _brgbcolor6(NextionEventType type, INextionTouchable * widget)
@@ -1130,6 +1140,7 @@ void _brgbcolor6(NextionEventType type, INextionTouchable * widget)
   String url = createUrl(tradfriParams_ip, tradfriParams_key, "0", aLights[c_light].id, "setcolor", 17);
   pTic();
   execUrl(url);
+  nex.poll();
 }
 
 void _tvon(NextionEventType type, INextionTouchable * widget)
