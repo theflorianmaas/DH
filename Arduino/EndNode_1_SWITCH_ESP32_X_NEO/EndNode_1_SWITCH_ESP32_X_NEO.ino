@@ -9,6 +9,9 @@
 #include <SoftwareSerial.h>
 #include <EEPROM.h>
 #include <ESP8266WiFi.h>
+#include <ESP8266mDNS.h>
+#include <WiFiUdp.h>
+#include <ArduinoOTA.h>
 #include <ESPAsyncTCP.h>
 #include "pitches.h"
 #include "config.h"
@@ -163,6 +166,7 @@ NextionButton bloadgroups(nex, 5, 24, "b0");
 
 //----- Reset ----------------------------//
 NextionButton breset(nex, 8, 2, "rs");
+NextionButton bupdate(nex, 8, 3, "upd");
 //-----------------------------------------------------------
 
 //-----------------------------------------------------------
@@ -196,6 +200,7 @@ int c_switch_mode = SWITCH_MODE_HWSW;
 
 boolean isDimmerStarted = false;
 boolean runningTimer = true;
+boolean ota_flag = false;
 
 // -----------------------------------------------------------------
 // ---- Wifi section ----*/
@@ -313,11 +318,48 @@ void setup()
   bbacktv.attachCallback(&_bbacktv);
   //----- Reset ----------------------------//
   breset.attachCallback(&_breset);
+  bupdate.attachCallback(&_bupdate);
 
   nex.init();
   delay(1000);
   refreshScreen();
   delay(100);
+
+  // No authentication by default
+  ArduinoOTA.setPassword("1234");
+
+  ArduinoOTA.onStart([]() {
+    String type;
+    if (ArduinoOTA.getCommand() == U_FLASH) {
+      type = "sketch";
+    } else { // U_SPIFFS
+      type = "filesystem";
+    }
+
+    // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+    Serial.println("Start updating " + type);
+  });
+  ArduinoOTA.onEnd([]() {
+    Serial.println("\nEnd");
+  });
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+  });
+  ArduinoOTA.onError([](ota_error_t error) {
+    Serial.printf("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) {
+      Serial.println("Auth Failed");
+    } else if (error == OTA_BEGIN_ERROR) {
+      Serial.println("Begin Failed");
+    } else if (error == OTA_CONNECT_ERROR) {
+      Serial.println("Connect Failed");
+    } else if (error == OTA_RECEIVE_ERROR) {
+      Serial.println("Receive Failed");
+    } else if (error == OTA_END_ERROR) {
+      Serial.println("End Failed");
+    }
+  });
+  ArduinoOTA.begin();
   start();
 
   t_default.setCycle(60000);
@@ -328,6 +370,9 @@ void loop() {
   nex.poll();
   if (runningTimer == true)
     t0.update();
+  if (ota_flag) {
+    ArduinoOTA.handle();
+  }
 }
 
 void start() {
@@ -373,7 +418,8 @@ boolean wifiTryConnect() {
     //iwifi.show();
     vwifi.setValue(ON);
     putWifiParams(); //scrive valori su eeprom
-    Serial.println("Connesso");
+    Serial.print("Connected IP address: ");
+    Serial.println(WiFi.localIP());
     //crea HTTP Client
     nex.poll();
     //connecy TCP client
@@ -1276,4 +1322,14 @@ void _breset(NextionEventType type, INextionTouchable * widget)
 {
   pTic();
   ESP.restart();
+}
+
+void _bupdate(NextionEventType type, INextionTouchable * widget)
+{
+  pBit();
+  delay(300);
+  pBit();
+  delay(300);
+  pBit();
+  ota_flag = true;
 }
