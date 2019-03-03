@@ -7,7 +7,7 @@ void refreshScreen() {
     sendCommand(setValue.c_str());
     setValue = "vlg0.val=" + String(aLights[0].value); //value
     sendCommand(setValue.c_str());
-
+    nex.poll();
     for (int i = 1; i < NUM_LIGHTS; i++) {
       //I don't use the library as this is faster
       //[x][0]=id [x][1]=status [x][2]=value [x][3]=color
@@ -24,6 +24,7 @@ void refreshScreen() {
     setValue = "t_select_type.en=1";
     sendCommand(setValue.c_str());
   }
+  nex.poll();
 }
 
 void clearLightsArrays() {
@@ -134,10 +135,12 @@ static void handleData(void* arg, AsyncClient* client, void *data, size_t len) {
       getGroupsResult();
     }
   }
+  nex.poll();
 }
 
 void onConnect(void* arg, AsyncClient* client) {
   Serial.printf("\n client has been connected to %s on port %d \n", SERVER_HOST_NAME, TCP_PORT);
+  nex.poll();
 }
 
 void execUrl(String url) {
@@ -172,7 +175,7 @@ void sendCommand(const char* cmd) {
   nextionSerial.write(0xFF);
   nextionSerial.write(0xFF);
   nextionSerial.write(0xFF);
-  //Serial.println(cmd);
+  nex.poll();
 }//end sendCommand
 
 void setText(String page, String obj, String val) {
@@ -313,7 +316,6 @@ void getLightsResult() {
   }
   runningTimer = true;
   sendCommand("page Main");
-  nex.poll();
   calculateGroupStatus();
   nex.poll();
   refreshScreen();
@@ -347,10 +349,10 @@ void configGroup() {
 
 }
 
-
 void getStatusLight() {
   String url = "/dh/readFile.php";
   execUrl(url);
+  nex.poll();
 }
 
 void getStatusLightResult() {
