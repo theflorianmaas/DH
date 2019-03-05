@@ -229,6 +229,20 @@ def run():
 			api(cmd)
 			output = command
 			
+			
+		#-- Set group color ---------------------------------------
+		if group != 0 and light == 0 and value != 0 and command == "setcolor":
+			idx = get_index(group, groups)
+			if idx != -1:
+				group_members = groups[idx].member_ids
+				for i, s in enumerate(group_members):
+					x = get_index(s, lights)
+					if x > -1:
+						colorHex = get_color_temp(value)
+						cmd = lights[x].light_control.set_hex_color(colorHex)	
+						api(cmd)
+						output = command
+			
 		qLightResponse.put(output)
 		outputq(output)
 				

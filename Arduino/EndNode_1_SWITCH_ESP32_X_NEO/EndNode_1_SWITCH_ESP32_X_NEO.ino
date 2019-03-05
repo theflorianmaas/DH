@@ -1,7 +1,7 @@
 // ------------------------------------------------------------ //
 // EndNode_1_Switch ESP8266
 // V.1.0 02/03/2019
-// First version 1.0 
+// First version 1.0
 //
 // ------------------------------------------------------------ //
 // Include libraries //
@@ -258,6 +258,10 @@ void setup()
   psettings.attachCallback(&_psettings); //settings icon
   ptv.attachCallback(&_ptv); //tv icon
   pac.attachCallback(&_pac); //ac icon
+
+  bmood1.attachCallback(&_bmood1);
+  bmood2.attachCallback(&_bmood2);
+  bmood3.attachCallback(&_bmood3);
 
   bgroup.attachCallback(&_bgroup);
   blight1.attachCallback(&_blight1);
@@ -1332,4 +1336,31 @@ void _bupdate(NextionEventType type, INextionTouchable * widget)
   delay(300);
   pBit();
   ota_flag = true;
+}
+
+void _bmood1(NextionEventType type, INextionTouchable * widget)
+{
+  //set cold color //white
+  String url = createUrl(tradfriParams_ip, tradfriParams_key, aLights[0].id, "0", "setcolor", 1);
+  pTic();
+  execUrl(url);
+  nex.poll();
+}
+
+void _bmood2(NextionEventType type, INextionTouchable * widget)
+{
+  //set cold color //white
+  String url = createUrl(tradfriParams_ip, tradfriParams_key, aLights[0].id, "0", "setcolor", 2);
+  pTic();
+  execUrl(url);
+  nex.poll();
+}
+
+void _bmood3(NextionEventType type, INextionTouchable * widget)
+{
+  //set cold color //white
+  String url = createUrl(tradfriParams_ip, tradfriParams_key, aLights[0].id, "0", "setcolor", 3);
+  pTic();
+  execUrl(url);
+  nex.poll();
 }
