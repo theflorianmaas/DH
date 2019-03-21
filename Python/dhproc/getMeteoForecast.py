@@ -34,6 +34,16 @@ cur = db.cursor()
 cur2 = db.cursor()
 cnt = 10
 
+# -- get meteo parameters ------------------------#
+sql = "SELECT api, location, url FROM tbapi WHERE tbapi.service = 'forecast'"
+cur.execute(sql)
+row = cur.fetchone()
+if row:
+	api=row[0].decode("utf-8")
+	location=row[1].decode("utf-8")
+	url=row[2].decode("utf-8")
+	
+
 def getForecast():
 	global forecast_day_1
 	global forecast_day_2
@@ -47,39 +57,79 @@ def getForecast():
 	global t3max
 	global t4min
 	global t4max
+	global api
+	global location
+	global url
 	
 	try:	
-		f = urlopen('http://api.wunderground.com/api/2b8816d29bb95b21/forecast/q/IT/Firenze.json')
+		phases = {	
+			0 : 7,
+			1 : 7,
+			2 : 7,
+			3 : 6,
+			4 : 6,
+			5 : 6,
+			6 : 5,
+			7 : 5,
+			8 : 5,
+			9 : 4,
+			10: 4,
+			11: 4,
+			12: 3,
+			13: 3,
+			14: 3,
+			15: 2,
+			16: 2,
+			17: 2,
+			18: 1,
+			19: 1,
+			20: 1,
+			21: 0,
+			22: 0,
+			23: 0		
+		} 
+		f = urlopen(url+"&id="+location+"&appid="+api)
 		json_string = f.read()
-		parsed_json = json.loads(json_string.decode())
-		forecast_day_1 = parsed_json['forecast']['simpleforecast']['forecastday'][0]['icon']
-		forecast_day_2 = parsed_json['forecast']['simpleforecast']['forecastday'][1]['icon']
-		forecast_day_3 = parsed_json['forecast']['simpleforecast']['forecastday'][2]['icon']
-		forecast_day_4 = parsed_json['forecast']['simpleforecast']['forecastday'][3]['icon']
-		t1min = int(parsed_json['forecast']['simpleforecast']['forecastday'][0]['low']['celsius'])
+		dataJSON = json.loads(json_string.decode())
+		now = datetime.datetime.now()
+		hour = now.hour
+				
+		print(hour)
+		print(dataJSON['list'][phases[hour]+12]['dt_txt'])
+		print(dataJSON['list'][phases[hour]+12]['main']['temp'])
+		print(dataJSON['list'][phases[hour]+12]['main']['temp'])
+		print(dataJSON['list'][phases[hour]+20]['main']['temp'])
+		print(dataJSON['list'][phases[hour]+28]['main']['temp'])
+		
+		forecast_day_1 = dataJSON['list'][phases[hour]+4]['weather'][0]['id']
+		forecast_day_2 = dataJSON['list'][phases[hour]+12]['weather'][0]['id']
+		forecast_day_3 = dataJSON['list'][phases[hour]+20]['weather'][0]['id']
+		forecast_day_4 = dataJSON['list'][phases[hour]+28]['weather'][0]['id']
+		t1min = int(dataJSON['list'][phases[hour]+2]['main']['temp'])
 		if (t1min < 0):
 			t1min = abs(t1min)+9000
-		t1max = int(parsed_json['forecast']['simpleforecast']['forecastday'][0]['high']['celsius'])
+		t1max = int(dataJSON['list'][phases[hour]+5]['main']['temp'])
 		if (t1max < 0):
 			t1max = abs(t1max)+9000
-		t2min = int(parsed_json['forecast']['simpleforecast']['forecastday'][1]['low']['celsius'])
+		t2min = int(dataJSON['list'][phases[hour]+10]['main']['temp_min'])
 		if (t2min < 0):
-			t2min = abs(t2min)+9000
-		t2max = int(parsed_json['forecast']['simpleforecast']['forecastday'][1]['high']['celsius'])
+			t2min = abs(t1min)+9000
+		t2max = int(dataJSON['list'][phases[hour]+13]['main']['temp_max'])
 		if (t2max < 0):
-			t2max = abs(t2max)+9000
-		t3min = int(parsed_json['forecast']['simpleforecast']['forecastday'][2]['low']['celsius'])
+			t2max = abs(t1max)+9000
+		t3min = int(dataJSON['list'][phases[hour]+18]['main']['temp_min'])
 		if (t3min < 0):
-			t3min = abs(t3min)+9000
-		t3max = int(parsed_json['forecast']['simpleforecast']['forecastday'][2]['high']['celsius'])
+			t3min = abs(t1min)+9000
+		t3max = int(dataJSON['list'][phases[hour]+21]['main']['temp_max'])
 		if (t3max < 0):
-			t3max = abs(t3max)+9000
-		t4min = int(parsed_json['forecast']['simpleforecast']['forecastday'][3]['low']['celsius'])
+			t3max = abs(t1max)+9000
+		t4min = int(dataJSON['list'][phases[hour]+26]['main']['temp_min'])
 		if (t4min < 0):
-			t4min = abs(t4min)+9000
-		t4max = int(parsed_json['forecast']['simpleforecast']['forecastday'][3]['high']['celsius'])
+			t4min = abs(t1min)+9000
+		t4max = int(dataJSON['list'][phases[hour]+28]['main']['temp_max'])
 		if (t4max < 0):
-			t4max = abs(t4max)+9000
+			t4max = abs(t1max)+9000			
+
 		f.close()
 		return "Ok"
 	except: 
@@ -95,19 +145,19 @@ while True:
 	if (ret == "Ok"):
 		try:
 			#get meteo icon
-			sql = "SELECT DISTINCT id FROM tbmeteo WHERE icon = '" + forecast_day_1 + "'"
+			sql = "SELECT DISTINCT id FROM tbmeteo WHERE tbmeteo.condition = '" + str(forecast_day_1) + "'"
 			cur.execute(sql)
 			for (id) in cur:
 				frcst1icon = id[0]
-			sql = "SELECT DISTINCT id FROM tbmeteo WHERE icon = '" + forecast_day_2 + "'"
+			sql = "SELECT DISTINCT id FROM tbmeteo WHERE tbmeteo.condition = '" + str(forecast_day_2) + "'"
 			cur.execute(sql)
 			for (id) in cur:
 				frcst2icon = id[0]				
-			sql = "SELECT DISTINCT id FROM tbmeteo WHERE icon = '" + forecast_day_3 + "'"
+			sql = "SELECT DISTINCT id FROM tbmeteo WHERE tbmeteo.condition = '" + str(forecast_day_3) + "'"
 			cur.execute(sql)
 			for (id) in cur:
 				frcst3icon = id[0]
-			sql = "SELECT DISTINCT id FROM tbmeteo WHERE icon = '" + forecast_day_4 + "'"
+			sql = "SELECT DISTINCT id FROM tbmeteo WHERE tbmeteo.condition = '" + str(forecast_day_4) + "'"
 			cur.execute(sql)
 			for (id) in cur:
 				frcst4icon = id[0]										

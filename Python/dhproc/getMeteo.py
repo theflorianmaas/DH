@@ -34,78 +34,41 @@ cur = db.cursor()
 cur2 = db.cursor()
 cnt = 10
 
+# -- get meteo parameters ------------------------#
+sql = "SELECT api, location, url FROM tbapi WHERE tbapi.service = 'weather'"
+cur.execute(sql)
+row = cur.fetchone()
+if row:
+	api=row[0].decode("utf-8")
+	location=row[1].decode("utf-8")
+	url=row[2].decode("utf-8")
+
 def getTemp():
 	global temp_c
 	global relative_humidity
 	global pressure
 	global meteo
+	global api
+	global location
+	global url
 	try:	
-		f = urlopen('http://api.wunderground.com/api/2b8816d29bb95b21/conditions/q/IT/Firenze.json')
+		f = urlopen(url+"&id="+location+"&appid="+api)
 		json_string = f.read()
-		parsed_json = json.loads(json_string.decode())
-		temp_c = parsed_json['current_observation']['temp_c']
-		relative_humidity = parsed_json['current_observation']['relative_humidity']
-		relative_humidity = parseint(relative_humidity)
-		str_pressure = parsed_json['current_observation']['pressure_mb']
-		pressure = int(float(str_pressure))
-		meteo = parsed_json['current_observation']['icon']
+		dataJSON = json.loads(json_string.decode())
+		
+		temp_c = float(dataJSON['main']['temp'])
+		relative_humidity = int(dataJSON['main']['humidity'])
+		meteo = dataJSON['weather'][0]['id']
+		pressure = dataJSON['main']['pressure']
 		f.close()
+		print(temp_c)
+		print(relative_humidity)
+		print(meteo)
 		return "Ok"
 	except: 
 		return "error"
 
-def getForecast():
-	global forecast_day_1
-	global forecast_day_2
-	global forecast_day_3
-	global forecast_day_4
-	global t1min
-	global t1max
-	global t2min
-	global t2max
-	global t3min
-	global t3max
-	global t4min
-	global t4max
 	
-	try:	
-		f = urlopen('http://api.wunderground.com/api/2b8816d29bb95b21/forecast/q/IT/Firenze.json')
-		json_string = f.read()
-		parsed_json = json.loads(json_string.decode())
-		forecast_day_1 = parsed_json['forecast']['simpleforecast']['forecastday'][0]['icon']
-		forecast_day_2 = parsed_json['forecast']['simpleforecast']['forecastday'][1]['icon']
-		forecast_day_3 = parsed_json['forecast']['simpleforecast']['forecastday'][2]['icon']
-		forecast_day_4 = parsed_json['forecast']['simpleforecast']['forecastday'][3]['icon']
-		t1min = int(parsed_json['forecast']['simpleforecast']['forecastday'][0]['low']['celsius'])
-		if (t1min < 0):
-			t1min = abs(t1min)+900
-		t1max = int(parsed_json['forecast']['simpleforecast']['forecastday'][0]['high']['celsius'])
-		if (t1max < 0):
-			t1max = abs(t1max)+900
-		t2min = int(parsed_json['forecast']['simpleforecast']['forecastday'][1]['low']['celsius'])
-		if (t2min < 0):
-			t2min = abs(t2min)+900
-		t2max = int(parsed_json['forecast']['simpleforecast']['forecastday'][1]['high']['celsius'])
-		if (t2max < 0):
-			t2max = abs(t2max)+900
-		t3min = int(parsed_json['forecast']['simpleforecast']['forecastday'][2]['low']['celsius'])
-		if (t3min < 0):
-			t3min = abs(t3min)+900
-		t3max = int(parsed_json['forecast']['simpleforecast']['forecastday'][2]['high']['celsius'])
-		if (t3max < 0):
-			t3max = abs(t3max)+900
-		t4min = int(parsed_json['forecast']['simpleforecast']['forecastday'][3]['low']['celsius'])
-		if (t4min < 0):
-			t4min = abs(t4min)+900
-		t4max = int(parsed_json['forecast']['simpleforecast']['forecastday'][3]['high']['celsius'])
-		if (t4max < 0):
-			t4max = abs(t4max)+900
-		f.close()
-		return "Ok"
-	except: 
-		return "error"	
-
-		
 def parseint(string):
     return int(''.join([x for x in string if x.isdigit()]))		
 
@@ -120,7 +83,7 @@ while True:
 		try:
 			sql = "UPDATE tbsensor SET currentvalue = %s , lastupdate = '%s' where pin_number = '%s'"  % (temp_c, datetime.datetime.now(),'1000')
 			cur.execute(sql)
-			#cur.execute("commit")
+			cur.execute("commit")
 			output ("Temperatura corrente "+str(temp_c)+" Celsius")
 			sql = "UPDATE tbsensor SET currentvalue = %s  , lastupdate = '%s' where pin_number = '%s'"  % (relative_humidity, datetime.datetime.now(), '1001')
 			cur.execute(sql)
@@ -131,7 +94,7 @@ while True:
 			output ("Pressione corrente "+str(pressure))
 			cur.execute("commit")
 			#get meteo icon
-			sql = "SELECT DISTINCT id FROM tbmeteo WHERE icon = '" + meteo + "'"
+			sql = "SELECT DISTINCT id FROM tbmeteo WHERE tbmeteo.condition = '" + str(meteo) + "'"
 			cur.execute(sql)
 			for (id) in cur:
 				meteoid = id[0]
