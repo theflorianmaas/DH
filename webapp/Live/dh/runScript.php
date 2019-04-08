@@ -14,5 +14,7 @@ $value   = $_GET["value"];
 $url = "python3 /var/dhproc/lightmanager.py ".$ip." -K ".$key." ".$group." ".$light." ".$command." ".$value;
  
 exec($url, $output, $ret_code);
+print("§"]);
 print($output[1]);
+print("#"]);
 ?>
