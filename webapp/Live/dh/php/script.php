@@ -11,6 +11,7 @@
 <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
 <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>	
 <link rel="stylesheet" href="themes/dhjqm.min.css" />
+<link rel="stylesheet" href="themes/icons2.css" />
 <link rel="stylesheet" href="themes/dhicon.css" />
 <link rel="stylesheet" href="themes/icons.css" />
 <script type="text/javascript" src="js/gauge.js"></script>	

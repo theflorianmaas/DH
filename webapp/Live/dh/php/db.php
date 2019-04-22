@@ -18,7 +18,7 @@ if (!mysqli_options($db, MYSQLI_OPT_CONNECT_TIMEOUT, 5)) {
 }
 
 if (!mysqli_real_connect($db
-						, 'localhost'
+						, '192.168.178.33'
 						, 'dhuser'
 						, 'dkl&%8&=ì23ì01918hsts2gs7825af12zzq5!}ãªÉ'
 						, 'dhx')) {

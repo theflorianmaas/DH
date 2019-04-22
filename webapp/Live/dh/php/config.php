@@ -23,6 +23,7 @@
 	define("IPCAM",      "8");
 	define("THERMOSTAT", "9");
 	define("TIME"      , "10");
+	define("AWNING"    , "13");
 	
 	define("SONY",		 "1");
 	define("SAMSUNG",	 "2");
@@ -40,6 +41,9 @@
 	define("TMDAILY",	 "0");
 	define("TMWDAYS", 	 "1");
 	define("TMWEND",	 "2");
+	
+	define("AWNINGUP",	 "39");
+	define("AWNINGDOWN", "40");
 
 	
 	

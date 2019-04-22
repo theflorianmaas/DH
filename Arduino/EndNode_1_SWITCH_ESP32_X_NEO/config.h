@@ -1,7 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define SERVER_HOST_NAME "192.168.1.33"
+#define SERVER_HOST_NAME "192.168.178.33"
 #define TCP_PORT 90
 #define DNS_PORT 53
 

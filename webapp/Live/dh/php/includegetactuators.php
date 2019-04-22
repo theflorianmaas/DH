@@ -1808,7 +1808,82 @@ data: $(this).parent().serialize() // changed
 				<?php 
 
 				echo('</form>');	
-				break;			
+				break;
+				
+				case AWNINGDOWN: //Awning up
+				echo ('<form>');
+				echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awdown"');
+				echo ('</span>');
+				echo ('<input type="hidden" name="v' . $info['id'] . '" value="' . $info['currentvalue'] . '"> ');							
+				echo ('<input type="hidden" name="actuatortype" value="' . $selectedMethod['tbactuatortype_id'] . '">');
+				echo ('<input type="hidden" name="actuatormethod" value="' .$selectedMethod['tbactuatormethod_id'].'">');	
+				echo ('<input type="hidden" name="fadingtime" value="' .$info['fadingtime'].'">');
+				echo ('<input type="hidden" name="temptime" value="' .$info['temptime'].'">');							
+				echo ('<input type="hidden" name="id" value="' . $info['id'] . '">');
+				echo ('<input type="hidden" name="pin" value="' . $info['pinnumber'] . '">');
+				echo ('<input type="hidden" name="sts" value="0">');
+				echo ('<input type="hidden" name="node" value="' .  $info['tbnode_id'] . '">');
+				echo ('<input type="hidden" name="output" value="' . $info['tboutput_id'] . '">');
+				echo ('<input type="hidden" name="valueon" value="' . $info['valueon'] . '">');
+				echo ('<input type="hidden" name="valueoff" value="' . $info['valueoff'] . '">');
+				echo ('<input type="hidden" name="brand" value="Sony">');
+				
+				?> 					
+				<script>		
+				$("#<?php echo("vx" .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']); ?>").click(function() { // changed
+					play();
+					$(this).removeClass("run-animation").addClass("run-animation");
+					$.ajax({
+type: "POST",
+url: "php/setactuatorvalue.php",
+data: $(this).parent().serialize() // changed
+					});
+					return false; // avoid to execute the actual submit of the form.
+				});
+				</script>
+				
+				<?php 
+				echo('</form>');
+				
+				break;	
+				
+				case AWNINGUP: //Awning up
+				echo ('<form>');
+				echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awup"');
+				echo ('</span>');
+				echo ('<input type="hidden" name="v' . $info['id'] . '" value="' . $info['currentvalue'] . '"> ');							
+				echo ('<input type="hidden" name="actuatortype" value="' . $selectedMethod['tbactuatortype_id'] . '">');
+				echo ('<input type="hidden" name="actuatormethod" value="' .$selectedMethod['tbactuatormethod_id'].'">');	
+				echo ('<input type="hidden" name="fadingtime" value="' .$info['fadingtime'].'">');
+				echo ('<input type="hidden" name="temptime" value="' .$info['temptime'].'">');							
+				echo ('<input type="hidden" name="id" value="' . $info['id'] . '">');
+				echo ('<input type="hidden" name="pin" value="' . $info['pinnumber'] . '">');
+				echo ('<input type="hidden" name="sts" value="1">');
+				echo ('<input type="hidden" name="node" value="' .  $info['tbnode_id'] . '">');
+				echo ('<input type="hidden" name="output" value="' . $info['tboutput_id'] . '">');
+				echo ('<input type="hidden" name="valueon" value="' . $info['valueon'] . '">');
+				echo ('<input type="hidden" name="valueoff" value="' . $info['valueoff'] . '">');
+				echo ('<input type="hidden" name="brand" value="Sony">');
+				
+				?> 					
+				<script>		
+				$("#<?php echo("vx" .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']); ?>").click(function() { // changed
+					play();
+					$(this).removeClass("run-animation").addClass("run-animation");
+					$.ajax({
+type: "POST",
+url: "php/setactuatorvalue.php",
+data: $(this).parent().serialize() // changed
+					});
+					return false; // avoid to execute the actual submit of the form.
+				});
+				</script>
+				
+				<?php 
+				echo('</form>');
+				
+				break;	
+				
 			}				
 		}
 	}

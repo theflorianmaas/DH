@@ -119,7 +119,8 @@ static void handleData(void* arg, AsyncClient* client, void *data, size_t len) {
       line = line + String(char(d[i]));
     }
   }
-
+Serial.print("OKOKOKOK ");
+Serial.println(line);
   if (loadString == false)
   {
     line = line.substring(line.indexOf("§") + 2);

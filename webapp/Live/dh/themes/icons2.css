@@ -1,0 +1,26 @@
+	/*
+  	Flaticon icon font: Flaticon
+  	Creation date: 20/04/2019 15:20
+  	*/
+
+@font-face {
+  font-family: "Dhicon";
+  src: url("./Icons2.eot");
+  src: url("./Icons2.eot?#iefix") format("embedded-opentype"),
+       url("./Icons2.woff2") format("woff2"),
+       url("./Icons2.woff") format("woff"),
+       url("./Icons2.ttf") format("truetype"),
+       url("./Icons2.svg#Flaticon") format("svg");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  @font-face {
+    font-family: "Dhicon";
+    src: url("./Icons2.svg#Dhicon") format("svg");
+  }
+}
+
+
+.dh-196:before { content: "\f196"; }

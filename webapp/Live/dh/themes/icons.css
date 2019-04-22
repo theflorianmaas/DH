@@ -2008,3 +2008,33 @@ input.input_temp_t  {
 	border: 3px solid;
 }
 
+/* Awning section */
+.awup:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    position: absolute;
+	top:15px;
+	left: 165px;
+	content: "\f172";
+	z-index: 1;
+}
+
+.awdown:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    position: absolute;
+	top:65px;
+	left: 165px;
+	content: "\f16b";
+	z-index: 1;
+}
+
+

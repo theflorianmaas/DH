@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="themes/dhjqm.min.css" />
 <link rel="stylesheet" href="themes/dhicon.css" />
 <link rel="stylesheet" href="themes/icons.css" />
+<link rel="stylesheet" href="themes/icons2.css" />
 <script type="text/javascript" src="js/gauge.js"></script>	
 <script type="text/javascript" src="js/map.js"></script>
 <link rel="stylesheet" href="js/jquery.numpad.css">
