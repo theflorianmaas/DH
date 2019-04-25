@@ -1,4 +1,4 @@
-/*
+ /*
   CONFIGURATION for ENDNODE PCB
   25/04/2019
   Version 17.0 XX
@@ -19,19 +19,19 @@
 */
 
 // comment this if you use servo, leave this if you use IR remote control
-//#define REMOTECONTROL_MODE 1
+#define REMOTECONTROL_MODE 1
 
 // Include libraries //
 #include <XBee.h>
 #include "Timer.h"
 #include <dht.h>
 #include <LEDFader.h>
-#include <PololuLedStrip.h>
-#include "EmonLib.h"
+//#include <PololuLedStrip.h>
+//#include "EmonLib.h"
 
-#if defined (REMOTECONTROL_MODE)
-#include <SimpleSoftwareServo.h>
-SimpleSoftwareServo myservo;
+//#if defined (REMOTECONTROL_MODE)
+//#include <SimpleSoftwareServo.h>
+//SimpleSoftwareServo myservo;
 #include <IRremote.h>
 // -- comment this part if you don't use remote control
 // -- (optional) delete the file functions.ino from the sketch folder
@@ -41,10 +41,10 @@ SimpleSoftwareServo myservo;
 IRsend irsend;
 MideaIR remote_control(&irsend);
 // ------------------------------------------------------------ //
-#else
-#include <Servo.h>
-Servo myservo;  // create servo object to control a servo
-#endif
+//#else
+//#include <Servo.h>
+//Servo myservo;  // create servo object to control a servo
+//#endif
 
 // reserved pins
 #define DHT_PIN 4 //DHT 
@@ -56,7 +56,6 @@ Servo myservo;  // create servo object to control a servo
 #define EMON_PIN  1 //energy monitor input pin
 
 #define PINe 26 //virtual pin for Enaergy Monitor
-#define PINw 27 //virtual pin for awning
 
 #define receivedOK 0
 #define noResponse 1
@@ -130,21 +129,21 @@ Servo myservo;  // create servo object to control a servo
 #define TVKEYOK       28
 #define TVKEYRETURN   29
 
-#define AWUP          39
-#define AWDOWNN       40
+#define AWNINGUP      39
+#define AWNINGDOWN    40
 
 #define SONY      1
 #define SAMSUNG   2
 
 //RGB Strip
 #define LEDCOUNT            60     // Number of LEDs used for boblight left 16, top 27, right 16
-PololuLedStrip<RGB_PIN> ledStrip;
-rgb_color colors[LEDCOUNT];
-rgb_color color;
+//PololuLedStrip<RGB_PIN> ledStrip;
+//rgb_color colors[LEDCOUNT];
+//rgb_color color;
 
 //Energy Monitor
-EnergyMonitor emon;
-double Irms, Power;
+//EnergyMonitor emon;
+//double Irms, Power;
 
 //Awning
 boolean awning_started = false;
@@ -255,8 +254,8 @@ void setup()
     if (actuators[i][0] != SERVO_PIN) {
       pinMode(actuators[i][0], OUTPUT);
     }
-    else
-      myservo.attach(SERVO_PIN);
+    //else
+    //myservo.attach(SERVO_PIN);
   };
 
   pinMode(IR_EMITER, OUTPUT);
@@ -294,9 +293,9 @@ void setup()
   t0.every(TIMEt1, sendSensorData);
   t0.every(TIMEt2, updatePinValuesDHT);
 
-  PololuLedStripBase::interruptFriendly = true;
+  //PololuLedStripBase::interruptFriendly = true;
 
-  emon.current(EMON_PIN, 6.0);
+  //emon.current(EMON_PIN, 6.0);
 
 }  //setup()
 
@@ -344,8 +343,8 @@ void updatePinValues()
       if (sensors[i][0] == PINe) // if energy monitor
       {
         // read
-        Irms = emon.calcIrms(100);
-        sensors[i][1] = round(Irms * 230.0);
+        //        Irms = emon.calcIrms(100);
+        //sensors[i][1] = round(Irms * 230.0);
       }
     }
     else
@@ -746,12 +745,18 @@ void sendData(int t) // t=0 = sensors 1 = actuators
 // ******************************************************* //
 void setPIN(int pin, int sts, int outputType, int p1, int p2)
 {
+  Serial.println(pin);
+  Serial.println(sts);
+  Serial.println(outputType);
+  Serial.println(p1);
+  Serial.println(p2);
+
   log(12);
   // p1 = time time, where output type = HVAV p1 = component
   // p2 = fading time
   int i = 0;
   int actuatorId = getActuatorId(pin);
-  //Serial.println (actuators[actuatorId][3]);
+  Serial.println (actuators[actuatorId][3]);
   switch (outputType) {
     case DIGITAL: //digital
       if (p1 == 0) {
@@ -782,12 +787,12 @@ void setPIN(int pin, int sts, int outputType, int p1, int p2)
       }
       break;
     case TONE: //Tone
+    Serial.println("tone");
       if (sts == OFF) {
         noTone(pin);
       }
       if (sts == ON) {
         tone(pin, 4500);
-        //TimerFreeTone(pin, false);
       }
       // update actuator status
       if (sts == OFF) { //if = OFF
@@ -796,14 +801,39 @@ void setPIN(int pin, int sts, int outputType, int p1, int p2)
       else { //if != OFF
         actuators[actuatorId][1] = ON; //set actuator status active
       }
+      Serial.println("tone2");
+      break;
+
+    case AWNING:  // Tende
+      Serial.println("tende");
+      switch (sts) { //method
+        case AWNINGUP:
+          Serial.println("up");
+          //attivo relay di salita
+          tone(8, 4500, 100);
+          digitalWrite(11, HIGH); //relay per impostare up/down up=HIGH down=LOW
+          digitalWrite(17, HIGH); //Attiva il comando (fase)
+          //digitalWrite(11, HIGH); //Attiva il comando (neutro)
+          break;
+        case AWNINGDOWN:
+          Serial.println("down");
+          //attivo relay di discesa
+          tone(8, 4500, 100);
+          digitalWrite(11, LOW); //relay per impostare up/down up=HIGH down=LOW
+          digitalWrite(17, HIGH); //Attiva il comando  (fase)
+          //digitalWrite(11, HIGH); //Attiva il comando (neutro)
+          break;
+      }
+      awning_started = true;
+      awning_starttime = millis();
       break;
 
     case SERVO:  //analog
       //actuators[actuatorId][2] = outputType;
-      myservo.write(sts);
-#if defined (REMOTECONTROL_MODE)
-      SimpleSoftwareServo::refresh();
-#endif
+      //      myservo.write(sts);
+      //#if defined (REMOTECONTROL_MODE)
+      //      SimpleSoftwareServo::refresh();
+      //#endif
       // update actuator status
       if (sts == OFF) { //if = OFF
         actuators[actuatorId][1] = OFF; //set actuator status inactive
@@ -943,36 +973,23 @@ void setPIN(int pin, int sts, int outputType, int p1, int p2)
           break;
       }
       break;
-
-    case LEDRGB:  // TV
-
-      convertColors(RxData[4]);
-
-      for (uint16_t i = 0; i < LEDCOUNT; i++)
-      {
-        colors[i] = color;
-      }
-      ledStrip.write(colors, LEDCOUNT);
-
-      break;
-
-    case AWNING:  // Tende
-      switch (sts) { //method
-        case AWNINGUP:
-          //attivo relay di salita
-          digitalWrite(10, HIGH); //relay per impostare up/down up=HIGH down=LOW
-          digitalWrite(11, HIGH); //Attiva il comando
-          break;
-        case AWNINGDOWN:
-          //attivo relay di discesa
-          digitalWrite(10, LOW); //relay per impostare up/down up=HIGH down=LOW
-          digitalWrite(11, HIGH); //Attiva il comando
-          break;
-      }
-      break;
 #endif
+
+      /*
+          case LEDRGB:  // TV
+
+            convertColors(RxData[4]);
+
+            for (uint16_t i = 0; i < LEDCOUNT; i++)
+            {
+              colors[i] = color;
+            }
+        //      ledStrip.write(colors, LEDCOUNT);
+
+            break;
+      */
   }
-  //actuators[actuatorId][3] = sts; //set the actuator value
+  actuators[actuatorId][3] = sts; //set the actuator value
 
 }
 
@@ -1064,9 +1081,9 @@ void log(int num)
   Serial.println( msg[num]);
 }
 
-
-void convertColors(long c)
-{
+/*
+  void convertColors(long c)
+  {
 
   String x = String(c, HEX);
 
@@ -1079,15 +1096,21 @@ void convertColors(long c)
   Serial.println(g , HEX);
   Serial.println(b , HEX);
 
-  color.red = g; //verde
-  color.green = b; //blu
-  color.blue = r; //rosso
+  //color.red = g; //verde
+  //color.green = b; //blu
+  //color.blue = r; //rosso
 
-}
+  }
+*/
 
 void checkAwinig()
 {
-  if ((millis() - 12000) > awning_starttime) {
-    digitalWrite(11, LOW);
+  if (millis() - 15000 > awning_starttime && awning_started == true) {
+    digitalWrite(17, LOW); //Disattiva il comando (fase)
+    //digitalWrite(11, LOW); //Disattiva il comando (neutro)
+    awning_started = false;
+    tone(8, 4500, 100);
+    delay(400);
+    tone(8, 4500, 100);
   }
 }
