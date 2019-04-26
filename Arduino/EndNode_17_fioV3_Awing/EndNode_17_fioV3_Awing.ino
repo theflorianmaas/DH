@@ -350,6 +350,9 @@ void updatePinValues()
     else
     { //read sensors
       sensors[i][1] = analogRead(sensors[i][0]);
+      //Serial.print(sensors[i][0]);
+      //Serial.print(" ");
+      //Serial.println(sensors[i][1]); 
     }
   }
 
@@ -366,7 +369,7 @@ void updatePinValues()
       if (actuators[i][2] == DIGITAL) //if DIGITAL OUTPUT
       {
         //read digital output pins
-        // actuators[i][1] = digitalRead(actuators[i][0]);
+        actuators[i][1] = digitalRead(actuators[i][0]);
       }
     }
   }
@@ -745,12 +748,6 @@ void sendData(int t) // t=0 = sensors 1 = actuators
 // ******************************************************* //
 void setPIN(int pin, int sts, int outputType, int p1, int p2)
 {
-  Serial.println(pin);
-  Serial.println(sts);
-  Serial.println(outputType);
-  Serial.println(p1);
-  Serial.println(p2);
-
   log(12);
   // p1 = time time, where output type = HVAV p1 = component
   // p2 = fading time
@@ -811,16 +808,17 @@ void setPIN(int pin, int sts, int outputType, int p1, int p2)
           Serial.println("up");
           //attivo relay di salita
           tone(8, 4500, 100);
-          digitalWrite(11, HIGH); //relay per impostare up/down up=HIGH down=LOW
-          digitalWrite(17, HIGH); //Attiva il comando (fase)
-          //digitalWrite(11, HIGH); //Attiva il comando (neutro)
+          digitalWrite(14, HIGH); //relay per impostare up/down up=HIGH down=LOW (2 tende)
+          digitalWrite(10, HIGH); //Attiva il comando (fase)
+          digitalWrite(11, HIGH); //Attiva il comando (neutro)
           break;
         case AWNINGDOWN:
           Serial.println("down");
           //attivo relay di discesa
           tone(8, 4500, 100);
-          digitalWrite(11, LOW); //relay per impostare up/down up=HIGH down=LOW
-          digitalWrite(17, HIGH); //Attiva il comando  (fase)
+          digitalWrite(14, LOW); //relay per impostare up/down up=HIGH down=LOW
+          digitalWrite(10, HIGH); //relay per impostare up/down up=HIGH down=LOW
+          digitalWrite(11, HIGH); //Attiva il comando  (fase)
           //digitalWrite(11, HIGH); //Attiva il comando (neutro)
           break;
       }
@@ -1106,8 +1104,8 @@ void log(int num)
 void checkAwinig()
 {
   if (millis() - 15000 > awning_starttime && awning_started == true) {
-    digitalWrite(17, LOW); //Disattiva il comando (fase)
-    //digitalWrite(11, LOW); //Disattiva il comando (neutro)
+    digitalWrite(10, LOW); //Disattiva il comando (fase)
+    digitalWrite(11, LOW); //Disattiva il comando (neutro)
     awning_started = false;
     tone(8, 4500, 100);
     delay(400);

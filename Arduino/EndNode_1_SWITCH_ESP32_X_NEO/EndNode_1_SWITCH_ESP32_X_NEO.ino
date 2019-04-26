@@ -209,7 +209,7 @@ char wifiParams_ssid[32]; // = {"ssid"};
 char wifiParams_passcode[64]; // = {"password"};
 
 // ---- Tradfri section ----*/
-char tradfriParams_ip[15] = {"192.168.1.75"};
+char tradfriParams_ip[15] = {"192.168.178.75"};
 char tradfriParams_key[20] = {"FdkbvH1mxUFhb"};
 
 WiFiClient http;    //Declare object of class HTTPClient
