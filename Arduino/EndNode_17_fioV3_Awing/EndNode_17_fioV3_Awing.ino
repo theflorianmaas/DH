@@ -1,4 +1,4 @@
- /*
+/*
   CONFIGURATION for ENDNODE PCB
   25/04/2019
   Version 17.0 XX
@@ -352,7 +352,7 @@ void updatePinValues()
       sensors[i][1] = analogRead(sensors[i][0]);
       //Serial.print(sensors[i][0]);
       //Serial.print(" ");
-      //Serial.println(sensors[i][1]); 
+      //Serial.println(sensors[i][1]);
     }
   }
 
@@ -784,7 +784,7 @@ void setPIN(int pin, int sts, int outputType, int p1, int p2)
       }
       break;
     case TONE: //Tone
-    Serial.println("tone");
+      Serial.println("tone");
       if (sts == OFF) {
         noTone(pin);
       }
@@ -807,19 +807,26 @@ void setPIN(int pin, int sts, int outputType, int p1, int p2)
         case AWNINGUP:
           Serial.println("up");
           //attivo relay di salita
-          tone(8, 4500, 100);
-          digitalWrite(14, HIGH); //relay per impostare up/down up=HIGH down=LOW (2 tende)
-          digitalWrite(10, HIGH); //Attiva il comando (fase)
-          digitalWrite(11, HIGH); //Attiva il comando (neutro)
+          if (sensors[0][1] == 0 || sensors[1][1] == 0) {
+            tone(8, 4500, 100);
+            digitalWrite(14, HIGH); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
+            delay(500);
+            digitalWrite(11, HIGH); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
+            delay(500);
+            digitalWrite(10, HIGH); //Attiva il comando (fase/neutro)
+          }
           break;
         case AWNINGDOWN:
           Serial.println("down");
           //attivo relay di discesa
-          tone(8, 4500, 100);
-          digitalWrite(14, LOW); //relay per impostare up/down up=HIGH down=LOW
-          digitalWrite(10, HIGH); //relay per impostare up/down up=HIGH down=LOW
-          digitalWrite(11, HIGH); //Attiva il comando  (fase)
-          //digitalWrite(11, HIGH); //Attiva il comando (neutro)
+          if (sensors[0][1] == 0 || sensors[1][1] == 0) {
+            tone(8, 4500, 100);
+            digitalWrite(14, LOW); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
+            delay(500);
+            digitalWrite(11, LOW); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
+            delay(500);
+            digitalWrite(10, HIGH); //Attiva il comando (fase/neutro)
+          }
           break;
       }
       awning_started = true;
@@ -1103,12 +1110,24 @@ void log(int num)
 
 void checkAwinig()
 {
-  if (millis() - 15000 > awning_starttime && awning_started == true) {
-    digitalWrite(10, LOW); //Disattiva il comando (fase)
-    digitalWrite(11, LOW); //Disattiva il comando (neutro)
-    awning_started = false;
-    tone(8, 4500, 100);
-    delay(400);
-    tone(8, 4500, 100);
+  if (awning_started == true) {
+    if (millis() - 15000 > awning_starttime) {
+      digitalWrite(10, LOW); //Disattiva il comando (fase/neutro)
+      delay(500);
+      digitalWrite(11, LOW); //disattiva led tenda 1
+      delay(500);
+      digitalWrite(14, LOW); //disattiva led tenda 2
+      awning_started = false;
+      tone(8, 4500, 100);
+      delay(400);
+      tone(8, 4500, 100);
+    }
+  }
+  else if (awning_started == false) {
+    if (sensors[0][1] != 0 || sensors[1][1] != 0) {
+      digitalWrite(10, LOW); //Disattiva il comando (fase/neutro)
+      digitalWrite(11, LOW); //disattiva led tenda 1
+      digitalWrite(14, LOW); //disattiva led tenda 2
+    }
   }
 }
