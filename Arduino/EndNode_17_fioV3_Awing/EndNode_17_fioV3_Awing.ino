@@ -1,7 +1,7 @@
 /*
   CONFIGURATION for ENDNODE PCB
-  25/04/2019
-  Version 17.0 XX
+  30/04/2019
+  Version 17.1 XX
   Author: Franco Parenti
   Url:
   Support for Arduino Fio V3, Arduino Leonardo
@@ -131,6 +131,8 @@ MideaIR remote_control(&irsend);
 
 #define AWNINGUP      39
 #define AWNINGDOWN    40
+#define AWNINGSTOP    41
+#define AWRUNTIME     15000 //time to keep the command on
 
 #define SONY      1
 #define SAMSUNG   2
@@ -350,9 +352,11 @@ void updatePinValues()
     else
     { //read sensors
       sensors[i][1] = analogRead(sensors[i][0]);
-      //Serial.print(sensors[i][0]);
-      //Serial.print(" ");
-      //Serial.println(sensors[i][1]);
+      //if (i == 0 || i == 1) {
+        //Serial.print(sensors[i][0]);
+        //Serial.print(" ");
+        //Serial.println(sensors[i][1]);
+      //}
     }
   }
 
@@ -674,6 +678,7 @@ void sendData(int t) // t=0 = sensors 1 = actuators
       // Sensors data
       for (int i = 0; i < NUM_DATA; i++)
       {
+        delay(1); //to avoid reading wrong values
         xbeeData[idx] = sensors[i][0]; //sensor number
         idx++;
         xbeeData[idx] = sensors[i][1]; //value
@@ -704,7 +709,6 @@ void sendData(int t) // t=0 = sensors 1 = actuators
   /* begin the common part */
   xbee.send(tx);
   xbee.readPacket(500);
-
   if (xbee.getResponse().isAvailable()) //got something
   {
     log(7);
@@ -807,30 +811,45 @@ void setPIN(int pin, int sts, int outputType, int p1, int p2)
         case AWNINGUP:
           Serial.println("up");
           //attivo relay di salita
-          if (sensors[0][1] == 0 || sensors[1][1] == 0) {
-            tone(8, 4500, 100);
-            digitalWrite(14, HIGH); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
-            delay(500);
-            digitalWrite(11, HIGH); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
-            delay(500);
-            digitalWrite(10, HIGH); //Attiva il comando (fase/neutro)
+          if (awning_started == false) {
+            if (sensors[0][1] == 0 || sensors[1][1] == 0) {
+              tone(8, 4500, 100);
+              digitalWrite(14, HIGH); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
+              digitalWrite(11, HIGH); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
+              digitalWrite(10, HIGH); //Attiva il comando (fase/neutro)
+              awning_started = true;
+              awning_starttime = millis();
+            }
           }
+          else {
+            Serial.println("altro comando in esecuzione");
+          }
+          break;
+        case AWNINGSTOP:
+          digitalWrite(10, LOW); //Attiva il comando (fase/neutro)
+          digitalWrite(11, LOW); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
+          digitalWrite(14, LOW); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
+          awning_started = false;
+          tone(8, 4500, 100);
           break;
         case AWNINGDOWN:
           Serial.println("down");
           //attivo relay di discesa
-          if (sensors[0][1] == 0 || sensors[1][1] == 0) {
-            tone(8, 4500, 100);
-            digitalWrite(14, LOW); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
-            delay(500);
-            digitalWrite(11, LOW); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
-            delay(500);
-            digitalWrite(10, HIGH); //Attiva il comando (fase/neutro)
+          if (awning_started == false) {
+            if (sensors[0][1] == 0 || sensors[1][1] == 0) {
+              tone(8, 4500, 100);
+              digitalWrite(14, LOW); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
+              digitalWrite(11, LOW); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
+              digitalWrite(10, HIGH); //Attiva il comando (fase/neutro)
+              awning_started = true;
+              awning_starttime = millis();
+            }
+          }
+          else {
+            Serial.println("altro comando in esecuzione");
           }
           break;
       }
-      awning_started = true;
-      awning_starttime = millis();
       break;
 
     case SERVO:  //analog
@@ -980,19 +999,6 @@ void setPIN(int pin, int sts, int outputType, int p1, int p2)
       break;
 #endif
 
-      /*
-          case LEDRGB:  // TV
-
-            convertColors(RxData[4]);
-
-            for (uint16_t i = 0; i < LEDCOUNT; i++)
-            {
-              colors[i] = color;
-            }
-        //      ledStrip.write(colors, LEDCOUNT);
-
-            break;
-      */
   }
   actuators[actuatorId][3] = sts; //set the actuator value
 
@@ -1086,48 +1092,23 @@ void log(int num)
   Serial.println( msg[num]);
 }
 
-/*
-  void convertColors(long c)
-  {
-
-  String x = String(c, HEX);
-
-  long number = (long) strtol( &x[0], NULL, 16);
-  byte r = number >> 16;
-  byte g = number >> 8 & 0xFF;
-  byte b = number & 0xFF;
-
-  Serial.println(r , HEX);
-  Serial.println(g , HEX);
-  Serial.println(b , HEX);
-
-  //color.red = g; //verde
-  //color.green = b; //blu
-  //color.blue = r; //rosso
-
-  }
-*/
-
 void checkAwinig()
 {
   if (awning_started == true) {
-    if (millis() - 15000 > awning_starttime) {
+    if (millis() - AWRUNTIME > awning_starttime) {
       digitalWrite(10, LOW); //Disattiva il comando (fase/neutro)
-      delay(500);
       digitalWrite(11, LOW); //disattiva led tenda 1
-      delay(500);
       digitalWrite(14, LOW); //disattiva led tenda 2
       awning_started = false;
-      tone(8, 4500, 100);
-      delay(400);
       tone(8, 4500, 100);
     }
   }
   else if (awning_started == false) {
-    if (sensors[0][1] != 0 || sensors[1][1] != 0) {
+    if (sensors[0][1] == 1023 || sensors[1][1] == 1023) {
       digitalWrite(10, LOW); //Disattiva il comando (fase/neutro)
       digitalWrite(11, LOW); //disattiva led tenda 1
       digitalWrite(14, LOW); //disattiva led tenda 2
+      tone(8, 4500, 100);
     }
   }
 }
