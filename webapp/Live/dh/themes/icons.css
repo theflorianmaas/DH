@@ -2017,9 +2017,9 @@ input.input_temp_t  {
 /*--adjust as necessary--*/ 
     font-size: 36px;
     position: absolute;
-	top:15px;
-	left: 165px;
-	content: "\f172";
+	top:55px;
+	left: 65px;
+	content: "\f16d";
 	z-index: 1;
 }
 
@@ -2031,9 +2031,23 @@ input.input_temp_t  {
 /*--adjust as necessary--*/ 
     font-size: 36px;
     position: absolute;
-	top:65px;
-	left: 165px;
-	content: "\f16b";
+	top:55px;
+	left: 175px;
+	content: "\f170";
+	z-index: 1;
+}
+
+.awstop:before {
+    font-family: Dhicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    position: absolute;
+	top:55px;
+	left: 120px;
+	content: "\f110";
 	z-index: 1;
 }
 

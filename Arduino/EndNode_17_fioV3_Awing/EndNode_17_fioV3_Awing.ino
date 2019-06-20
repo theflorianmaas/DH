@@ -1,7 +1,7 @@
 /*
   CONFIGURATION for ENDNODE PCB
-  30/04/2019
-  Version 17.1 XX
+  20/06/2019
+  Version 17.2 XX
   Author: Franco Parenti
   Url:
   Support for Arduino Fio V3, Arduino Leonardo
@@ -13,9 +13,7 @@
   Support for Awning
 
   Setup compiler
-  \library\IRRemote\IRRemoteInt.h set -> #define #define IR_USE_TIMER3
   \hardware\arduino\avr\cores\Tone.cpp set -> #define USE_TIMER1
-  \hardware\arduino\libraries\Servo\src\avr\ServoTimers.h set -> #define _useTimer3 and typedef enum { _timer3,....
 */
 
 // comment this if you use servo, leave this if you use IR remote control
@@ -26,12 +24,7 @@
 #include "Timer.h"
 #include <dht.h>
 #include <LEDFader.h>
-//#include <PololuLedStrip.h>
-//#include "EmonLib.h"
 
-//#if defined (REMOTECONTROL_MODE)
-//#include <SimpleSoftwareServo.h>
-//SimpleSoftwareServo myservo;
 #include <IRremote.h>
 // -- comment this part if you don't use remote control
 // -- (optional) delete the file functions.ino from the sketch folder
@@ -41,19 +34,18 @@
 IRsend irsend;
 MideaIR remote_control(&irsend);
 // ------------------------------------------------------------ //
-//#else
-//#include <Servo.h>
-//Servo myservo;  // create servo object to control a servo
-//#endif
 
 // reserved pins
-#define DHT_PIN 4 //DHT 
+#define DHT_PIN   4 //DHT 
 #define IR_EMITER 5 //pin for IR Led 
 #define SERVO_PIN 9
-#define PINt 24 //virtual pin for temperature
-#define PINh 25 //virtual pin for humidity
+#define PINt      24 //virtual pin for temperature
+#define PINh      25 //virtual pin for humidity
 #define RGB_PIN   15
 #define EMON_PIN  1 //energy monitor input pin
+#define PINup     10
+#define PINdown   11
+#define PINstop   14
 
 #define PINe 26 //virtual pin for Enaergy Monitor
 
@@ -132,20 +124,10 @@ MideaIR remote_control(&irsend);
 #define AWNINGUP      39
 #define AWNINGDOWN    40
 #define AWNINGSTOP    41
-#define AWRUNTIME     15000 //time to keep the command on
+#define AWRUNTIME     1500 //time to keep the command on
 
 #define SONY      1
 #define SAMSUNG   2
-
-//RGB Strip
-#define LEDCOUNT            60     // Number of LEDs used for boblight left 16, top 27, right 16
-//PololuLedStrip<RGB_PIN> ledStrip;
-//rgb_color colors[LEDCOUNT];
-//rgb_color color;
-
-//Energy Monitor
-//EnergyMonitor emon;
-//double Irms, Power;
 
 //Awning
 boolean awning_started = false;
@@ -260,8 +242,6 @@ void setup()
     //myservo.attach(SERVO_PIN);
   };
 
-  pinMode(IR_EMITER, OUTPUT);
-
   for (int i = 0; i < NUM_DATA; i++)
   {
     if (sensors[i][0] != 24 && sensors[i][0] != 25)
@@ -276,6 +256,14 @@ void setup()
   // reserved to I2C
   pinMode(2, OUTPUT);
   pinMode(3, OUTPUT);
+
+  //reserved to IR led
+  pinMode(IR_EMITER, OUTPUT);
+
+  //Reserved to relays
+  pinMode(PINup, OUTPUT);
+  pinMode(PINdown, OUTPUT);
+  pinMode(PINstop, OUTPUT);
 
   // reserved to temp sensor
   pinMode(DHT_PIN, INPUT);
@@ -353,9 +341,9 @@ void updatePinValues()
     { //read sensors
       sensors[i][1] = analogRead(sensors[i][0]);
       //if (i == 0 || i == 1) {
-        //Serial.print(sensors[i][0]);
-        //Serial.print(" ");
-        //Serial.println(sensors[i][1]);
+      //Serial.print(sensors[i][0]);
+      //Serial.print(" ");
+      //Serial.println(sensors[i][1]);
       //}
     }
   }
@@ -812,41 +800,35 @@ void setPIN(int pin, int sts, int outputType, int p1, int p2)
           Serial.println("up");
           //attivo relay di salita
           if (awning_started == false) {
-            if (sensors[0][1] == 0 || sensors[1][1] == 0) {
-              tone(8, 4500, 100);
-              digitalWrite(14, HIGH); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
-              digitalWrite(11, HIGH); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
-              digitalWrite(10, HIGH); //Attiva il comando (fase/neutro)
-              awning_started = true;
-              awning_starttime = millis();
-            }
-          }
-          else {
-            Serial.println("altro comando in esecuzione");
+            tone(8, 4500, 100);
+            digitalWrite(PINdown, LOW); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
+            digitalWrite(PINstop, LOW); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
+            digitalWrite(PINup, HIGH); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
+            awning_started = true;
+            awning_starttime = millis();
           }
           break;
         case AWNINGSTOP:
-          digitalWrite(10, LOW); //Attiva il comando (fase/neutro)
-          digitalWrite(11, LOW); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
-          digitalWrite(14, LOW); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
-          awning_started = false;
-          tone(8, 4500, 100);
+          Serial.println("stop");
+          if (awning_started == false) {
+            tone(8, 4500, 100);
+            digitalWrite(PINup, LOW); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
+            digitalWrite(PINdown, LOW); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
+            digitalWrite(PINstop, HIGH); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
+            awning_started = true;
+            awning_starttime = millis();
+          }
           break;
         case AWNINGDOWN:
           Serial.println("down");
           //attivo relay di discesa
           if (awning_started == false) {
-            if (sensors[0][1] == 0 || sensors[1][1] == 0) {
-              tone(8, 4500, 100);
-              digitalWrite(14, LOW); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
-              digitalWrite(11, LOW); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
-              digitalWrite(10, HIGH); //Attiva il comando (fase/neutro)
-              awning_started = true;
-              awning_starttime = millis();
-            }
-          }
-          else {
-            Serial.println("altro comando in esecuzione");
+            tone(8, 4500, 100);
+            digitalWrite(PINup, LOW); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
+            digitalWrite(PINstop, LOW); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
+            digitalWrite(PINdown, HIGH); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
+            awning_started = true;
+            awning_starttime = millis();
           }
           break;
       }
@@ -1100,14 +1082,6 @@ void checkAwinig()
       digitalWrite(11, LOW); //disattiva led tenda 1
       digitalWrite(14, LOW); //disattiva led tenda 2
       awning_started = false;
-      tone(8, 4500, 100);
-    }
-  }
-  else if (awning_started == false) {
-    if (sensors[0][1] == 1023 || sensors[1][1] == 1023) {
-      digitalWrite(10, LOW); //Disattiva il comando (fase/neutro)
-      digitalWrite(11, LOW); //disattiva led tenda 1
-      digitalWrite(14, LOW); //disattiva led tenda 2
       tone(8, 4500, 100);
     }
   }

@@ -261,7 +261,7 @@ IF ( in_array($_POST["actuatormethod"], array(38)) ) { //Smartlight on/off
 		runsql($db,$sql);
 }
 
-IF ( in_array($_POST["actuatormethod"], array(39,40)) ) { //awning
+IF ( in_array($_POST["actuatormethod"], array(39,40,41)) ) { //awning
 		$sql = "INSERT INTO tbdataout (timekey,type,v0,v1,v2,v3,v4,v5,v6) values (millis(),0,'" . $_POST["node"] . "','" . $_POST["pin"] . "','" . $_POST["actuatormethod"] . "','" . $_POST["output"] .  "'," .SONY. ",'" . $_POST["fadingtime"] . "','" . $_POST["id"] . "')";
 		runsql($db,$sql);
 		$sql = "UPDATE tbactuatormethodvalue SET value = " . $sts . " WHERE tbactuator_id = " . $_POST["id"] . " AND tbactuatormethod_id =" .$_POST["actuatormethod"];
