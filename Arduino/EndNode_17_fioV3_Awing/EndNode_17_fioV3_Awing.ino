@@ -34,6 +34,7 @@
 IRsend irsend;
 MideaIR remote_control(&irsend);
 // ------------------------------------------------------------ //
+#define PINNODE 0
 
 // reserved pins
 #define DHT_PIN   4 //DHT 
@@ -124,14 +125,25 @@ MideaIR remote_control(&irsend);
 #define AWNINGUP      39
 #define AWNINGDOWN    40
 #define AWNINGSTOP    41
-#define AWRUNTIME     1500 //time to keep the command on
+#define AWNINGSTATUS  42
+#define AWCOMMANDTIME 1500 //time to keep the command on
+#define AWRUNTIME     50000 //time to open/close the awning
+
+#define AWNINGOPEN    1
+#define AWNINGCLOSE   0
+
 
 #define SONY      1
 #define SAMSUNG   2
 
 //Awning
+boolean awning_started_command = false;
+long int awning_starttime_command = millis();
 boolean awning_started = false;
 long int awning_starttime = millis();
+int awning_direction = AWNINGOPEN;
+int awning_value = 0;
+int awning_value_init;
 
 #define IN 1
 #define OUT 0
@@ -142,14 +154,17 @@ long int awning_starttime = millis();
 
 #define BAUD_RATE     9600  // Baud for both Xbee and serial monitor
 #define NUM_ACTU      10 //Insert here the (# of actuators x NUM_DATA_VAL)
+#define NUM_METH      1 //Insert here the (# of methods x NUM_DATA_VAL)
 #define NUM_DATA      9 //Insert here the (# of sensors x NUM_DATA_VAL)
 #define NUM_DATA_VAL  3 // number of values transmitted for each sensor: number, value, alarm status
 #define NUM_DATA_PTS  NUM_DATA*NUM_DATA_VAL
 #define NUM_ACTU_PTS  NUM_ACTU*NUM_DATA_VAL
+#define NUM_METH_PTS  NUM_METH*NUM_DATA_VAL
 #define NUM_BYTE_ARR  3 // Number of bytes of the array used to store long integers in the payload
 
 #define SENSOR 0
 #define ACTUATOR 1
+#define METHOD   2
 
 #define RANGE_IN  1 //the actuator is in range 
 #define RANGE_OUT 0 //the actuator is out of range 
@@ -313,6 +328,9 @@ void sendSensorData() {
   delay(10);
   log(1);
   sendData(ACTUATOR); //send actuators
+  delay(10);
+  sendData(METHOD); //send methods
+  log(14);
 }
 
 // *******************************************************//
@@ -340,11 +358,6 @@ void updatePinValues()
     else
     { //read sensors
       sensors[i][1] = analogRead(sensors[i][0]);
-      //if (i == 0 || i == 1) {
-      //Serial.print(sensors[i][0]);
-      //Serial.print(" ");
-      //Serial.println(sensors[i][1]);
-      //}
     }
   }
 
@@ -651,15 +664,27 @@ void getData()
 // ******************************************************* //
 
 // ******************************************************* //
-void sendData(int t) // t=0 = sensors 1 = actuators
+void sendData(int t) // t=0 = sensors 1 = actuators 2=methods
 {
-  unsigned long receiveResponseInitTime;
+  int elements = 0;
+  if (t == SENSOR)
+  {
+    elements = (NUM_DATA_PTS + 1) * 2;
+  }
+  else if (t == METHOD) {
+    elements = (NUM_METH_PTS + 1) * 2;
+  }
+  else if (t == ACTUATOR) {
+    elements = (NUM_ACTU_PTS + 1) * 2;
+  }
+
   boolean readPacketResponse; //store the response of xbee.readPacket(timeout)
-  uint8_t payload[((NUM_ACTU_PTS) * 2)];
+  uint8_t payload[elements];
   int16_t xbeeData[NUM_DATA_PTS + 1]; // Array to hold integers that will be sent to other xbee [pari]=valore pin [dispari]=valore pin
   int16_t xbeeActu[NUM_ACTU_PTS + 1]; // Array to hold integers that will be sent to other xbee [pari]=valore pin [dispari]=valore pin
-  int idx = 1;
-  int x = 0;
+  int16_t xbeeMeth[NUM_METH_PTS + 1]; // Array to hold integers that will be sent to other xbee [pari]=valore pin [dispari]=valore pin
+  byte idx = 1;
+  int response = 0;
   switch (t)
   {
     case SENSOR:
@@ -678,9 +703,30 @@ void sendData(int t) // t=0 = sensors 1 = actuators
       parseTxData(payload, xbeeData, idx);
       break;
 
+    case METHOD:
+      xbeeMeth[0] = METHOD;
+
+      xbeeMeth[idx] = PINNODE;
+      idx++;
+      xbeeMeth[idx] = AWNINGSTATUS;
+      idx++;
+      xbeeMeth[idx] = awning_value;
+      Serial.println(awning_value);
+      idx++;
+
+      parseTxData(payload, xbeeMeth, idx);
+      break;
+
+    /* ACTUATORS
+      //0=actuator number
+      //1=status
+      //2=output type
+      //3=value
+    */
     case ACTUATOR:
       // Actuators data
-      for (int i = 0; i < NUM_ACTU; i++)
+      xbeeActu[0] = ACTUATOR;
+      for (byte i = 0; i < NUM_ACTU; i++)
       {
         xbeeActu[idx] = actuators[i][0]; //actuator number
         idx++;
@@ -689,35 +735,31 @@ void sendData(int t) // t=0 = sensors 1 = actuators
         xbeeActu[idx] = actuators[i][3]; //value
         idx++;
       }
-      xbeeActu[0] = ACTUATOR;
       parseTxData(payload, xbeeActu, idx);
       break;
   }
+
   request(COORD_ADDR, payload, sizeof(payload));
   /* begin the common part */
   xbee.send(tx);
-  xbee.readPacket(500);
+  xbee.readPacket(50);
   if (xbee.getResponse().isAvailable()) //got something
   {
-    log(7);
     // should be a znet tx status
-    x = getApiId();
-    //Serial.println(x, HEX);
-    if (x == TX_RESPONSE) {
+    response = getApiId();
+    if (response == TX_RESPONSE) {
       TXStatusResponse(txStatus);
       // got a response!
       // should be a znet tx status
       if (getStatus() == SUCCESS) {
-        // success.  time to celebrate
         log(8);
       }
       else
       {
         log(9);
-        // the remote XBee did not receive our packet. is it powered on?
       }
     }
-    else if ((x == ZB_RX_RESPONSE))
+    else if ((response == ZB_RX_RESPONSE))
     {
       log(10);
       getData();
@@ -727,15 +769,9 @@ void sendData(int t) // t=0 = sensors 1 = actuators
   {
     log(9);
   }
-  else
-  {
-    log(9);
-    // local XBee did not provide a timely TX Status Response.  Radio is not configured properly or connected
-  } // Finished waiting for XBee packet
 
 } // sendData()
 // ******************************************************* //
-
 
 // ******************************************************* //
 void setPIN(int pin, int sts, int outputType, int p1, int p2)
@@ -790,45 +826,48 @@ void setPIN(int pin, int sts, int outputType, int p1, int p2)
       else { //if != OFF
         actuators[actuatorId][1] = ON; //set actuator status active
       }
-      Serial.println("tone2");
       break;
 
     case AWNING:  // Tende
-      Serial.println("tende");
       switch (sts) { //method
         case AWNINGUP:
           Serial.println("up");
           //attivo relay di salita
-          if (awning_started == false) {
+          if (awning_started_command == false) {
             tone(8, 4500, 100);
             digitalWrite(PINdown, LOW); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
             digitalWrite(PINstop, LOW); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
             digitalWrite(PINup, HIGH); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
+            awning_started_command = true;
+            awning_starttime_command = millis();
             awning_started = true;
             awning_starttime = millis();
+            awning_direction = AWNINGCLOSE;
           }
           break;
         case AWNINGSTOP:
-          Serial.println("stop");
-          if (awning_started == false) {
+          if (awning_started_command == false) {
             tone(8, 4500, 100);
             digitalWrite(PINup, LOW); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
             digitalWrite(PINdown, LOW); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
             digitalWrite(PINstop, HIGH); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
-            awning_started = true;
-            awning_starttime = millis();
+            awning_started_command = true;
+            awning_starttime_command = millis();
+            awning_started = false;
           }
           break;
         case AWNINGDOWN:
-          Serial.println("down");
           //attivo relay di discesa
-          if (awning_started == false) {
+          if (awning_started_command == false) {
             tone(8, 4500, 100);
             digitalWrite(PINup, LOW); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
             digitalWrite(PINstop, LOW); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
             digitalWrite(PINdown, HIGH); //relay per impostare up/down up=HIGH down=LOW (1 tenda)
+            awning_started_command = true;
+            awning_starttime_command = millis();
             awning_started = true;
             awning_starttime = millis();
+            awning_direction = AWNINGOPEN;
           }
           break;
       }
@@ -1011,7 +1050,7 @@ int getSensorId(int pin)
 int getActuatorId(int pin)
 {
   for (int i = 0; i < sizeof(actuators); i++)
-  { //cerco il tipo di nodo
+  {
     if (actuators[i][0] == pin)
     {
       return i;
@@ -1055,7 +1094,7 @@ void parseTxData(uint8_t* payload, int16_t* txData, int idx)
 // ******************************************************* //
 void log(int num)
 {
-  String msg[14];
+  String msg[15];
   msg[0] = "Sending sensors ";
   msg[1] = "Sending actuators ";
   msg[2] = "Activate ";
@@ -1070,19 +1109,63 @@ void log(int num)
   msg[11] = "Dimmer stopped ";
   msg[12] = "Set Pin ";
   msg[13] = "Start Dimmer ";
+  msg[14] = "Sending methods ";
   // See on serial monitor
   Serial.println( msg[num]);
 }
 
 void checkAwinig()
 {
-  if (awning_started == true) {
-    if (millis() - AWRUNTIME > awning_starttime) {
+  long int awning_runtime_gap;
+  int awning_value_temp;
+
+  if (awning_started_command == true) {
+    if (millis() - AWCOMMANDTIME > awning_starttime_command) {
       digitalWrite(10, LOW); //Disattiva il comando (fase/neutro)
       digitalWrite(11, LOW); //disattiva led tenda 1
       digitalWrite(14, LOW); //disattiva led tenda 2
-      awning_started = false;
+      awning_started_command = false;
       tone(8, 4500, 100);
     }
+  }
+
+  //se è partita la discesa
+  if (sensors[0][1] == 1023 && awning_started == false) { //start trigger opening
+    //riproporziono awning_starttime in base al valore attuale awning_value
+    awning_starttime = millis() - (AWRUNTIME * awning_value / 100);
+    awning_started = true;
+    awning_value_init = awning_value;
+  }
+  else if (sensors[0][1] == 1023 && awning_value != 100 && awning_started == true) {// opening awning
+    awning_runtime_gap = millis() - awning_starttime;
+    awning_value_temp = (float)awning_value_init + (float)awning_runtime_gap / (float)AWRUNTIME * (float)100;
+
+    if (awning_value_temp >= 100) {
+      awning_value = 100;
+    }
+    else {
+      awning_value = (int)awning_value_temp;
+    }
+  }
+  //se è partita la salita
+  else if (sensors[1][1] == 1023 && awning_started == false) { //start trigger closing
+    //riproporziono awning_starttime in base al valore attuale awning_value
+    awning_starttime = millis() - (AWRUNTIME * (100-awning_value) / 100);
+    awning_started = true;
+    awning_value_init = awning_value;
+  }
+  else if (sensors[1][1] == 1023 && awning_value != 0 && awning_started == true) {// closing awning
+    awning_runtime_gap = millis() - awning_starttime;
+    awning_value_temp = (float)awning_value_init - (float)awning_runtime_gap / (float)AWRUNTIME * (float)100;
+
+    if (awning_value_temp <= 0) {
+      awning_value = 0;
+    }
+    else {
+      awning_value = (int)awning_value_temp;
+    }
+  }
+  else if (sensors[0][1] != 1023 && sensors[1][1] != 1023 ) {
+    awning_started = false;
   }
 }

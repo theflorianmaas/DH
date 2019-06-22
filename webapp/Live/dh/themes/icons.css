@@ -2051,4 +2051,130 @@ input.input_temp_t  {
 	z-index: 1;
 }
 
+.awsts0:before {
+    font-family: AWicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    position: absolute;
+	top:0px;
+	right: 8px;
+	content: "\f108";
+	z-index: 1;
+}
+
+.awsts1:before {
+    font-family: AWicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    position: absolute;
+	top:0px;
+	right: 8px;
+	content: "\f100";
+	z-index: 1;
+}
+
+.awsts2:before {
+    font-family: AWicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    position: absolute;
+	top:0px;
+	right: 8px;
+	content: "\f101";
+	z-index: 1;
+}
+
+.awsts3:before {
+    font-family: AWicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    position: absolute;
+	top:0px;
+	right: 8px;
+	content: "\f102";
+	z-index: 1;
+}
+
+.awsts4:before {
+    font-family: AWicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    position: absolute;
+	top:0px;
+	right: 8px;
+	content: "\f103";
+	z-index: 1;
+}
+
+.awsts5:before {
+    font-family: AWicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    position: absolute;
+	top:0px;
+	right: 8px;
+	content: "\f104";
+	z-index: 1;
+}
+
+.awsts6:before {
+    font-family: AWicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    position: absolute;
+	top:0px;
+	right: 8px;
+	content: "\f105";
+	z-index: 1;
+}
+
+.awsts7:before {
+    font-family: AWicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    position: absolute;
+	top:0px;
+	right: 8px;
+	content: "\f106";
+	z-index: 1;
+}
+
+.awsts8:before {
+    font-family: AWicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    position: absolute;
+	top:0px;
+	right: 8px;
+	content: "\f107";
+	z-index: 1;
+}
+
 

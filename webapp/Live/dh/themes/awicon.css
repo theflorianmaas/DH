@@ -1,0 +1,33 @@
+	/*
+  	Flaticon icon font: Flaticon
+  	Creation date: 21/06/2019 14:53
+  	*/
+
+@font-face {
+  font-family: "AWicon";
+  src: url("./AWicon.eot");
+  src: url("./AWicon.eot?#iefix") format("embedded-opentype"),
+       url("./AWicon.woff2") format("woff2"),
+       url("./AWicon.woff") format("woff"),
+       url("./AWicon.ttf") format("truetype"),
+       url("./AWicon.svg#AWicon") format("svg");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  @font-face {
+    font-family: "AWicon";
+    src: url("./AWicon.svg#AWicon") format("svg");
+  }
+}
+
+.aw-fw1:before { content: "\f100"; }
+.aw-fw2:before { content: "\f101"; }
+.aw-fw3:before { content: "\f102"; }
+.aw-fw4:before { content: "\f103"; }
+.aw-fw5:before { content: "\f104"; }
+.aw-fw6:before { content: "\f105"; }
+.aw-fw7:before { content: "\f106"; }
+.aw-fw8:before { content: "\f107"; }
+.aw-fw0:before { content: "\f108"; }
