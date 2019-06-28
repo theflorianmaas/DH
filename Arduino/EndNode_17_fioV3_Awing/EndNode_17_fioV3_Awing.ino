@@ -23,22 +23,23 @@
 #include <XBee.h>
 #include "Timer.h"
 #include <dht.h>
-#include <LEDFader.h>
+//#include <LEDFader.h>
 
-#include <IRremote.h>
+//#include <IRremote.h>
 // -- comment this part if you don't use remote control
 // -- (optional) delete the file functions.ino from the sketch folder
 // ---------- AC Remote control section ------------------------//
 // Support for Midea, Hokkaido HVAC, Type:R51M/E remote control //
-#include <MideaIR.h>
-IRsend irsend;
-MideaIR remote_control(&irsend);
+//#include <MideaIR.h>
+//IRsend irsend;
+//MideaIR remote_control(&irsend);
 // ------------------------------------------------------------ //
-#define PINNODE 0
+#define PINNODE0 0
+#define PINNODE1 1
 
 // reserved pins
 #define DHT_PIN   4 //DHT 
-#define IR_EMITER 5 //pin for IR Led 
+//#define IR_EMITER 5 //pin for IR Led
 #define SERVO_PIN 9
 #define PINt      24 //virtual pin for temperature
 #define PINh      25 //virtual pin for humidity
@@ -47,6 +48,11 @@ MideaIR remote_control(&irsend);
 #define PINup     10
 #define PINdown   11
 #define PINstop   14
+
+#define PINRED0   7
+#define PINGRE0   6
+#define PINRED1   5
+#define PINGRE1   9
 
 #define PINe 26 //virtual pin for Enaergy Monitor
 
@@ -83,45 +89,6 @@ MideaIR remote_control(&irsend);
 #define LEDRGB        7
 #define AWNING        13
 
-//Actuator commands HVAC
-#define ACCOFF      0
-#define ACCON       1
-#define ACCTEMP     2
-#define ACCMODE     3
-#define ACCFAN      4
-#define ACCSWING    5
-
-//Actuator methods HVAC
-#define ACFAN1        3
-#define ACFAN2        4
-#define ACFAN3        5
-#define ACFANAUTO     6
-#define ACMODECOOL    7
-#define ACMODEDRY     8
-#define ACMODEHEAT    9
-#define ACMODEAUTO    10
-#define ACTEMPERATURE 11
-#define ACSWING       12
-
-//Actuator methods TV
-#define TVVOLUMEUP    13
-#define TVVOLUMEDOWN  14
-#define TVCHANNELUP   15
-#define TVCHANNELDOWN 16
-#define TVMUTE        17
-#define TVANTENNA     18
-#define TVHDMI        19
-#define TVBUTRED      20
-#define TVBUTGREEN    21
-#define TVBUTYELLOW   22
-#define TVBUTBLUE     23
-#define TVKEYUP       24
-#define TVKEYDOWN     25
-#define TVKEYLEFT     26
-#define TVKEYRIGHT    27
-#define TVKEYOK       28
-#define TVKEYRETURN   29
-
 #define AWNINGUP      39
 #define AWNINGDOWN    40
 #define AWNINGSTOP    41
@@ -131,7 +98,13 @@ MideaIR remote_control(&irsend);
 
 #define AWNINGOPEN    1
 #define AWNINGCLOSE   0
+#define AWNINGSTARTED  2
 
+#define AWNINGVALIDATED 1
+#define AWNINGNOTVALIDATED  0
+
+#define AWNINGSTOP    0
+#define AWNINGRUN     1
 
 #define SONY      1
 #define SAMSUNG   2
@@ -144,6 +117,20 @@ long int awning_starttime = millis();
 int awning_direction = AWNINGOPEN;
 int awning_value = 0;
 int awning_value_init;
+// pin salita, pin discesa, status, started, value, initial value, initial time, runtime
+struct Awnings {
+  int pinr;
+  int ping;
+  int sts;
+  int run;
+  int value;
+  int initvalue;
+  long int inittime;
+  long int runtime;
+  int validate;
+};
+
+Awnings awnings[2] = {{PINRED0, PINGRE0, 0, 0, 0, 0L, AWNINGNOTVALIDATED}, {PINRED1, PINGRE1, 0, 0, 0, 0L, AWNINGNOTVALIDATED}};
 
 #define IN 1
 #define OUT 0
@@ -153,8 +140,8 @@ int awning_value_init;
 #define TIMEt2 5000 //read and update DHT sensor data
 
 #define BAUD_RATE     9600  // Baud for both Xbee and serial monitor
-#define NUM_ACTU      10 //Insert here the (# of actuators x NUM_DATA_VAL)
-#define NUM_METH      1 //Insert here the (# of methods x NUM_DATA_VAL)
+#define NUM_ACTU      7 //Insert here the (# of actuators x NUM_DATA_VAL)
+#define NUM_METH      2 //Insert here the (# of methods x NUM_DATA_VAL)
 #define NUM_DATA      9 //Insert here the (# of sensors x NUM_DATA_VAL)
 #define NUM_DATA_VAL  3 // number of values transmitted for each sensor: number, value, alarm status
 #define NUM_DATA_PTS  NUM_DATA*NUM_DATA_VAL
@@ -199,9 +186,10 @@ int triggers[NUM_DATA][10] = {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1}};
   //2=output type
   //3=value
 */
-long actuators[NUM_ACTU][4] = {{6, 0, 0, 0}, {7, 0, 0, 0}, {8, 0, 4, 0}, {9, 0, 2, 0}, {10, 0, 0, 0}, {11, 0, 0, 0}, {14, 0, 0, 0}, {15, 0, 0, 0}, {16, 0, 0, 0}, {17, 0, 0, 0}};
+long actuators[NUM_ACTU][4] = {{8, 0, 4, 0}, {10, 0, 0, 0}, {11, 0, 0, 0}, {14, 0, 0, 0}, {15, 0, 0, 0}, {16, 0, 0, 0}, {17, 0, 0, 0}};
+//long actuators[NUM_ACTU][4] = {{6, 0, 0, 0}, {7, 0, 0, 0}, {8, 0, 4, 0}, {9, 0, 2, 0}, {10, 0, 0, 0}, {11, 0, 0, 0}, {14, 0, 0, 0}, {15, 0, 0, 0}, {16, 0, 0, 0}, {17, 0, 0, 0}};
 
-LEDFader actu[NUM_ACTU] = {6, 7, 8, 9, 10, 11, 14, 15, 16, 17};
+//LEDFader actu[NUM_ACTU] = {6, 7, 8, 9, 10, 11, 14, 15, 16, 17};
 dht DHT; // Object for DHT22 sensor
 
 // --- Xbee section ----*/
@@ -253,8 +241,6 @@ void setup()
     if (actuators[i][0] != SERVO_PIN) {
       pinMode(actuators[i][0], OUTPUT);
     }
-    //else
-    //myservo.attach(SERVO_PIN);
   };
 
   for (int i = 0; i < NUM_DATA; i++)
@@ -273,12 +259,26 @@ void setup()
   pinMode(3, OUTPUT);
 
   //reserved to IR led
-  pinMode(IR_EMITER, OUTPUT);
+  //pinMode(IR_EMITER, OUTPUT);
 
-  //Reserved to relays
+  //Reserved to awning
   pinMode(PINup, OUTPUT);
   pinMode(PINdown, OUTPUT);
   pinMode(PINstop, OUTPUT);
+  pinMode(PINRED0, INPUT);
+  pinMode(PINGRE0, INPUT);
+  pinMode(PINRED1, INPUT);
+  pinMode(PINGRE1, INPUT);
+
+  awnings[0].pinr = PINRED0;
+  awnings[0].ping = PINGRE0;
+  awnings[1].pinr = PINRED1;
+  awnings[1].ping = PINGRE1;
+  for (int i; i = 0; i++) {
+    awnings[i].sts = AWNINGCLOSE;
+    awnings[i].run = 0;
+    awnings[i].value = 0;
+  }
 
   // reserved to temp sensor
   pinMode(DHT_PIN, INPUT);
@@ -298,10 +298,6 @@ void setup()
   t0.every(TIMEt1, sendSensorData);
   t0.every(TIMEt2, updatePinValuesDHT);
 
-  //PololuLedStripBase::interruptFriendly = true;
-
-  //emon.current(EMON_PIN, 6.0);
-
 }  //setup()
 
 //============================================================================
@@ -317,7 +313,6 @@ void loop()
   {
     t0.update();
     checkAlarm();
-    checkDimmers();
     checkAwinig();
   }
 } // loop()
@@ -706,12 +701,20 @@ void sendData(int t) // t=0 = sensors 1 = actuators 2=methods
     case METHOD:
       xbeeMeth[0] = METHOD;
 
-      xbeeMeth[idx] = PINNODE;
+      xbeeMeth[idx] = PINNODE0;
       idx++;
       xbeeMeth[idx] = AWNINGSTATUS;
       idx++;
-      xbeeMeth[idx] = awning_value;
-      Serial.println(awning_value);
+      xbeeMeth[idx] = awnings[0].value;
+      //Serial.println(awnings[0].value);
+      idx++;
+
+      xbeeMeth[idx] = PINNODE1;
+      idx++;
+      xbeeMeth[idx] = AWNINGSTATUS;
+      idx++;
+      xbeeMeth[idx] = awnings[1].value;
+      //Serial.println(awnings[1].value);
       idx++;
 
       parseTxData(payload, xbeeMeth, idx);
@@ -781,7 +784,6 @@ void setPIN(int pin, int sts, int outputType, int p1, int p2)
   // p2 = fading time
   int i = 0;
   int actuatorId = getActuatorId(pin);
-  Serial.println (actuators[actuatorId][3]);
   switch (outputType) {
     case DIGITAL: //digital
       if (p1 == 0) {
@@ -888,149 +890,11 @@ void setPIN(int pin, int sts, int outputType, int p1, int p2)
       }
       break;
 
-
-      // -- AC Remote Control section --//
-#if defined (REMOTECONTROL_MODE)
-    case HVAC:  // Air Condition
-      // p1 = 0,1 Off,On 2=temperature 3=mode, 4=fan, 5=swing
-      // sts 3=fan1 4=fan2 5=fan3 6=fanauto 7=cool 8=dry 9=heat 10=auto 11=temperature 12=swing
-      switch (p1)  {
-        case ACCOFF:
-          // update actuator status
-          if (sts == OFF) { //if = OFF
-            r_off(); //turn off AC
-          }
-          else { //if != OFF
-            r_on(); //turn on AC
-          }
-          break;
-        case ACCON:
-          // update actuator status
-          if (sts == OFF) { //if = OFF
-            r_off(); //turn off AC
-          }
-          else { //if != OFF
-            r_on(); //turn on AC
-          }
-          break;
-        case ACCTEMP:
-          r_temp(sts);
-          break;
-        case ACCMODE:  //mode
-          switch (sts) {
-            case ACMODECOOL: //Cool
-              r_mode(mode_cool);
-              break;
-            case ACMODEDRY: //dry
-              r_mode(mode_no_humidity);
-              break;
-            case ACMODEHEAT: //Heat
-              r_mode(mode_heat);
-              break;
-            case ACMODEAUTO: //Auto
-              r_mode(mode_auto);
-              break;
-          }
-          break;
-        case ACCFAN:  //fan
-          switch (sts) {
-            case ACFAN1: //fan 1
-              r_fan(fan_speed_1);
-              break;
-            case ACFAN2: //fan 2
-              r_fan(fan_speed_2);
-              break;
-            case ACFAN3: //fan 3
-              r_fan(fan_speed_3);
-              break;
-            case ACFANAUTO: //fan Auto
-              r_fan(fan_auto);
-              break;
-          }
-          break;
-        case ACCSWING:
-          r_swing();
-          break;
-      }
-      break;
-
-    // -- TV Remote Control section --//
-    case TV:  // TV
-      // p1 = 0,1 Off,On 2=temperature 3=mode, 4=fan, 5=swing
-      // sts 3=fan1 4=fan2 5=fan3 6=fanauto 7=cool 8=dry 9=heat 10=auto 11=temperature 12=swing
-      switch (sts) { //method
-        case ON:
-          tv_on(p1);
-          break;
-        case OFF:
-          tv_off(p1);
-          break;
-        case TVVOLUMEUP:
-          tv_volumeup(p1);
-          break;
-        case TVVOLUMEDOWN:
-          tv_volumedown(p1);
-          break;
-        case TVCHANNELUP:
-          tv_channelup(p1);
-          break;
-        case TVCHANNELDOWN:
-          tv_channeldown(p1);
-          break;
-        case TVMUTE:
-          tv_mute(p1);
-          break;
-        case TVANTENNA:
-          tv_source(p1);
-          break;
-        case TVHDMI:
-          tv_home(p1);
-          break;
-        case TVBUTRED:
-          tv_red(p1);
-          break;
-        case TVBUTGREEN:
-          tv_green(p1);
-          break;
-        case TVBUTYELLOW:
-          tv_yellow(p1);
-          break;
-        case TVBUTBLUE:
-          tv_blue(p1);
-          break;
-        case TVKEYUP:
-          tv_keyup(p1);
-          break;
-        case TVKEYDOWN:
-          tv_keydown(p1);
-          break;
-        case TVKEYLEFT:
-          tv_keyleft(p1);
-          break;
-        case TVKEYRIGHT:
-          tv_keyright(p1);
-          break;
-        case TVKEYOK:
-          tv_keyok(p1);
-          break;
-        case TVKEYRETURN:
-          tv_keyreturn(p1);
-          break;
-      }
-      break;
-#endif
-
   }
   actuators[actuatorId][3] = sts; //set the actuator value
 
 }
 
-#define TVKEYUP       24
-#define TVKEYDOWN     25
-#define TVKEYLEFT     26
-#define TVKEYRIGHT    27
-#define TVKEYOK       28
-#define TVKEYRETURN   29
 
 // ******************************************************* //
 // Common functions                                        //
@@ -1061,25 +925,15 @@ int getActuatorId(int pin)
 // ******************************************************* //
 void setDimmer(int actuatorId, int time, int val) //set the dimmer initial value
 {
-  LEDFader *act = &actu[actuatorId];
-  act->update();
-  if (act->is_fading() == true) {
-    act->stop_fade();
-    log(11);
-  }
+  //LEDFader *act = &actu[actuatorId];
+  //act->update();
+  //if (act->is_fading() == true) {
+  //act->stop_fade();
+  //}
   log(13);
-  act->fade(val, time * 1000);
+  //act->fade(val, time * 1000);
 }
 // ******************************************************* //
-void checkDimmers() //set the dimmer initial value
-{
-  for (byte i = 0; i < NUM_ACTU; i++) {
-    LEDFader *act = &actu[i];
-    if (act->is_fading() == true) {
-      act->update();
-    }
-  }
-}
 // ******************************************************* //
 void parseTxData(uint8_t* payload, int16_t* txData, int idx)
 {
@@ -1129,43 +983,116 @@ void checkAwinig()
     }
   }
 
-  //se è partita la discesa
-  if (sensors[0][1] == 1023 && awning_started == false) { //start trigger opening
-    //riproporziono awning_starttime in base al valore attuale awning_value
-    awning_starttime = millis() - (AWRUNTIME * awning_value / 100);
-    awning_started = true;
-    awning_value_init = awning_value;
-  }
-  else if (sensors[0][1] == 1023 && awning_value != 100 && awning_started == true) {// opening awning
-    awning_runtime_gap = millis() - awning_starttime;
-    awning_value_temp = (float)awning_value_init + (float)awning_runtime_gap / (float)AWRUNTIME * (float)100;
+  //calculate last status
+  for (int i = 0; i < 2; i++) {
+    //Serial.println("xxxxxxxx");
+    //Serial.println(digitalRead(awnings[i].pinr));
+    //Serial.println(digitalRead(awnings[i].ping));
+    if (digitalRead(awnings[i].pinr) == HIGH && digitalRead(awnings[i].ping) == HIGH) {
+      if (awnings[i].run != AWNINGRUN) {
+        awnings[i].run = AWNINGRUN;
+        //riproporziono awning_starttime in base al valore attuale awning_value
+        if (awnings[i].sts == AWNINGOPEN) { //chiudo tenda
+          awnings[i].runtime = AWRUNTIME * awnings[i].value / 100;
+        }
+        else if (awnings[i].sts == AWNINGCLOSE) { //apro tenda
+          awnings[i].runtime = AWRUNTIME * (100 - awnings[i].value) / 100;
+        }
+        awnings[i].inittime = millis();
+        awnings[i].initvalue = awnings[i].value;
+        //tone(8, 4500, 50);
+      }
+      else if (awnings[i].run == AWNINGRUN) {
 
-    if (awning_value_temp >= 100) {
-      awning_value = 100;
-    }
-    else {
-      awning_value = (int)awning_value_temp;
-    }
-  }
-  //se è partita la salita
-  else if (sensors[1][1] == 1023 && awning_started == false) { //start trigger closing
-    //riproporziono awning_starttime in base al valore attuale awning_value
-    awning_starttime = millis() - (AWRUNTIME * (100-awning_value) / 100);
-    awning_started = true;
-    awning_value_init = awning_value;
-  }
-  else if (sensors[1][1] == 1023 && awning_value != 0 && awning_started == true) {// closing awning
-    awning_runtime_gap = millis() - awning_starttime;
-    awning_value_temp = (float)awning_value_init - (float)awning_runtime_gap / (float)AWRUNTIME * (float)100;
+        awning_runtime_gap = millis() - awnings[i].inittime;
+        if (awnings[i].sts == AWNINGOPEN) { //chiudo tenda
+          awning_value_temp = (float)awnings[i].initvalue - ((float)awning_runtime_gap / (float)awnings[i].runtime * (float)100);
+        }
+        else if (awnings[i].sts == AWNINGOPEN) { //apro tenda
+          awning_value_temp = (float)awnings[i].initvalue + ((float)awning_runtime_gap / (float)awnings[i].runtime * (float)100);
+        }
 
-    if (awning_value_temp <= 0) {
-      awning_value = 0;
+        if (awning_value_temp >= 100) {
+          awnings[i].value  = 100;
+        }
+        else if (awning_value_temp <= 0) {
+          awnings[i].value  = 0;
+        }
+        else {
+          awnings[i].value = (int)awning_value_temp;
+        }
+        awnings[i].validate = AWNINGNOTVALIDATED;
+      }
     }
-    else {
-      awning_value = (int)awning_value_temp;
+    
+   
+    //fine corsa aperto
+    if (digitalRead(awnings[i].pinr) == HIGH && digitalRead(awnings[i].ping) == LOW) {
+      awnings[i].sts = AWNINGOPEN;
+      awnings[i].run = AWNINGSTOP;
+      awnings[i].value  = 100;
+      awnings[i].validate = AWNINGVALIDATED;
+    }
+
+    //fine corsa chiuso
+    if (digitalRead(awnings[i].pinr) == LOW && digitalRead(awnings[i].ping) == HIGH) {
+      awnings[i].sts = AWNINGCLOSE;
+      awnings[i].run = AWNINGSTOP;
+      awnings[i].value  = 0;
+      awnings[i].validate = AWNINGVALIDATED;
+      //Serial.println("chiuso");
+    }
+
+    if (digitalRead(awnings[i].pinr) == LOW && digitalRead(awnings[i].ping) == LOW) {
+      awnings[i].run = AWNINGSTOP;
+      if (awnings[i].validate == AWNINGNOTVALIDATED){
+        awnings[i].value  = 50;
+      }
     }
   }
-  else if (sensors[0][1] != 1023 && sensors[1][1] != 1023 ) {
-    awning_started = false;
-  }
+
+  // pin salita, pin discesa, status, started, value
+
+
+  /*
+    //se è partita la discesa
+    if (awnings[i][3] == 1) { //start trigger opening
+      //riproporziono awning_starttime in base al valore attuale awning_value
+      awning_starttime = millis() - (AWRUNTIME * awning_value / 100);
+      awning_started = true;
+      awning_value_init = awning_value;
+    }
+    else if (sensors[0][1] == 1023 && awning_value != 100 && awning_started == true) {// opening awning
+      awning_runtime_gap = millis() - awning_starttime;
+      awning_value_temp = (float)awning_value_init + (float)awning_runtime_gap / (float)AWRUNTIME * (float)100;
+
+      if (awning_value_temp >= 100) {
+        awning_value = 100;
+      }
+      else {
+        awning_value = (int)awning_value_temp;
+      }
+    }
+    //se è partita la salita
+    else if (sensors[1][1] == 1023 && awning_started == false) { //start trigger closing
+      //riproporziono awning_starttime in base al valore attuale awning_value
+      awning_starttime = millis() - (AWRUNTIME * (100 - awning_value) / 100);
+      awning_started = true;
+      awning_value_init = awning_value;
+    }
+    else if (sensors[1][1] == 1023 && awning_value != 0 && awning_started == true) {// closing awning
+      awning_runtime_gap = millis() - awning_starttime;
+      awning_value_temp = (float)awning_value_init - (float)awning_runtime_gap / (float)AWRUNTIME * (float)100;
+
+      if (awning_value_temp <= 0) {
+        awning_value = 0;
+      }
+      else {
+        awning_value = (int)awning_value_temp;
+      }
+    }
+    else if (sensors[0][1] != 1023 && sensors[1][1] != 1023 ) {
+      awning_started = false;
+    }
+  */
 }
