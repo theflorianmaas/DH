@@ -34,8 +34,7 @@
 //IRsend irsend;
 //MideaIR remote_control(&irsend);
 // ------------------------------------------------------------ //
-#define PINNODE0 0
-#define PINNODE1 1
+#define PINNODE 0
 
 // reserved pins
 #define DHT_PIN   4 //DHT 
@@ -92,7 +91,8 @@
 #define AWNINGUP      39
 #define AWNINGDOWN    40
 #define AWNINGSTOP    41
-#define AWNINGSTATUS  42
+#define AWNINGSTATUS0 42
+#define AWNINGSTATUS1 43
 #define AWCOMMANDTIME 1500 //time to keep the command on
 #define AWRUNTIME     50000 //time to open/close the awning
 
@@ -130,7 +130,7 @@ struct Awnings {
   int validate;
 };
 
-Awnings awnings[2] = {{PINRED0, PINGRE0, 0, 0, 0, 0L, AWNINGNOTVALIDATED}, {PINRED1, PINGRE1, 0, 0, 0, 0L, AWNINGNOTVALIDATED}};
+Awnings awnings[2] = {{PINRED0, PINGRE0, 0, 0, 0, 0L, AWNINGVALIDATED}, {PINRED1, PINGRE1, 0, 0, 0, 0L, AWNINGVALIDATED}};
 
 #define IN 1
 #define OUT 0
@@ -701,17 +701,17 @@ void sendData(int t) // t=0 = sensors 1 = actuators 2=methods
     case METHOD:
       xbeeMeth[0] = METHOD;
 
-      xbeeMeth[idx] = PINNODE0;
+      xbeeMeth[idx] = PINNODE;
       idx++;
-      xbeeMeth[idx] = AWNINGSTATUS;
+      xbeeMeth[idx] = AWNINGSTATUS0;
       idx++;
       xbeeMeth[idx] = awnings[0].value;
       //Serial.println(awnings[0].value);
       idx++;
 
-      xbeeMeth[idx] = PINNODE1;
+      xbeeMeth[idx] = PINNODE;
       idx++;
-      xbeeMeth[idx] = AWNINGSTATUS;
+      xbeeMeth[idx] = AWNINGSTATUS1;
       idx++;
       xbeeMeth[idx] = awnings[1].value;
       //Serial.println(awnings[1].value);
@@ -844,7 +844,10 @@ void setPIN(int pin, int sts, int outputType, int p1, int p2)
             awning_starttime_command = millis();
             awning_started = true;
             awning_starttime = millis();
-            awning_direction = AWNINGCLOSE;
+            awnings[0].sts = AWNINGOPEN;
+            awnings[1].sts = AWNINGOPEN;
+            awnings[0].validate = AWNINGVALIDATED;
+            awnings[1].validate = AWNINGVALIDATED;
           }
           break;
         case AWNINGSTOP:
@@ -869,27 +872,14 @@ void setPIN(int pin, int sts, int outputType, int p1, int p2)
             awning_starttime_command = millis();
             awning_started = true;
             awning_starttime = millis();
-            awning_direction = AWNINGOPEN;
+            awnings[0].sts = AWNINGCLOSE;
+            awnings[1].sts = AWNINGCLOSE;
+            awnings[0].validate = AWNINGVALIDATED;
+            awnings[1].validate = AWNINGVALIDATED;
           }
           break;
       }
       break;
-
-    case SERVO:  //analog
-      //actuators[actuatorId][2] = outputType;
-      //      myservo.write(sts);
-      //#if defined (REMOTECONTROL_MODE)
-      //      SimpleSoftwareServo::refresh();
-      //#endif
-      // update actuator status
-      if (sts == OFF) { //if = OFF
-        actuators[actuatorId][1] = OFF; //set actuator status inactive
-      }
-      else { //if != OFF
-        actuators[actuatorId][1] = ON; //set actuator status active
-      }
-      break;
-
   }
   actuators[actuatorId][3] = sts; //set the actuator value
 
@@ -989,14 +979,16 @@ void checkAwinig()
     //Serial.println(digitalRead(awnings[i].pinr));
     //Serial.println(digitalRead(awnings[i].ping));
     if (digitalRead(awnings[i].pinr) == HIGH && digitalRead(awnings[i].ping) == HIGH) {
-      if (awnings[i].run != AWNINGRUN) {
+      if (awnings[i].run != AWNINGRUN) { //iniziallizzo tempo di esecuzione
         awnings[i].run = AWNINGRUN;
         //riproporziono awning_starttime in base al valore attuale awning_value
         if (awnings[i].sts == AWNINGOPEN) { //chiudo tenda
           awnings[i].runtime = AWRUNTIME * awnings[i].value / 100;
+          awnings[i].sts = AWNINGCLOSE;
         }
         else if (awnings[i].sts == AWNINGCLOSE) { //apro tenda
           awnings[i].runtime = AWRUNTIME * (100 - awnings[i].value) / 100;
+          awnings[i].sts = AWNINGOPEN;
         }
         awnings[i].inittime = millis();
         awnings[i].initvalue = awnings[i].value;
@@ -1005,11 +997,11 @@ void checkAwinig()
       else if (awnings[i].run == AWNINGRUN) {
 
         awning_runtime_gap = millis() - awnings[i].inittime;
-        if (awnings[i].sts == AWNINGOPEN) { //chiudo tenda
-          awning_value_temp = (float)awnings[i].initvalue - ((float)awning_runtime_gap / (float)awnings[i].runtime * (float)100);
-        }
-        else if (awnings[i].sts == AWNINGOPEN) { //apro tenda
+        if (awnings[i].sts == AWNINGOPEN) { //apro tenda
           awning_value_temp = (float)awnings[i].initvalue + ((float)awning_runtime_gap / (float)awnings[i].runtime * (float)100);
+        }
+        else if (awnings[i].sts == AWNINGCLOSE) { //chiudo tenda
+          awning_value_temp = (float)awnings[i].initvalue - ((float)awning_runtime_gap / (float)awnings[i].runtime * (float)100);
         }
 
         if (awning_value_temp >= 100) {
@@ -1024,8 +1016,7 @@ void checkAwinig()
         awnings[i].validate = AWNINGNOTVALIDATED;
       }
     }
-    
-   
+
     //fine corsa aperto
     if (digitalRead(awnings[i].pinr) == HIGH && digitalRead(awnings[i].ping) == LOW) {
       awnings[i].sts = AWNINGOPEN;
@@ -1045,54 +1036,9 @@ void checkAwinig()
 
     if (digitalRead(awnings[i].pinr) == LOW && digitalRead(awnings[i].ping) == LOW) {
       awnings[i].run = AWNINGSTOP;
-      if (awnings[i].validate == AWNINGNOTVALIDATED){
+      if (awnings[i].validate == AWNINGNOTVALIDATED) {
         awnings[i].value  = 50;
       }
     }
   }
-
-  // pin salita, pin discesa, status, started, value
-
-
-  /*
-    //se è partita la discesa
-    if (awnings[i][3] == 1) { //start trigger opening
-      //riproporziono awning_starttime in base al valore attuale awning_value
-      awning_starttime = millis() - (AWRUNTIME * awning_value / 100);
-      awning_started = true;
-      awning_value_init = awning_value;
-    }
-    else if (sensors[0][1] == 1023 && awning_value != 100 && awning_started == true) {// opening awning
-      awning_runtime_gap = millis() - awning_starttime;
-      awning_value_temp = (float)awning_value_init + (float)awning_runtime_gap / (float)AWRUNTIME * (float)100;
-
-      if (awning_value_temp >= 100) {
-        awning_value = 100;
-      }
-      else {
-        awning_value = (int)awning_value_temp;
-      }
-    }
-    //se è partita la salita
-    else if (sensors[1][1] == 1023 && awning_started == false) { //start trigger closing
-      //riproporziono awning_starttime in base al valore attuale awning_value
-      awning_starttime = millis() - (AWRUNTIME * (100 - awning_value) / 100);
-      awning_started = true;
-      awning_value_init = awning_value;
-    }
-    else if (sensors[1][1] == 1023 && awning_value != 0 && awning_started == true) {// closing awning
-      awning_runtime_gap = millis() - awning_starttime;
-      awning_value_temp = (float)awning_value_init - (float)awning_runtime_gap / (float)AWRUNTIME * (float)100;
-
-      if (awning_value_temp <= 0) {
-        awning_value = 0;
-      }
-      else {
-        awning_value = (int)awning_value_temp;
-      }
-    }
-    else if (sensors[0][1] != 1023 && sensors[1][1] != 1023 ) {
-      awning_started = false;
-    }
-  */
 }

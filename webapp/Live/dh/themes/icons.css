@@ -2017,7 +2017,7 @@ input.input_temp_t  {
 /*--adjust as necessary--*/ 
     font-size: 36px;
     position: absolute;
-	top:55px;
+	top:60px;
 	left: 65px;
 	content: "\f16d";
 	z-index: 1;
@@ -2031,7 +2031,7 @@ input.input_temp_t  {
 /*--adjust as necessary--*/ 
     font-size: 36px;
     position: absolute;
-	top:55px;
+	top:60px;
 	left: 175px;
 	content: "\f170";
 	z-index: 1;
@@ -2045,13 +2045,139 @@ input.input_temp_t  {
 /*--adjust as necessary--*/ 
     font-size: 36px;
     position: absolute;
-	top:55px;
+	top:60px;
 	left: 120px;
 	content: "\f110";
 	z-index: 1;
 }
 
-.awsts0:before {
+.awsts00:before {
+    font-family: AWicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    position: absolute;
+	top:0px;
+	right: 54px;
+	content: "\f108";
+	z-index: 1;
+}
+
+.awsts01:before {
+    font-family: AWicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    position: absolute;
+	top:0px;
+	right: 54px;
+	content: "\f100";
+	z-index: 1;
+}
+
+.awsts02:before {
+    font-family: AWicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    position: absolute;
+	top: 0px;
+	right: 58px;
+	content: "\f101";
+	z-index: 1;
+}
+
+.awsts03:before {
+    font-family: AWicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    position: absolute;
+	top: 0px;
+	right: 54px;
+	content: "\f102";
+	z-index: 1;
+}
+
+.awsts04:before {
+    font-family: AWicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    position: absolute;
+	top:0px;
+	right: 54px;
+	content: "\f103";
+	z-index: 1;
+}
+
+.awsts05:before {
+    font-family: AWicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    position: absolute;
+	top:0px;
+	right: 54px;
+	content: "\f104";
+	z-index: 1;
+}
+
+.awsts06:before {
+    font-family: AWicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    position: absolute;
+	top:0px;
+	right: 54px;
+	content: "\f105";
+	z-index: 1;
+}
+
+.awsts07:before {
+    font-family: AWicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    position: absolute;
+	top:0px;
+	right: 54px;
+	content: "\f106";
+	z-index: 1;
+}
+
+.awsts08:before {
+    font-family: AWicon;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: inherit;
+/*--adjust as necessary--*/ 
+    font-size: 36px;
+    position: absolute;
+	top: 0px;
+	right: 54px;
+	content: "\f107";
+	z-index: 1;
+}
+
+.awsts10:before {
     font-family: AWicon;
     font-style: normal;
     font-weight: normal;
@@ -2065,7 +2191,7 @@ input.input_temp_t  {
 	z-index: 1;
 }
 
-.awsts1:before {
+.awsts11:before {
     font-family: AWicon;
     font-style: normal;
     font-weight: normal;
@@ -2079,7 +2205,7 @@ input.input_temp_t  {
 	z-index: 1;
 }
 
-.awsts2:before {
+.awsts12:before {
     font-family: AWicon;
     font-style: normal;
     font-weight: normal;
@@ -2087,13 +2213,13 @@ input.input_temp_t  {
 /*--adjust as necessary--*/ 
     font-size: 36px;
     position: absolute;
-	top:0px;
+	top: 0px;
 	right: 8px;
 	content: "\f101";
 	z-index: 1;
 }
 
-.awsts3:before {
+.awsts13:before {
     font-family: AWicon;
     font-style: normal;
     font-weight: normal;
@@ -2101,13 +2227,13 @@ input.input_temp_t  {
 /*--adjust as necessary--*/ 
     font-size: 36px;
     position: absolute;
-	top:0px;
+	top: 0px;
 	right: 8px;
 	content: "\f102";
 	z-index: 1;
 }
 
-.awsts4:before {
+.awsts14:before {
     font-family: AWicon;
     font-style: normal;
     font-weight: normal;
@@ -2121,7 +2247,7 @@ input.input_temp_t  {
 	z-index: 1;
 }
 
-.awsts5:before {
+.awsts15:before {
     font-family: AWicon;
     font-style: normal;
     font-weight: normal;
@@ -2135,7 +2261,7 @@ input.input_temp_t  {
 	z-index: 1;
 }
 
-.awsts6:before {
+.awsts16:before {
     font-family: AWicon;
     font-style: normal;
     font-weight: normal;
@@ -2149,7 +2275,7 @@ input.input_temp_t  {
 	z-index: 1;
 }
 
-.awsts7:before {
+.awsts17:before {
     font-family: AWicon;
     font-style: normal;
     font-weight: normal;
@@ -2163,7 +2289,7 @@ input.input_temp_t  {
 	z-index: 1;
 }
 
-.awsts8:before {
+.awsts18:before {
     font-family: AWicon;
     font-style: normal;
     font-weight: normal;
@@ -2171,10 +2297,9 @@ input.input_temp_t  {
 /*--adjust as necessary--*/ 
     font-size: 36px;
     position: absolute;
-	top:0px;
+	top: 0px;
 	right: 8px;
 	content: "\f107";
 	z-index: 1;
 }
-
 

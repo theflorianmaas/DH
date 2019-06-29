@@ -45,7 +45,8 @@
 	define("AWNINGUP",	 "39");
 	define("AWNINGDOWN", "40");
 	define("AWNINGSTOP", "41");
-	define("AWNINGSTATUS", "42");
+	define("AWNINGSTATUS0", "42");
+	define("AWNINGSTATUS1", "43");
 
 	
 	

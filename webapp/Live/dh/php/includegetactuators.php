@@ -1921,39 +1921,74 @@ data: $(this).parent().serialize() // changed
 				
 				break;	
 
-				case AWNINGSTATUS: //42 Awning STATUS
+				case AWNINGSTATUS0: //42 Awning 0 STATUS
 				echo ('<form>');
 				if ($selectedMethod['value'] == 0)  { 
-					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts0"');
+					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts00"');
 				}
-				elseif ($selectedMethod['value'] > 0 and $selectedMethod['value'] <= 12) {
-					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts1"');
+				elseif ($selectedMethod['value']> 0 and $selectedMethod['value'] <= 12) {
+					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts01"');
 				}
 				elseif ($selectedMethod['value'] > 12 and $selectedMethod['value'] <= 25) {
-					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts2"');
+					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts02"');
 				}
-				elseif ($selectedMethod['value'] > 25 and $selectedMethod['value'] <= 38) {
-					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts3"');
+				elseif ($selectedMethod['value']> 25 and $selectedMethod['value'] <= 38) {
+					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts03"');
 				}
 				elseif ($selectedMethod['value'] > 38 and $selectedMethod['value'] <= 50) {
-					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts4"');
+					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts04"');
 				}
 				elseif ($selectedMethod['value'] > 50 and $selectedMethod['value'] <= 62) {
-					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts5"');
+					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts05"');
 				}
 				elseif ($selectedMethod['value'] > 62 and $selectedMethod['value'] <= 75) {
-					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts6"');
+					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts06"');
 				}
 				elseif ($selectedMethod['value'] > 75 and $selectedMethod['value'] <= 88) {
-					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts7"');
+					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts07"');
 				}
 				elseif ($selectedMethod['value'] > 88 and $selectedMethod['value'] <= 100) {
-					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts8"');
+					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts08"');
 				}
 				echo ('</span>');
 				echo('</form>');
 				
 				break;	
+				
+				case AWNINGSTATUS1: //43 Awning 1 STATUS
+				echo ('<form>');
+				if ($selectedMethod['value'] == 0)  { 
+					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts10"');
+				}
+				elseif ($selectedMethod['value']> 0 and $selectedMethod['value'] <= 12) {
+					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts11"');
+				}
+				elseif ($selectedMethod['value'] > 12 and $selectedMethod['value'] <= 25) {
+					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts12"');
+				}
+				elseif ($selectedMethod['value']> 25 and $selectedMethod['value'] <= 38) {
+					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts13"');
+				}
+				elseif ($selectedMethod['value'] > 38 and $selectedMethod['value'] <= 50) {
+					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts14"');
+				}
+				elseif ($selectedMethod['value'] > 50 and $selectedMethod['value'] <= 62) {
+					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts15"');
+				}
+				elseif ($selectedMethod['value'] > 62 and $selectedMethod['value'] <= 75) {
+					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts16"');
+				}
+				elseif ($selectedMethod['value'] > 75 and $selectedMethod['value'] <= 88) {
+					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts17"');
+				}
+				elseif ($selectedMethod['value'] > 88 and $selectedMethod['value'] <= 100) {
+					echo ('<span id="vx' .$selectedMethod['tbactuatortype_id'].$selectedMethod['tbactuatormethod_id'].$selectedMethod['tbactuator_id']. '" class="awsts18"');
+				}
+				echo ('</span>');
+				echo('</form>');
+				
+				break;	
+
 
 				
 			}				
