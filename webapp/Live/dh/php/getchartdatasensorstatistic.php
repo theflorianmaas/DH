@@ -13,7 +13,7 @@ $sql = "SELECT DATE_FORMAT(tbhistvalstatistic.date,'%d/%m/%Y') as Data
 		  FROM tbhistvalstatistic 
 		 WHERE tbhistvalstatistic.tbsensor_id = " .$_SESSION["id"]. "
 		   AND tbhistvalstatistic.date between DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW() 		 
-      ORDER BY tbhistvalstatistic.date";
+      ORDER BY Data";
 }
 elseif ($_GET['period'] == "year") 
 {
@@ -22,14 +22,14 @@ $sql = "SELECT DATE_FORMAT(tbhistvalstatistic.date,'1/%m/%Y') as Data
 		  FROM tbhistvalstatistic 
 		 WHERE tbhistvalstatistic.tbsensor_id = " .$_SESSION["id"]. " 
 		   AND tbhistvalstatistic.date between DATE_SUB(NOW(), INTERVAL 1 YEAR) AND NOW() 	
-      GROUP BY DATE_FORMAT(tbhistvalstatistic.date,'%m%y') 
-      ORDER BY tbhistvalstatistic.date"; 
+      GROUP BY Data 
+      ORDER BY Data";    
 }
 
 $result = mysqli_query($db,$sql) or die("SQL Error 1: " . mysqli_error());
 $numfields = mysqli_num_fields($result);
 
-while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
+while ($row = mysqli_fetch_array($result)) {
 	$y = "";
 	$i = 0;
 	$y = "[";

@@ -13,7 +13,7 @@ case 'd': //day
 	// check if the chart lines are smooth
 	$sql = "SELECT smooth as _RES FROM tbchart WHERE id = " . $_SESSION["id"];
 	$tchart = mysqli_query($db, $sql) or die("SQL Error 1: " . mysql_error($db));
-	while ($row = mysqli_fetch_array($tchart, MYSQL_ASSOC)) {
+	while ($row = mysqli_fetch_array($tchart)) {
 		$smooth =  $row['_RES'];
 	}
 	$result = mysqli_query($db,"SELECT generatesqlchartseries(".$_SESSION["id"].",".$smooth.") AS _SQL") or die("SQL Error 2: " . mysql_error($db));
@@ -26,7 +26,7 @@ case 'y': //year
 	break;	
 }
 
-while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
+while ($row = mysqli_fetch_array($result)) {
 	$sql =  $row['_SQL'];
 	}
 
@@ -37,7 +37,7 @@ else { //something to execute
 	$result = mysqli_query($db,$sql) or die("SQL Error 1: " . mysqli_error());
 	$numfields = mysqli_num_fields($result);
 
-	while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
+	while ($row = mysqli_fetch_array($result)) {
 		$y = "";
 		$i = 0;
 		$y = "[";

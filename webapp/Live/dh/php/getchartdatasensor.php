@@ -11,16 +11,17 @@ $sql = "SELECT tbsensortype.smooth as _RES
 		  FROM tbsensor, tbsensortype 
          WHERE tbsensor.tbsensortype_id = tbsensortype.id
            AND tbsensor.id = " . $_SESSION["id"];
-		   
+		
+   
 $tchart = mysqli_query($db,$sql);
-while ($row = mysqli_fetch_array($tchart, MYSQL_ASSOC)) {
+while ($row = mysqli_fetch_array($tchart)) {
 	$smooth =  $row['_RES'];
-	//echo($smooth);
+	// print($smooth);
 	}
 
 $result = mysqli_query($db,"SELECT generatesqlchartseriesSensor(".$_SESSION["id"].",".$smooth.") AS _SQL") or die("SQL Error 1: " . mysql_error());
 
-while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
+while ($row = mysqli_fetch_array($result)) {
 	$sql =  $row['_SQL'];
 	}
 
@@ -31,7 +32,7 @@ else { //something to execute
 	$result = mysqli_query($db,$sql) or die("SQL Error 1: " . mysqli_error());
 	$numfields = mysqli_num_fields($result);
 
-	while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
+	while ($row = mysqli_fetch_array($result)) {
 		$y = "";
 		$i = 0;
 		$y = "[";

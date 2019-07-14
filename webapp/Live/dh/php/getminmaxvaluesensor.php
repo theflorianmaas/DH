@@ -8,7 +8,7 @@ include_once("/php/db.php");
 $query = "SELECT tbsensortype_id FROM tbsensor WHERE tbsensor.id = " . $_SESSION["id"];
 $result = mysqli_query($db,$query) or die("SQL Error 1: " . mysqli_error());
 
-while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
+while ($row = mysqli_fetch_array($result)) {
 	$sensortypeid = $row['tbsensortype_id'];
 	}
  
@@ -18,7 +18,7 @@ $result = mysqli_query($db,$query) or die("SQL Error 1: " . mysqli_error());
 
 
   // get data and store in a json array
-while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
+while ($row = mysqli_fetch_array($result)) {
 	if ($sensortypeid != 7 && $row['minval'] < 0 ) 
 	{ //sensor type not temperature and less than 0 then minval = 0
 		echo "minValue: '0',\n";

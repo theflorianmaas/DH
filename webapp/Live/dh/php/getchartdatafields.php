@@ -17,7 +17,7 @@ if ($_SESSION['period'] == 'd')
 { echo ("data.addColumn('datetime', 'Date');");	}
 else 
 { echo ("data.addColumn('date', 'Date');");	}
-while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
+while ($row = mysqli_fetch_array($result)) {
 	//$sql[] = array( 'sql' => $row['_HAEADER'] );
 	//$sql =  $row['room'];
 	echo ("data.addColumn('number', '" .$row['room']. "');");

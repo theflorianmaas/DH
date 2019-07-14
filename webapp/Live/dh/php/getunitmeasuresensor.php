@@ -15,7 +15,7 @@ $query = "SELECT u.descr
   
 $result = mysqli_query($db,$query) or die("SQL Error 1: " . mysqli_error());
   // get data and store in a json array
-while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
+while ($row = mysqli_fetch_array($result)) {
 	echo ("title: '". $row['descr']. "',\n");
 	}
 

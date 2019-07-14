@@ -94,7 +94,7 @@
 #define AWNINGSTATUS0 42
 #define AWNINGSTATUS1 43
 #define AWCOMMANDTIME 1500 //time to keep the command on
-#define AWRUNTIME     50000 //time to open/close the awning
+#define AWRUNTIME     10000 //time to open/close the awning
 
 #define AWNINGOPEN    1
 #define AWNINGCLOSE   0
@@ -706,7 +706,8 @@ void sendData(int t) // t=0 = sensors 1 = actuators 2=methods
       xbeeMeth[idx] = AWNINGSTATUS0;
       idx++;
       xbeeMeth[idx] = awnings[0].value;
-      //Serial.println(awnings[0].value);
+      Serial.println("tenda0: ");
+      Serial.print(awnings[0].value);
       idx++;
 
       xbeeMeth[idx] = PINNODE;
@@ -980,15 +981,18 @@ void checkAwinig()
     //Serial.println(digitalRead(awnings[i].ping));
     if (digitalRead(awnings[i].pinr) == HIGH && digitalRead(awnings[i].ping) == HIGH) {
       if (awnings[i].run != AWNINGRUN) { //iniziallizzo tempo di esecuzione
+        debug("initial run", i);
         awnings[i].run = AWNINGRUN;
         //riproporziono awning_starttime in base al valore attuale awning_value
         if (awnings[i].sts == AWNINGOPEN) { //chiudo tenda
           awnings[i].runtime = AWRUNTIME * awnings[i].value / 100;
           awnings[i].sts = AWNINGCLOSE;
+          debug("chiudo tenda", i);
         }
         else if (awnings[i].sts == AWNINGCLOSE) { //apro tenda
           awnings[i].runtime = AWRUNTIME * (100 - awnings[i].value) / 100;
           awnings[i].sts = AWNINGOPEN;
+          debug("apro tenda", i);
         }
         awnings[i].inittime = millis();
         awnings[i].initvalue = awnings[i].value;
@@ -1023,6 +1027,7 @@ void checkAwinig()
       awnings[i].run = AWNINGSTOP;
       awnings[i].value  = 100;
       awnings[i].validate = AWNINGVALIDATED;
+      debug("fine corsa aperto", i);
     }
 
     //fine corsa chiuso
@@ -1032,13 +1037,21 @@ void checkAwinig()
       awnings[i].value  = 0;
       awnings[i].validate = AWNINGVALIDATED;
       //Serial.println("chiuso");
+      debug("fine corsa chiuso", i);
     }
 
     if (digitalRead(awnings[i].pinr) == LOW && digitalRead(awnings[i].ping) == LOW) {
       awnings[i].run = AWNINGSTOP;
       if (awnings[i].validate == AWNINGNOTVALIDATED) {
         awnings[i].value  = 50;
+        debug("tutto off", i);
       }
     }
   }
+}
+
+
+void debug (String str, int idx) {
+  if (idx == 0)
+    Serial.println(str);
 }

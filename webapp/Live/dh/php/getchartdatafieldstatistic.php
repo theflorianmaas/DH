@@ -10,7 +10,7 @@ $sql = "SELECT tbsensor.descr as _HAEADER FROM tbsensor
 $result = mysqli_query($db, $sql);
 
 echo ("data.addColumn('date', 'Date');");
-while ($row = mysqli_fetch_array($result, MYSQL_ASSOC)) {
+while ($row = mysqli_fetch_array($result)) {
 	echo ("data.addColumn('number', '" .$row['_HAEADER']. "');");
 }
 
