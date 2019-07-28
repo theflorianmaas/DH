@@ -21,7 +21,9 @@ import mysql.connector
 from mysql.connector import errorcode
 from db import * 
 
-maxIdx = 17
+time.sleep(1) #wait for mysql starts
+
+maxIdx = 15
 
 idx = [None]*maxIdx
 proc = [None]*maxIdx
@@ -53,8 +55,6 @@ idx[11] = 11
 idx[12] = 12
 idx[13] = 13
 idx[14] = 14
-idx[15] = 15
-idx[16] = 16
 
 arg[1] = ""
 arg[2] = ""
@@ -69,26 +69,22 @@ arg[10] = ""
 arg[11] = ""
 arg[12] = ""
 arg[13] = ""
-arg[14] = ""
-arg[15] = ""
-arg[16] = "192.168.1.75"
+arg[14] = "192.168.178.75"
 
 proc[1] = "p_server_queue"
 proc[3] = "scheduler"
 proc[4] = "scheduler"
 proc[6] = "sendMail"
-proc[11] = "p_cmd_in"
-proc[12] = "p_cmd_out"
-proc[13] = "p_cmd_get"
-proc[14] = "p_serial"
+proc[9] = "p_cmd_in"
+proc[10] = "p_cmd_out"
+proc[11] = "p_cmd_get"
+proc[12] = "p_serial"
 proc[5] = "setHistoryData"
-proc[2] = "getMeteo"
+proc[2] = "getDirectUpdate"
 proc[7] = "setHistoryDataStatistic"
 proc[8] = "syncTime"
-proc[9] = "smartlight"
-proc[10] = "getMeteoForecast"
-proc[15] = "lightmanagerlogin"
-proc[16] = "lightmonitor"
+proc[13] = "lightmanagerlogin"
+proc[14] = "lightmonitor"
 
 status_text = ""
 dbstarted = False
@@ -97,8 +93,8 @@ while dbstarted == False: # wait until mysql server is not started
 	time.sleep(2)
 	# -- DB Connection ---------------------------
 	try:
-		db = mysql.connector.connect(**config)
 		dbstarted = True
+		db = mysql.connector.connect(**config)		
 	except mysql.connector.Error as err:
 		dbstarted = False
 		if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
@@ -159,7 +155,8 @@ def exec_ss_8():
 	startProc(8)	
 	
 def exec_ss_9():
-	startProc(9)
+	#startProc(9)
+	a=0	
 
 def exec_ss_10():
 	startProc(10)	
@@ -177,10 +174,10 @@ def exec_ss_14():
 	startProc(14)															
 
 def exec_ss_15():
-	startProc(15)	
+	startProc(15)		
 	
 def exec_ss_16():
-	startProc(16)	
+	startProc(16)		
 		
 def log(t, m):
 	sql = "insert into tblog (type,msg) VALUES (%s, %s)" 
