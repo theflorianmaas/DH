@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="themes/dhicon.css" />
 <link rel="stylesheet" href="themes/icons.css" />
 <link rel="stylesheet" href="themes/awicon.css" />
+<link rel="stylesheet" href="themes/batticon.css" />
 <script type="text/javascript" src="js/gauge.js"></script>	
 <script type="text/javascript" src="js/map.js"></script>
 <link rel="stylesheet" href="js/jquery.numpad.css">

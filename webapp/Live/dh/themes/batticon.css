@@ -1,0 +1,27 @@
+	/*
+  	Flaticon icon font: Flaticon
+  	Creation date: 27/07/2019 14:13
+  	*/
+
+@font-face {
+  font-family: "Batticon";
+  src: url("./Batticon.eot");
+  src: url("./Batticon.eot?#iefix") format("embedded-opentype"),
+       url("./Batticon.woff2") format("woff2"),
+       url("./Batticon.woff") format("woff"),
+       url("./Batticon.ttf") format("truetype"),
+       url("./Batticon.svg#Flaticon") format("svg");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  @font-face {
+    font-family: "Batticon";
+    src: url("./Batticon.svg#Batticon") format("svg");
+  }
+}
+
+
+.batticon-battery:before { content: "\f197"; }
+.batticon-level:before { content: "\f198"; }
