@@ -30,21 +30,21 @@ PORT2 = 5013
 PORT3 = 5014
 AUTHKEY = str("123456").encode("utf-8")
 
-def output(x):
-	print(str(datetime.datetime.now().time())[:8] + " "+ str(x))
+def output(o, x):
+	print(str(str(o) + " " + str(datetime.datetime.now().time())[:8]) + " "+ str(x))
 	sys.stdout.flush()
 # -- DB Connection ---------------------------
 try:
   db = mysql.connector.connect(**config)
 except mysql.connector.Error as err:
   if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-    output("Something is wrong with your user name or password")
+    output("DB", "Something is wrong with your user name or password")
   elif err.errno == errorcode.ER_BAD_DB_ERROR:
-    output("Database does not exists")
+    output("DB", "Database does not exists")
   else:
     output(err)
 else:
-  output("Start procedure")
+  output("PYSERIAL","Start procedure")
 # -- END DB Connection ---------------------------
 
 # -- Open Serial to the Coordinator---------------
@@ -119,10 +119,10 @@ class Gpio:
                 self.gpiodir[pin] = (0 if direction < 1 else 1)
             return True
         except ValueError:
-            print ("ERROR: pinMode, value inserted wasn't an int")
+            output("PYSERIAL","ERROR: pinMode, value inserted wasn't an int")
             return False
         except:
-            print ("ERROR: pinMode, error using pinMode")
+            output("PYSERIAL","ERROR: pinMode, error using pinMode")
             return False
 
     def digitalWrite(self, pin=2, value=0):
@@ -138,10 +138,10 @@ class Gpio:
                 self.gpioval[pin] = (0 if value < 1 else 1)
             return True
         except ValueError:
-            print ("ERROR: digitalWrite, value inserted wasn't an int")
+            output("PYSERIAL","ERROR: digitalWrite, value inserted wasn't an int")
             return False
         except:
-            print ("ERROR: digitalWrite, error running")
+            output("PYSERIAL","ERROR: digitalWrite, error running")
             return False
 
     def digitalRead(self, pin=2):
@@ -155,10 +155,10 @@ class Gpio:
                 self.gpioval[pin] = int(reader.read().replace('\n', ''))
             return self.gpioval[pin]
         except ValueError:
-            print ("ERROR: digitalRead, value inserted wasn't an int")
+            output("PYSERIAL","ERROR: digitalRead, value inserted wasn't an int")
             return -1
         except:
-            print ("ERROR: digitalRead, error running")
+            output("PYSERIAL","ERROR: digitalRead, error running")
             return -1
 
 
@@ -188,7 +188,7 @@ def checkInit():
 	for (pvalue,pindex) in cur:
 		i = int("{}".format(pindex))
 		if i  == 1:
-			output ("Initialize Coordinator")
+			output ("PYSERIAL","Initialize Coordinator")
 			sql = "UPDATE tbparam SET pvalue = 0 WHERE ptype = 'I'" 
 			cur.execute(sql)
 			db.commit()
@@ -201,8 +201,8 @@ def checkInit():
 #-- Send Init data to the Coordinator --# 
 def initCoordinator():  
 
-	printTime()
-	output ("Initializing...")
+	#printTime()
+	output ("PYSERIAL","Initializing...")
 
 	global pnum
 	global INString
@@ -237,7 +237,7 @@ def initCoordinator():
 			IXString = IXString + "," + "{}".format(id) + "," + "{}".format(xbee_high_address) + "," + "{}".format(xbee_low_address)
 	#db.commit()
 	# count the number of sensors 
-	sql = "select count(*) as CNT from vwsensors where tbNodeType_id != 0" 
+	sql = "select count(*) as CNT from vwsensors where tbNodeType_id != 0 and pin_number < 30" 
 	cur.execute(sql)
 	for (CNT) in cur:
 		sensorNum=parseint("{}".format(CNT))
@@ -245,7 +245,7 @@ def initCoordinator():
 	db.commit()
 	#//col 0=node 1=sensor 2=value 3=alarm 4=spare	
     #retrieve sensor data and build initialization strings
-	sql = "SELECT nodeid,tbnodetype_id,tbsensortype_id,pin_number FROM vwsensors where tbnodetype_id != 0 and tbstatus_id = 1 order by nodeid,pin_number" 
+	sql = "SELECT nodeid,tbnodetype_id,tbsensortype_id,pin_number FROM vwsensors where tbnodetype_id != 0 and pin_number < 30 and tbstatus_id = 1 order by nodeid,pin_number" 
 	cur.execute(sql)
 	for (nodeid,tbnodetype_id,tbsensortype_id,pin_number) in cur:			
 			ISString = ISString + "," + "{}".format(nodeid) + "," + "{}".format(pin_number) + ",0,0,0"	
@@ -286,24 +286,24 @@ def initCoordinator():
 	#--------------------------------------------------------------------------------------------------------#
 	#----begin Sending init string to the coordinator -------------------------------------------------------#
 	#--------------------------------------------------------------------------------------------------------#
-	output("Init sensors")
+	output("PYSERIAL","Init sensors")
 	ret = initSendStringsToCoordinator(ISString)  
 	if ret == 0: #if fails
 		return 0
-	output("Init actuators")
+	output("PYSERIAL","Init actuators")
 	#output(IAString)
 	ret = initSendStringsToCoordinator(IAString)  
 	if ret == 0: #if fails
 		return 0
-	output("Init methods")
+	output("PYSERIAL","Init methods")
 	ret = initSendStringsToCoordinator(IMString)  
 	if ret == 0: #if fails
 		return 0		
-	output("Init nodes")
+	output("PYSERIAL","Init nodes")
 	ret = initSendStringsToCoordinator(INString)  
 	if ret == 0: #if fails
 		return 0
-	output("Init node addresses Xbee")
+	output("PYSERIAL","Init node addresses Xbee")
 	ret = initSendStringsToCoordinator(IXString)  
 	if ret == 0: #if fails
 		return 0		
@@ -312,7 +312,7 @@ def initCoordinator():
 	#--------------------------------------------------------------------------------------------------------#
 	# if Ok
 	cur.close
-	output ("End Initializing")
+	output ("PYSERIAL","End Initializing")
 	return 1
 	
 def isResponse(response):
@@ -324,38 +324,36 @@ def isResponse(response):
 		return False	
 		
 def isResponseOK(response):
-	print(response)
+	#print(response)
 	res = False
 	if "CX0" in str(response, 'utf-8'):
-		print(1)
+		#print(1)
 		res = False
 	elif "CX1" in str(response, 'utf-8'):	
-		print(2)
+		#print(2)
 		res = True
 	else:
-		print(3)
+		#print(3)
 		res = False	
-	print("qqq:")	
-	print("xx:", str(response))
+	#print("qqq:")	
+	#print("xx:", str(response))
 	return res			
 
 #--------------------------------------------------------------------------------------------------------#
 #---- get serial incoming data ---------------------------------------------------------------------#
 #--------------------------------------------------------------------------------------------------------#
 def getSerialData(qIN, qOUT, qResponse):
-	print("init serial")
+	output("PYSERIAL","init serial")
 	serCoord.flushInput()
 	readSerial = ""
 	serCoord.timeout = 1
 	while True:
-		#output("Waiting for data on serial")
 		gpio.digitalWrite(0,gpio.LOW) #write high value to pin
 		serialBuffer = serCoord.inWaiting()
 		if serialBuffer > 0: #data available on serial
 			gpio.digitalWrite(0,gpio.HIGH)
 			readSerial = serCoord.readline()
 			readSerial.rstrip(endSerialChars)
-			#output("Data received from serial")
 			if isResponse(readSerial) == True:
 			#	while not qResponse.empty():
 			#		qResponse.get()
@@ -364,14 +362,14 @@ def getSerialData(qIN, qOUT, qResponse):
 				aa=1		
 			else:	
 				qIN.put(readSerial)	
-				print("Data received:", serialBuffer)
+				# print("Data received:", serialBuffer)
 				#print("Q size:", qIn.qsize()) 	
 
 		while not qOUT.empty():
-			print("Q OUT size:", qOUT.qsize()) 
+			#print("Q OUT size:", qOUT.qsize()) 
 			stg = qOUT.get()
 			serCoord.write(bytes(stg, 'UTF-8')) 
-			output("String sent: " + str(stg))
+			output("PYSERIAL","String sent: " + str(stg))
 
 
 #--------------------------------------------------------------------------------------------------------#
@@ -380,7 +378,7 @@ def getSerialData(qIN, qOUT, qResponse):
 
 def initSendStringsToCoordinator(stg):  
 	serCoord.flushInput()
-	output(stg)
+	# output("PYSERIAL",stg)
 	# send the node string
 	attemptsCnt = 0
 	while serCoord.inWaiting() == 0  and attemptsCnt < 5:
@@ -395,7 +393,7 @@ def initSendStringsToCoordinator(stg):
 			log("E", "Error "+stg)
 		else:
 			attemptsCnt = attemptsCnt + 1
-			output(attemptsCnt)
+			#output("PYSERIAL",attemptsCnt)
 			continue
 	# write error in log
 	log("E", "no serial available")

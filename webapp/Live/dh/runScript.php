@@ -1,7 +1,7 @@
 <?php
 
 
-// ?ip="192.168.1.75"&key="FdkbvH1mC3mxUFhb"&group=131073&light=0&command="listlight"&value=0
+// ?ip="192.168.178.75"&key="FdkbvH1mC3mxUFhb"&group=131073&light=0&command="listlight"&value=0
 //
 
 $ip 	 = $_GET["ip"];

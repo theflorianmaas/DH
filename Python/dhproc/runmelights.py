@@ -135,46 +135,60 @@ def startProc(num):
 
 # define the method callbacks
 def exec_ss_1():
-	startProc(1)	
+	#startProc(1)
+	a=0	
 	
 def exec_ss_2():
-	startProc(2)	
+	#startProc(2)
+	a=0		
 	
 def exec_ss_3():
-	startProc(3)	
+	#startProc(3)	
+	a=0	
 	
 def exec_ss_4():
-	startProc(4)	
+	#startProc(4)	
+	a=0	
 	
 def exec_ss_5():
-	startProc(5)	
+	#startProc(5)	
+	a=0	
 	
 def exec_ss_6():
-	startProc(6)	
+	#startProc(6)
+	a=0		
 	
 def exec_ss_7():
-	startProc(7)	
+	#startProc(7)	
+	a=0	
 	
 def exec_ss_8():
-	startProc(8)	
+	#startProc(8)	
+	a=0	
 	
 def exec_ss_9():
-	startProc(9)
+	#startProc(9)
+	a=0	
 
 def exec_ss_10():
-	startProc(10)	
+	#startProc(10)
+	a=0		
 	
 def exec_ss_11():
-	startProc(11)	
+	#startProc(11)
+	a=0		
 	
 def exec_ss_12():
-	startProc(12)	
+	#startProc(12)
+	a=0		
 	
 def exec_ss_13():
-	startProc(13)	
+	#startProc(13)
+	a=0		
 	
 def exec_ss_14():
-	startProc(14)															
+	#startProc(14)
+	a=0																
 
 def exec_ss_15():
 	startProc(15)	

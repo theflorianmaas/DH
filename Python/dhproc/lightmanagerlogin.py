@@ -24,7 +24,7 @@ PORT8 = 5555
 PORT9 = 5556
 AUTHKEY = str("123456").encode("utf-8")
 
-ip_host = "192.168.1.75"
+ip_host = "192.168.178.75"
 CONFIG_FILE = 'tradfri_standalone_psk.conf'
 
 # Assign configuration variables.
@@ -214,7 +214,7 @@ def run():
 			api(cmd)
 			output = command + " group"
 	
-		#-- Set lights dimmer ---------------------------------------
+		#-- Set light dimmer ---------------------------------------
 		if group == 0 and light != 0 and command == "setdimmer":
 			x = get_index(light, lights)
 			cmd = lights[x].light_control.set_dimmer(value, transition_time=20)	

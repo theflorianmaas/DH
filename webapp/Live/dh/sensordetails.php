@@ -29,7 +29,7 @@
 		function drawChartd() {
 			var data = new google.visualization.DataTable();
 			<?php include 'php/getchartdatafieldsensor.php'; ?>
-			data.addRows([
+			data.addRows([ 
 			<?php include 'php/getchartdatasensor.php'; ?> 
 			]);
 

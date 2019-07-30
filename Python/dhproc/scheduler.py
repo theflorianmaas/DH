@@ -33,7 +33,8 @@ cur = db.cursor()
 sql = "SELECT sts, proc FROM tbproctl WHERE id = " + str(sys.argv[1] + " LIMIT 1")
 cur.execute(sql)
 row = cur.fetchone()
-proc = row[1].decode("utf-8")
+#proc = row[1].decode("utf-8")
+proc = row[1]
 
 while True:
 	try:

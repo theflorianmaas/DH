@@ -1,3 +1,13 @@
+function success_message(message) {
+    $('#list-report-success').html(message);
+    $('#list-report-success').slideDown();
+}
+
+function error_message(message) {
+    $('#list-report-error').html(message);
+    $('#list-report-error').slideDown();
+}
+
 $(function(){
 	$('.quickSearchButton').click(function(){
 		$(this).closest('.flexigrid').find('.quickSearchBox').slideToggle('normal');
@@ -12,6 +22,21 @@ $(function(){
 			$(this).closest('.flexigrid').find('.main-table-box').slideUp("slow");
 		}
 	});
+
+    var create_export_url = function ($this_form) {
+        var $flexigridContainer = $this_form.closest('.flexigrid'),
+            exportQuery = '';
+
+        $.each($flexigridContainer.find('.filtering_form').serializeArray(), function(i, field) {
+        	if (field.value !== '') {
+                exportQuery += field.name + '=' + field.value + '&';
+			}
+        });
+
+        exportQuery = exportQuery.substr(0, exportQuery.length - 1)
+
+        $flexigridContainer.find('.export-anchor').attr('href', export_url + '?' + exportQuery)
+    };
 
 	var call_fancybox = function () {
 		//If there is no thumbnail this means that the fancybox library doesn't exist
@@ -62,6 +87,7 @@ $(function(){
 						this_form.closest('.flexigrid').find('.ajax_list').html(data);
 						call_fancybox();
 						add_edit_button_listener();
+						create_export_url(this_form);
 					 }
 				});
 			 }
@@ -154,8 +180,6 @@ $(function(){
 					if(data.success)
 					{
 						this_container.find('.ajax_refresh_and_loading').trigger('click');
-
-						success_message(data.success_message);
 					}
 					else
 					{
@@ -167,22 +191,6 @@ $(function(){
 		}
 
 		return false;
-	});
-
-	$('.export-anchor').click(function(){
-		var export_url = $(this).attr('data-url');
-
-		var form_input_html = '';
-		$.each($(this).closest('.flexigrid').find('.filtering_form').serializeArray(), function(i, field) {
-		    form_input_html = form_input_html + '<input type="hidden" name="'+field.name+'" value="'+field.value+'">';
-		});
-
-		var form_on_demand = $("<form/>").attr("id","export_form").attr("method","post").attr("target","_blank")
-								.attr("action",export_url).html(form_input_html);
-
-		$(this).closest('.flexigrid').find('.hidden-operations').html(form_on_demand);
-
-		$(this).closest('.flexigrid').find('.hidden-operations').find('#export_form').submit();
 	});
 
 	$('.print-anchor').click(function(){

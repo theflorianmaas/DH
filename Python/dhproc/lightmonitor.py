@@ -136,21 +136,54 @@ def savelights():
     wfile = open ("files/datafile.json", "w")
     wfile.write(lista)
     wfile.close()
+    output("file salvato")   
+    
+def savegroups():
+    i = 0
+    lista = "" 
+    for id in groupArrayId: 
+		# scrivi record
+        lista = lista + str(groupArrayId[i])
+        lista = lista +  ","
+        lista = lista + str(groupArraySts[i])
+        lista = lista +  ","
+        lista = lista + str(groupArrayValue[i])
+        lista = lista +  ","
+        lista = lista + str(groupArrayMood[i])
+        lista = lista +  ","     
+        i += 1
+    wfile = open ("files/datafilegroups.json", "w")
+    wfile.write(lista)
+    wfile.close()
     output("file salvato")    
+         
     
 def get_index(id, list_):
 	for i, s in enumerate(list_):	
 		if str(id) == str(s):			
 			return i
-	return -1	    
-
+	return -1	
+	
+conf = load_json(CONFIG_FILE)
+identity = conf[args.host].get('identity')
+psk = conf[args.host].get('key')
+api_factory = APIFactory(host=args.host, psk_id=identity, psk=psk)
+api = api_factory.request
+gateway = Gateway()
+lights = []
+groups = []	
 
 @asyncio.coroutine
 def run():
+    global conf
+    global api_factory	
+    global lights
+    global groups
+    global api
+    global gateway
     # Assign configuration variables.
     # The configuration check takes care they are present.
-    conf = load_json(CONFIG_FILE)
-
+   
     try:
         identity = conf[args.host].get('identity')
         psk = conf[args.host].get('key')
@@ -171,14 +204,16 @@ def run():
                                  "back of your Tradfri gateway using the "
                                  "-K flag.")
 
-    api = api_factory.request
-
-    gateway = Gateway()
-
-  
+    #get all devices
     devices_command = gateway.get_devices()
     devices_commands = yield from api(devices_command)
     devices = yield from api(devices_commands)
+    
+    #get all available groups
+    groups_command = gateway.get_groups()
+    groups_commands = yield from api(groups_command)
+    groupc = yield from api(groups_commands)
+    groups = [dev for dev in groupc]
 
     lights = [dev for dev in devices if dev.has_light_control]
     
@@ -187,9 +222,18 @@ def run():
         lightArrayId.append(light.id)
         lightArraySts.append(light.light_control.lights[0].state)
         lightArrayValue.append(light.light_control.lights[0].dimmer)
-        lightArrayColor.append(get_color_temp_idx(light.light_control.lights[0].hex_color))        
+        lightArrayColor.append(get_color_temp_idx(light.light_control.lights[0].hex_color))  
+
+     
+    #insert groups in the arrays
+    for group in groups:
+        groupArrayId.append(str(group.path[1]))
+        groupArraySts.append(group.state)
+        groupArrayValue.append(group.dimmer)
+        groupArrayMood.append(group.mood)           
     
     savelights()
+    savegroups()
 	
     # Lights can be accessed by its index, so lights[1] is the second light
     if lights:
@@ -207,6 +251,30 @@ def run():
         lightArrayValue[x] = light.light_control.lights[0].dimmer
         lightArrayColor[x] = get_color_temp_idx(light.light_control.lights[0].hex_color)
         savelights()
+ 
+    def observe_callback_2(updated_device):
+        #light = updated_device.light_control.lights[0]
+        output("Received message for: %s" % updated_device.path[1])
+        #light = updated_device
+        #x = get_index(light.id, lightArrayId)
+        #lightArraySts[x] = light.light_control.lights[0].state
+        #lightArrayValue[x] = light.light_control.lights[0].dimmer
+        #lightArrayColor[x] = get_color_temp_idx(light.light_control.lights[0].hex_color)
+        #savelights()       
+        #get all available groups
+        #groups_command = gateway.get_groups()
+        #groups_commands = yield from api(groups_command)
+        #groupc = yield from api(groups_commands)
+        #groups = [dev for dev in groupc]
+        
+        #insert groups in the arrays
+        #for group in groups:
+        #     groupArrayId.append(str(group.path[1]))
+        #     groupArraySts.append(group.state)
+        #     groupArrayValue.append(group.dimmer)
+        #     groupArrayMood.append(group.mood)
+        #savegroups()
+	  
 
     def observe_err_callback(err):
         output('observe error:', err)
@@ -218,6 +286,14 @@ def run():
         ensure_future(api(observe_command))
         # Yield to allow observing to start.
         yield from asyncio.sleep(0)
+        
+    for group in groups:
+        observe_command = group.observe(observe_callback_2, observe_err_callback,
+                                        duration=120)
+        # Start observation as a second task on the loop.
+        ensure_future(api(observe_command))
+        # Yield to allow observing to start.
+        yield from asyncio.sleep(0)        
 
     print("Waiting for observation to end (2 mins)")
     print("Try altering any light in the app, and watch the events!")
