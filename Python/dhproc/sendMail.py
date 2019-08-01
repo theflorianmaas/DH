@@ -51,12 +51,10 @@ def initSNTP():
 	global password 
 	global recipient
 	#get email credentials
-	cur.execute("select user_email, CAST(DES_DECRYPT(user_email_password_hash, user_name) AS CHAR(10000) CHARACTER SET utf8) from users;")
+	cur.execute("select user_email, CAST(AES_DECRYPT(user_email_password_hash, user_name) AS CHAR(10000) CHARACTER SET utf8) from users;")
 	row = cur.fetchone()
 	login = row[0]
 	password = row[1]
-	#print ("Set email paramps for "+smtpserver)
-	#cur.execute("commit")
 	sql = "Select user_email from users where user_id = 1"
 	cur.execute(sql)
 	for i in range(cur.rowcount):
@@ -68,8 +66,6 @@ def sendemail(n,s,b):
     global login
     global password
     global recipient
-    #global smtpserver
-    #idx = ti.index(x)
     from_addr    = 'udoo@myHomeMonitoring.it'
     to_addr_list = [recipient]
     cc_addr_list = ['zzz@xxx.cc'],
@@ -113,8 +109,7 @@ while True:
 		action = row[6]
 		room = row[7]
 		val = row[8]
-		body = "Scattato allarme in " + stripString(str(room, 'UTF8')) + " (nodo "+ stripString(str(node, 'UTF8')) + ") per "+ stripString(str(event, 'UTF8')) + str(" del sensore ") + stripString(str(sensor, 'UTF8')) + str(" alle ore ") + stripString(str(datetime)) +str(" valore = ")+ stripString(str(val, 'UTF8'))
-		#body = MIMEText(body.encode('utf-8'), _charset='utf-8')
+		body = "Scattato allarme in " + stripString(str(room)) + " (nodo "+ stripString(str(node)) + ") per "+ stripString(str(event)) + str(" del sensore ") + stripString(str(sensor)) + str(" alle ore ") + stripString(str(datetime)) +str(" valore = ")+ stripString(str(val))
 		output (body)
 		ret = sendemail(room,sensor,body)
 		output (ret)
