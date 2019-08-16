@@ -226,16 +226,12 @@ def execMeteo():
 	ret = getTemp()
 	if (ret == "Ok"):
 		try:
-			sql = "UPDATE tbsensor SET currentvalue = %s , lastupdate = '%s' where pin_number = '%s'"  % (temp_c, datetime.datetime.now(),'1000')
-			curM.execute(sql)
-			#output ("Meteo","Temperatura corrente "+str(temp_c)+" Celsius")
-			sql = "UPDATE tbsensor SET currentvalue = %s  , lastupdate = '%s' where pin_number = '%s'"  % (relative_humidity, datetime.datetime.now(), '1001')
-			curM.execute(sql)
-			#output ("Umidita' relativa corrente "+str(relative_humidity))
-			sql = "UPDATE tbsensor SET currentvalue = %s  , lastupdate = '%s' where pin_number = '%s'"  % (pressure, datetime.datetime.now(), '1002')
+			sql = "INSERT INTO tbdatain (timekey,type,v0,v1,v2) values (millis(),1,%s,%s,%s)" % ('2','1000',temp_c)
+			sql = sql + ",(millis(),1,%s,%s,%s)" % ('2','1001',relative_humidity)
+			sql = sql + ",(millis(),1,%s,%s,%s)" % ('2','1002',pressure)
 			curM.execute(sql)
 			curM.execute("commit")
-			#output ("Pressione corrente "+str(pressure))
+			output ("Meteo","Temperatura corrente "+str(temp_c)+" Celsius")
 			#get meteo icon
 			sql = "SELECT DISTINCT id FROM tbmeteo WHERE tbmeteo.condition = '" + str(meteo) + "'"
 			curM.execute(sql)
@@ -288,30 +284,15 @@ def execUps():
 		linev = 0				
 	
 	try:
-		sql = "UPDATE tbsensor SET currentvalue = %s , lastupdate = '%s' where pin_number = '%s'"  % (bcharge, datetime.datetime.now(),'32')
+		#sql = "UPDATE tbsensor SET currentvalue = %s , lastupdate = '%s' where pin_number = '%s'"  % (bcharge, datetime.datetime.now(),'32')
+		sql = "INSERT INTO tbdatain (timekey,type,v0,v1,v2) values (millis(),1,%s,%s,%s)" % ('8','32',bcharge)
+		sql = sql + ",(millis(),1,%s,%s,%s)" % ('8','33',vstatus)
+		sql = sql + ",(millis(),1,%s,%s,%s)" % ('8','34',battv)
+		sql = sql + ",(millis(),1,%s,%s,%s)" % ('8','30',timeleft)
+		sql = sql + ",(millis(),1,%s,%s,%s)" % ('8','31',linev)
+		
 		#output("UPS", sql)
 		curU.execute(sql)
-		#urU.execute("commit")
-		
-		sql = "UPDATE tbsensor SET currentvalue = %s , lastupdate = '%s' where pin_number = '%s'"  % (vstatus, datetime.datetime.now(),'33')
-		#output("UPS", sql)
-		curU.execute(sql)
-		#curU.execute("commit")
-		
-		sql = "UPDATE tbsensor SET currentvalue = %s , lastupdate = '%s' where pin_number = '%s'"  % (battv, datetime.datetime.now(),'34')
-		#output("UPS", sql)
-		curU.execute(sql)
-		#curU.execute("commit")
-		
-		sql = "UPDATE tbsensor SET currentvalue = %s , lastupdate = '%s' where pin_number = '%s'"  % (timeleft, datetime.datetime.now(),'30')
-		#output("UPS", sql)
-		curU.execute(sql)
-		#curU.execute("commit")
-		
-		sql = "UPDATE tbsensor SET currentvalue = %s , lastupdate = '%s' where pin_number = '%s'"  % (linev, datetime.datetime.now(),'31')
-		#output("UPS", sql)
-		curU.execute(sql)
-		
 		curU.execute("commit")
 		output ("UPS","Aggiornamento UPS fatto")
 					

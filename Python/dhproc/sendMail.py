@@ -1,9 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# Ver 16 - 23 March 2017 -
+# Ver 16 - 31 July 2019 -
 # set password 
 ## update users set user_email_password_hash =
-## DES_ENCRYPT('password', user_name)
+## AES_ENCRYPT('password', user_name)
 ## where user_id = 1
 
 from email.mime.text import MIMEText
@@ -55,21 +55,27 @@ def initSNTP():
 	row = cur.fetchone()
 	login = row[0]
 	password = row[1]
+	#print ("Set email paramps for "+password)
+	#cur.execute("commit")
 	sql = "Select user_email from users where user_id = 1"
 	cur.execute(sql)
 	for i in range(cur.rowcount):
 		row = cur.fetchone()
 		recipient = row[0]
+	#print(recipient)
 	cur.close	
 
 def sendemail(n,s,b):
     global login
     global password
     global recipient
+    #print(recipient)
+    #global smtpserver
+    #idx = ti.index(x)
     from_addr    = 'udoo@myHomeMonitoring.it'
     to_addr_list = [recipient]
     cc_addr_list = ['zzz@xxx.cc'],
-    subject      = 'Allarme sensore '+ s.decode("utf-8"), 
+    subject      = 'Allarme sensore '+ s, #.decode("utf-8"), 
     message      = b
     header  = 'From: %s\n' % from_addr
     header += 'To: %s\n' % ','.join(to_addr_list)
@@ -79,8 +85,8 @@ def sendemail(n,s,b):
     smtpserver = smtplib.SMTP("smtp.gmail.com",587)
     smtpserver.ehlo()
     smtpserver.starttls()
-    smtpserver.login(login, password)
-    problems = smtpserver.sendmail(from_addr, to_addr_list, message.encode('utf-8'))
+    x = smtpserver.login(login, password)
+    problems = smtpserver.sendmail(from_addr, to_addr_list, message) #.encode('utf-8'))
     smtpserver.quit()
     output (problems)
     return problems
@@ -110,6 +116,7 @@ while True:
 		room = row[7]
 		val = row[8]
 		body = "Scattato allarme in " + stripString(str(room)) + " (nodo "+ stripString(str(node)) + ") per "+ stripString(str(event)) + str(" del sensore ") + stripString(str(sensor)) + str(" alle ore ") + stripString(str(datetime)) +str(" valore = ")+ stripString(str(val))
+		#body = MIMEText(body.encode('utf-8'), _charset='utf-8')
 		output (body)
 		ret = sendemail(room,sensor,body)
 		output (ret)
