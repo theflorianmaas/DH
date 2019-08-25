@@ -23,7 +23,7 @@ from db import *
 
 time.sleep(1) #wait for mysql starts
 
-maxIdx = 15
+maxIdx = 17
 
 idx = [None]*maxIdx
 proc = [None]*maxIdx
@@ -55,6 +55,8 @@ idx[11] = 11
 idx[12] = 12
 idx[13] = 13
 idx[14] = 14
+idx[15] = 15
+idx[16] = 16
 
 arg[1] = ""
 arg[2] = ""
@@ -70,17 +72,21 @@ arg[11] = ""
 arg[12] = ""
 arg[13] = ""
 arg[14] = "192.168.178.75"
+arg[15] = ""
+arg[16] = "2"
 
 proc[1] = "p_server_queue"
 proc[3] = "scheduler"
 proc[4] = "scheduler"
+proc[16] = "scheduler"
 proc[6] = "sendMail"
 proc[9] = "p_cmd_in"
 proc[10] = "p_cmd_out"
 proc[11] = "p_cmd_get"
 proc[12] = "p_serial"
 proc[5] = "setHistoryData"
-proc[2] = "getDirectUpdate"
+proc[2] = "getMeteo"
+proc[15] = "getUPS"
 proc[7] = "setHistoryDataStatistic"
 proc[8] = "syncTime"
 proc[13] = "lightmanagerlogin"
@@ -155,8 +161,7 @@ def exec_ss_8():
 	startProc(8)	
 	
 def exec_ss_9():
-	#startProc(9)
-	a=0	
+	startProc(9)
 
 def exec_ss_10():
 	startProc(10)	
@@ -177,7 +182,7 @@ def exec_ss_15():
 	startProc(15)		
 	
 def exec_ss_16():
-	startProc(16)		
+	startProc(16)
 		
 def log(t, m):
 	sql = "insert into tblog (type,msg) VALUES (%s, %s)" 
@@ -283,4 +288,4 @@ begin()
 while True:
 	for num in range(1, maxIdx):
 		checkStatus(num, p[num])
-	time.sleep(5)		
+	time.sleep(30)		

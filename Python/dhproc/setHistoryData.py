@@ -10,8 +10,8 @@ from mysql.connector import errorcode
 from db import * 
 import datetime
 
-def output(x):
-	print(str(datetime.datetime.now().time())[:8]+ " "+ str(x))
+def output(o, x):
+	print(str(str(o) + " " + str(datetime.datetime.now().time())[:8]) + " "+ str(x))
 	sys.stdout.flush()
 
 # -- DB Connection ---------------------------
@@ -19,13 +19,13 @@ try:
   db = mysql.connector.connect(**config)
 except mysql.connector.Error as err:
   if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-    output("Something is wrong with your user name or password")
+    output("SetHistoryData","Something is wrong with your user name or password")
   elif err.errno == errorcode.ER_BAD_DB_ERROR:
-    output("Database does not exists")
+    output("SetHistoryData","Database does not exists")
   else:
     output(err)
 else:
-  output("Start procedure")
+  output("SetHistoryData","Start procedure")
 # -- END DB Connection ---------------------------
 
  
@@ -71,7 +71,7 @@ def log(t, m):
 
 def printTime():
 	now = datetime.datetime.now()
-	output (now.strftime("%H %M %S %f"))	
+	output ("SetHistoryData",now.strftime("%H %M %S %f"))	
 	
 def checkInit():
 	# check Init 
@@ -80,7 +80,6 @@ def checkInit():
 	for (pvalue,pindex) in cur:
 		i = int("{}".format(pindex))
 		if i  == 1:
-			output ("Initialize Coordinator")
 			sql = "UPDATE tbparam SET pvalue = 0 WHERE ptype = 'I'" 
 			cur.execute(sql)
 			db.commit()
@@ -104,7 +103,7 @@ def init():
 		v = int("{}".format(PVALUE))
 		if tx[i] != v:
 					tx[i] = v
-					output ("Set timer tx[" +str(i)+"] to "+ str(v))
+					output ("SetHistoryData","Set timer tx[" +str(i)+"] to "+ str(v))
 	db.commit()
 	cur.close
 	# end set timers
@@ -122,42 +121,42 @@ while True:
 	if time.time()-t[1] > tx[1]:
 		arg = [3]
 		try:
-			output("Execute HistoryData 1")
+			output("SetHistoryData 1","Execute HistoryData 1")
 			cur.callproc('updateHistDataTable',arg)
 			#printTime()
 			t[1] = time.time()
 		except DatabaseError:
-			output(DatabaseError)
+			output("SetHistoryData 1", DatabaseError)
 	# add here code to execute at timer 2
 	if time.time()-t[2] > tx[2]:
 		arg = [4]
 		try:
-			output("Execute HistoryData 2")
+			output("SetHistoryData 2","Execute HistoryData 2")
 			cur.callproc('updateHistDataTable',arg)
 			#printTime()
 			t[2] = time.time()
 		except DatabaseError:
-			output(DatabaseError)
+			output("SetHistoryData 2",DatabaseError)
 	# add here code to execute at timer 3		
 	if time.time()-t[3] > tx[3]:
 		arg = [5]
 		try:
-			output("Execute HistoryData 3")
+			output("SetHistoryData 3","Execute HistoryData 3")
 			cur.callproc('updateHistDataTable',arg)
 			#printTime()
 			t[3] = time.time()
 		except DatabaseError:
-			output(DatabaseError)
+			output("SetHistoryData 3",DatabaseError)
 	# add here code to execute at timer 4		
 	if time.time()-t[4] > tx[4]:
 		arg = [6]
 		try:
-			output("Execute HistoryData 4")
+			output("SetHistoryData 4","Execute HistoryData 4")
 			cur.callproc('updateHistDataTable',arg)
 			#printTime()
 			t[4] = time.time()
 		except DatabaseError:
-			output(DatabaseError)		
+			output("SetHistoryData 4",DatabaseError)		
 #------- End main loop -------------------------#
   
 

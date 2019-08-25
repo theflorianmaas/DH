@@ -53,6 +53,10 @@ def QueueServerClient(HOST, PORT, AUTHKEY):
     manager = QueueManager(address = (HOST, PORT), authkey = AUTHKEY)
     manager.connect() # This starts the connected client
     return manager
+    
+def output(o, x):
+	print(str(str(o) + " " + str(datetime.datetime.now().time())[:8]) + " "+ str(x))
+	sys.stdout.flush()    
 
 #------- Main section ----------------------------#
 #------- Run once --------------------------------#
@@ -69,7 +73,7 @@ lights = []
 groups = []
 
 def connect():
-	print("connect")
+	output("LIGHTMANAGERLOGIN", "connect")
 	global conf
 	global api_factory	
 	global lights
@@ -91,33 +95,40 @@ def connect():
 			save_json(CONFIG_FILE, conf)
 		except AttributeError:
 			raise PytradfriError("Please provide the 'Security Code' on the back of your Tradfri gateway using the -K flag.")
+			return("Error0")
 
-	api = api_factory.request
-	gateway = Gateway()
+	try:
+		api = api_factory.request
+		gateway = Gateway()
 
-	#get all devices
-	devices_command = gateway.get_devices()
-	devices_commands = api(devices_command)
-	devices = api(devices_commands)
-	# create list of available bulbs
-	lamps = [dev for dev in devices if dev.has_light_control]
+		#get all devices
+		devices_command = gateway.get_devices()
+		devices_commands = api(devices_command)
+		devices = api(devices_commands)
+		# create list of available bulbs
+		lamps = [dev for dev in devices if dev.has_light_control]
 
-	# get all available groups
-	groups_command = gateway.get_groups()
-	groups_commands = api(groups_command)
-	groupc = api(groups_commands)
-	groups = [dev for dev in groupc]
+		# get all available groups
+		groups_command = gateway.get_groups()
+		groups_commands = api(groups_command)
+		groupc = api(groups_commands)
+		groups = [dev for dev in groupc]
 	
-	lights = [dev for dev in devices if dev.has_light_control]
+		lights = [dev for dev in devices if dev.has_light_control]
+		return("Ok")
+	except:
+		return("Error1")
 	#-------------------------------------------------------------------
 	
-
-def outputq(x):
-	print(str(datetime.datetime.now().time())[:8] + " "+ str(x))
-	sys.stdout.flush()
-	
 threading.Timer(900, connect).start()	#reconnect every 15 minutes
-connect()
+cnt = 0
+while True:
+	cnt = cnt +1
+	output("LIGHTMANAGERLOGIN","connect retry: " + str(cnt))
+	ret = connect()
+	if ret != "Error1":
+		break
+	time.sleep(2.0)	
 
 # supported_features 1=mono 23=color
 #device info  TRADFRI bulb E27 W opal 1000lm
@@ -138,9 +149,9 @@ connect()
 
 def run():	
 	# arg1=IP, arg2=key, arg3=group, arg4=light, arg5=command, arg6=value
-	output = "no command"
+	outputx = "no command"
 	if not qLightCommand.empty():
-		outputq("Command received")
+		output("LIGHTMANAGERLOGIN","Command received")
 		args = qLightCommand.get()
 		group = args.pgroup
 		light = args.plight
@@ -153,24 +164,24 @@ def run():
 		#print(args)
 		#return the group list
 		if group == 0 and command == "listgroup":
-			output = "listgroup,"
+			outputx = "listgroup,"
 			for groupName in groups:
-				output = output + str(groupName.path[1]) + ","
-				output = output + getGroupName(str(groupName)) + ","
-				output = output + "0,"
-				output = output + "0,"
+				outputx = outputx + str(groupName.path[1]) + ","
+				outputx = outputx + getGroupName(str(groupName)) + ","
+				outputx = outputx + "0,"
+				outputx = outputx + "0,"
 				
 		#return the status of a group
 		if group != 0 and command == "statusgroup":
-			output = "statusgroup,"
+			outputx = "statusgroup,"
 			idx = get_index(group, groups)
 			if idx != -1:
 				sts = groups[idx].state
 				dim = groups[idx].dimmer
-				output = output + str(groups[idx].path[1]) + ","
-				output = output + str(sts) + "," 
-				output = output + str(dim) + "," 
-				output = output + "0,"
+				outputx = outputx + str(groups[idx].path[1]) + ","
+				outputx = outputx + str(sts) + "," 
+				outputx = outputx + str(dim) + "," 
+				outputx = outputx + "0,"
 				#print(groups[idx].mood)
 				#print(groups[idx].mood_id)
 		
@@ -179,47 +190,47 @@ def run():
 			idx = get_index(group, groups)
 			if idx != -1:
 				group_members = groups[idx].member_ids
-				output = "listlight,"
+				outputx = "listlight,"
 				for i, s in enumerate(group_members):
 					x = get_index(s, lights)
 					if x > -1:
-						output = output + str(lights[x].path[1]) + ","
-						output = output + str(lights[x]) + ","
-						output = output + str(getLightType(lights[x].light_control.can_set_dimmer, lights[x].light_control.can_set_temp, lights[x].light_control.can_set_color)) + ","
-						output = output + str(lights[x].light_control.lights[0].state) + "," 
-						output = output + str(lights[x].light_control.lights[0].dimmer) + "," 
-						output = output + str(get_color_temp_idx(lights[x].light_control.lights[0].hex_color)) + "," 
+						outputx = outputx + str(lights[x].path[1]) + ","
+						outputx = outputx + str(lights[x]) + ","
+						outputx = outputx + str(getLightType(lights[x].light_control.can_set_dimmer, lights[x].light_control.can_set_temp, lights[x].light_control.can_set_color)) + ","
+						outputx = outputx + str(lights[x].light_control.lights[0].state) + "," 
+						outputx = outputx + str(lights[x].light_control.lights[0].dimmer) + "," 
+						outputx = outputx + str(get_color_temp_idx(lights[x].light_control.lights[0].hex_color)) + "," 
 				
 		#return the lights status of a group
 		if group != 0 and light == 0 and command == "statuslight":
 			idx = get_index(group, groups)
 			if idx != -1:
 				group_members = groups[idx].member_ids
-				output = "statuslight,"
+				outputx = "statuslight,"
 				for i, s in enumerate(group_members):
 					x = get_index(s, lights)
 					if x > -1:
 						sts = lights[x].light_control.lights[0].state
 						dim = lights[x].light_control.lights[0].dimmer
 						color = lights[x].light_control.lights[0].hex_color
-						output = output + str(lights[x].path[1]) + "," 
-						output = output + str(sts) + "," 
-						output = output + str(dim) + "," 
-						output = output + str(get_color_temp_idx(color)) + "," 		
+						outputx = outputx + str(lights[x].path[1]) + "," 
+						outputx = outputx + str(sts) + "," 
+						outputx = outputx + str(dim) + "," 
+						outputx = outputx + str(get_color_temp_idx(color)) + "," 		
 		
 		#-- Set group dimmer ---------------------------------------
 		if group != 0 and light == 0 and command == "setdimmer":
 			x = get_index(group, groups)
 			cmd = groups[x].set_dimmer(value, transition_time=20)	
 			api(cmd)
-			output = command + " group"
+			outputx = command + " group"
 	
 		#-- Set light dimmer ---------------------------------------
 		if group == 0 and light != 0 and command == "setdimmer":
 			x = get_index(light, lights)
 			cmd = lights[x].light_control.set_dimmer(value, transition_time=20)	
 			api(cmd)
-			output = command + " light"
+			outputx = command + " light"
 		
 		#-- Set lights ---------------------------------------
 		if group == 0 and light != 0 and value != 0 and command == "setcolor":
@@ -227,7 +238,7 @@ def run():
 			colorHex = get_color_temp(value)
 			cmd = lights[x].light_control.set_hex_color(colorHex)	
 			api(cmd)
-			output = command
+			outputx = command
 			
 			
 		#-- Set group color ---------------------------------------
@@ -241,10 +252,10 @@ def run():
 						colorHex = get_color_temp(value)
 						cmd = lights[x].light_control.set_hex_color(colorHex)	
 						api(cmd)
-						output = command
+						outputx = command
 			
-		qLightResponse.put(output)
-		outputq(output)
+		qLightResponse.put(outputx)
+		output("LIGHTMANAGERLOGIN", outputx)
 				
 										
 

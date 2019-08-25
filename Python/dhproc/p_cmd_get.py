@@ -27,9 +27,12 @@ PORT4 = 5015
 PORT5 = 5016
 AUTHKEY = str("123456").encode("utf-8")
 
-def output(x):
-	print(str(datetime.datetime.now().time())[:8] + " "+ str(x))
-	sys.stdout.flush()
+CMDPREFIXIN = "0"
+CMDPREFIXOUT = "9"
+
+def output(o, x):
+	print(str(str(o) + " " + str(datetime.datetime.now().time())[:8]) + " "+ str(x))
+	sys.stdout.flush()	
 # -- DB Connection ---------------------------
 try:
   db = mysql.connector.connect(**config)
@@ -41,7 +44,7 @@ except mysql.connector.Error as err:
   else:
     output(err)
 else:
-  output("Start procedure")
+  output("P_CMD_GET","Start procedure")
 # -- END DB Connection ---------------------------
 
 #----------------------------- 
@@ -135,7 +138,7 @@ def AUTOreceiveDataFromCoordinator(qIN, qSQL):  # CR0=sensors CR1=nodes CR3=Actu
 			#--- Write data to database ---#
 			sql = ""
 			if (parseint(arrayData[0])) != 99: #check the first value if is NOT 99 = smartlight command	
-				sql = "insert into tbdatain (timekey,type,"  
+				sql = CMDPREFIXIN + "insert into tbdatain (timekey,type,"  
 				x = 0
 				while x < pnum-1:
 					sql = sql+ "V" + str(x) + ","	
@@ -158,7 +161,7 @@ def AUTOreceiveDataFromCoordinator(qIN, qSQL):  # CR0=sensors CR1=nodes CR3=Actu
 					if i != dNum-1:
 						sql = sql + ","					
 			elif (parseint(arrayData[0])) == 99: #smart light command
-				output("Ricevuto comando luci")
+				output("P_CMD_GET","Ricevuto comando luci")
 				# get the smartlight_id
 				node = str(parseint(arrayData[1]))
 				pin = str(parseint(arrayData[2]))
@@ -187,7 +190,7 @@ def AUTOreceiveDataFromCoordinator(qIN, qSQL):  # CR0=sensors CR1=nodes CR3=Actu
 					#V5=smartlight_id
 					#V6=type
 					#V7=command origin 99=switch
-					sql = "insert into tbdataoutsmartlight (timekey,type,V0,V1,V2,V3,V4,V5,V6,V7) values "  
+					sql = CMDPREFIXOUT + "insert into tbdataoutsmartlight (timekey,type,V0,V1,V2,V3,V4,V5,V6,V7) values "  
 					# create Value part of insert statement		
 					sql = sql+ "(millis(),0" # action type 1 set color
 					sql = sql+ "," + str(pin) 

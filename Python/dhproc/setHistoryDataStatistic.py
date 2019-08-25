@@ -10,8 +10,8 @@ from mysql.connector import errorcode
 from db import * 
 import datetime
 
-def output(x):
-	print(str(datetime.datetime.now().time())[:8]+ " "+ str(x))
+def output(o, x):
+	print(str(str(o) + " " + str(datetime.datetime.now().time())[:8]) + " "+ str(x))
 	sys.stdout.flush()
 
 # -- DB Connection ---------------------------
@@ -19,13 +19,13 @@ try:
   db = mysql.connector.connect(**config)
 except mysql.connector.Error as err:
   if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-    output("Something is wrong with your user name or password")
+    output("SetHistoryDataStatistic", "Something is wrong with your user name or password")
   elif err.errno == errorcode.ER_BAD_DB_ERROR:
-    output("Database does not exists")
+    output("SetHistoryDataStatistic","Database does not exists")
   else:
     output(err)
 else:
-  output("Start procedure")
+  output("SetHistoryDataStatistic","Start procedure")
 # -- END DB Connection ---------------------------
  
 #----------------------------- 
@@ -62,11 +62,11 @@ def log(t, m):
 
 def printTime():
 	now = datetime.datetime.now()
-	output (now.strftime("%H %M %S %f"))	
+	output ("SetHistoryDataStatistic",now.strftime("%H %M %S %f"))	
 	
 #------- Main section ----------------------------#
 try:
-	output("Executing HistoryData Statistic")
+	output("SetHistoryDataStatistic","Executing HistoryData Statistic")
 	cur.callproc('updateHistDataTableStatistic')
 	t[0] = time.time()
 except mysql.connector.Error as err:
@@ -78,7 +78,7 @@ while True:
 	# add here code to execute at timer 5 - execute every 24h	
 	if time.time()-t[0] > tx[0]:
 		try:
-			output("Executing HistoryData Statistic")
+			output("SetHistoryDataStatistic","Executing HistoryData Statistic")
 			cur.callproc('updateHistDataTableStatistic')
 			t[0] = time.time()
 		except mysql.connector.Error as err:

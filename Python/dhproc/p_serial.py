@@ -33,6 +33,7 @@ AUTHKEY = str("123456").encode("utf-8")
 def output(o, x):
 	print(str(str(o) + " " + str(datetime.datetime.now().time())[:8]) + " "+ str(x))
 	sys.stdout.flush()
+	
 # -- DB Connection ---------------------------
 try:
   db = mysql.connector.connect(**config)
@@ -45,6 +46,7 @@ except mysql.connector.Error as err:
     output(err)
 else:
   output("PYSERIAL","Start procedure")
+  db.commit()
 # -- END DB Connection ---------------------------
 
 # -- Open Serial to the Coordinator---------------
@@ -324,19 +326,19 @@ def isResponse(response):
 		return False	
 		
 def isResponseOK(response):
-	#print(response)
+	print(response)
 	res = False
 	if "CX0" in str(response, 'utf-8'):
-		#print(1)
+		print(1)
 		res = False
 	elif "CX1" in str(response, 'utf-8'):	
-		#print(2)
+		print(2)
 		res = True
 	else:
-		#print(3)
+		print(3)
 		res = False	
-	#print("qqq:")	
-	#print("xx:", str(response))
+	print("qqq:")	
+	print("xx:", str(response))
 	return res			
 
 #--------------------------------------------------------------------------------------------------------#

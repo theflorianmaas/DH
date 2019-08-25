@@ -14,8 +14,6 @@ import multiprocessing as mp
 from multiprocessing import Queue
 from multiprocessing.managers import SyncManager
 
-#import queue
-
 ctrlStr = "*../"
 
 HOST = ''
@@ -27,9 +25,12 @@ PORT4 = 5015
 PORT5 = 5016
 AUTHKEY = str("123456").encode("utf-8")
 
-def output(x):
-	print(str(datetime.datetime.now().time())[:8] + " "+ str(x))
+def output(o, x):
+	print(str(str(o) + " " + str(datetime.datetime.now().time())[:8]) + " "+ str(x))
 	sys.stdout.flush()
+
+def printDBError(x, e):
+	output(x, "Error: " +  str(e))             # errno, sqlstate, msg values	
 # -- DB Connection ---------------------------
 try:
   db = mysql.connector.connect(**config)
@@ -41,7 +42,8 @@ except mysql.connector.Error as err:
   else:
     output(err)
 else:
-  output("Start procedure")
+  output("P_CMD_IN","Start procedure")
+  db.commit()
 # -- END DB Connection ---------------------------
 
 #----------------------------- 
@@ -104,12 +106,19 @@ def execSQL(qSQL):
 		#try:
 		if not qSQL.empty():
 			sql = str(qSQL.get())
-			inssql = "UPDATE tbqueue SET timekey = millis(), code = '" + sql + "'"
-			cur.execute("START TRANSACTION")
-			cur.execute(inssql)
-			cur.execute("COMMIT")	
-			db.commit()
-			#output("Command executed")	
+			if sql[:1] == "0":
+				sql = sql[1:]
+				inssql = "UPDATE tbqueue SET timekey = millis(), code = '" + sql + "'"
+			else: # = 9
+				sql = sql[1:]
+				inssql = "INSERT INTO tbqueuecommand (timekey, code) VALUES (millis(), '" + sql + "')"
+
+			try:
+				db.start_transaction(False, None, False)
+				cur.execute(inssql)
+				db.commit()
+			except mysql.connector.Error as e:
+				printDBError("P_CMD_IN", e)	
 		time.sleep(0.1)	
 			
 

@@ -27,21 +27,25 @@ PORT4 = 5017
 PORT5 = 5018
 AUTHKEY = str("123456").encode("utf-8")
 
-def output(x):
-	print(str(datetime.datetime.now().time())[:8] + " "+ str(x))
+def output(o, x):
+	print(str(str(o) + " " + str(datetime.datetime.now().time())[:8]) + " "+ str(x))
 	sys.stdout.flush()
+	
+def printDBError(x, e):
+	output(x, "Error: " +  str(e))             # errno, sqlstate, msg values	
 # -- DB Connection ---------------------------
 try:
   db = mysql.connector.connect(**config)
 except mysql.connector.Error as err:
   if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-    output("Something is wrong with your user name or password")
+    output("P_CMD_OUT","Something is wrong with your user name or password")
   elif err.errno == errorcode.ER_BAD_DB_ERROR:
-    output("Database does not exists")
+    output("P_CMD_OUT","Database does not exists")
   else:
     output(err)
 else:
-  output("Start procedure")
+  output("P_CMD_OUT","Start procedure")
+  db.commit()
 # -- END DB Connection ---------------------------
 
 #----------------------------- 
@@ -123,23 +127,22 @@ def execSQL(qOUT, qResponse, qQuery):
 		try:
 			#if qOUT.empty():
 			sql = "select timekey,type,V0,V1,V2,V3,V4,V5,V6,V7,V8,V9,V10 from tbdataout order by timekey asc"
-			#cur = db.cursor()
-			cur.execute("START TRANSACTION")
 			cur.execute(sql)
 			rows = cur.fetchall()
-			cur.execute("COMMIT")	
+			db.commit()
+			db.start_transaction(False, None, False)
 			for row in rows:
 				sendCommand(row, qOUT, qResponse)
 				sql = "delete from tbdataout where timekey = " + str(row[0])
-				print(sql)
+				#print(sql)
 				cur.execute(sql)				
-				db.commit
-			
+			db.commit
 			if qOUT.qsize() > 0:			
-				output("Commands to send: " + str(qOUT.qsize()))			
-				
-		except mysql.connector.Error as err:
-			output("SQL error: {}".format(err))				
+				output("P_CMD_OUT","Commands to send: " + str(qOUT.qsize()))			
+
+		except mysql.connector.Error as e:
+			printDBError("P_CMD_OUT", e)
+			
 		time.sleep(0.1)	
 			
 
@@ -174,18 +177,18 @@ def sendCommand(row, qOUT, qResponse):
 	V9 = str(row[11])
 	V10 = str(row[12])
 	if type == 0:
-		output("Set trigger")
+		output("P_CMD_OUT","Set trigger")
 		stg = "CW," + V0 + "," + V1 + "," + V2 + "," + V3 + "," + V4 + "," + V5 
 	if type == 1:
-		output("Reset trigger")
+		output("P_CMD_OUT","Reset trigger")
 		stg = "CW," + V0 + "," + V1 + "," + V2 + "," + V3 + "," + V4 + "," + V5 
 	if type == 2:
-		output("Set actuator")
+		output("P_CMD_OUT","Set actuator")
 		stg = "CW," + V0 + "," + V1 + "," + V2 + "," + V3 + "," + V4 + "," + V5 
 	if type == 3:
 		stg = "CA," + V0 + "," + V1 + "," + V2 + "," + V3 + "," + V4 + ",0,0,0,0,0,0,0"
 	if type == 4:
-		output("Set remote triggers")
+		output("P_CMD_OUT","Set remote triggers")
 			## 0=sensor number 
 			## 1=immediate alarm 1=permanent 2=temporary 3=flipflop
 			## 2=actuator 
@@ -199,22 +202,22 @@ def sendCommand(row, qOUT, qResponse):
 			## 10=timer time
 		stg = "CA," + V0 + "," + V1 + "," + V2 + "," + V3 + "," + V4 + ",0," + V5 + "," + V6 + "," + V7 + "," + V8 + "," + V9 + "," + V10
 	if type == 5:
-		output("Deleting remote trigger")
+		output("P_CMD_OUT","Deleting remote trigger")
 		stg = "CA," + V0 + "," + V1 + ",0,0,0,0,0,0,0,0,0,0"	
 	if type == 6:
-		output("Set time")
+		output("P_CMD_OUT","Set time")
 		stg = "CT," + V0 + "," + V1 + "," + V2 + "," + V3 + "," + V4 + "," + V5 
 	if type == 7:
-		output("Set meteo")
+		output("P_CMD_OUT","Set meteo")
 		stg = "CM," + V0 + "," + V1 + "," + V2 + "," + V3 + "," + V4 
 	if type == 8:
-		output("Set meteo forecast")
+		output("P_CMD_OUT","Set meteo forecast")
 		stg = "CF," + V0 + "," + V1 + "," + V2 + "," + V3 + "," + V4 
 	if type == 9:
-		output("Set meteo forecast temperature")
+		output("P_CMD_OUT","Set meteo forecast temperature")
 		stg = "CG," + V0 + "," + V1 + "," + V2 + "," + V3 + "," + V4 + "," + V5 + "," + V6 + "," + V7 + "," + V8 				
 	if type == 10:
-		output("Set smartlight commands")
+		output("P_CMD_OUT","Set smartlight commands")
 		#V0 node
 		#V1 pin
 		#V2 sts
@@ -222,14 +225,14 @@ def sendCommand(row, qOUT, qResponse):
 		#V4 color/mood
 		stg = "CC," + V0 + "," + V1 + "," + V2 + "," + V3 + "," + V4
 	if type == 11:
-		output("Setup smartlight configuration (all device type)")
+		output("P_CMD_OUT","Setup smartlight configuration (all device type)")
 		#V0 node
 		#V1 pin
 		#V2 type
 		#V3 mode 0=insert 1=delete 2=update
 		stg = "CD," + V0 + "," + V1 + "," + V2 + "," + V3  								
 	if type == 12:
-		output("Setup smartlight configuration group MOODs")
+		output("P_CMD_OUT","Setup smartlight configuration group MOODs")
 		#V0 node
 		#V1 pin
 		#V2 group pin
@@ -242,8 +245,8 @@ def sendCommand(row, qOUT, qResponse):
 	for i in range(1):	
 		# send the string
 		qOUT.put(stg)
-		output("Waiting for the response for attempt " + str(i))
-		print("stampa stringa:", stg)
+		output("P_CMD_OUT","Waiting for the response for attempt " + str(i))
+		#print("stampa stringa:", stg)
 		sResponse = "empty"
 		#initTime = time.time() + 3 #set timeout for the next loop
 		#loop = 0 # 0

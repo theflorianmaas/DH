@@ -33,7 +33,7 @@ def CreateQueueServer(HOST, PORT, AUTHKEY, name = None, description = None):
 
     return manager
 
-# Start three queue servers
+# Start queue servers
 qIn = CreateQueueServer(HOST, PORT0, AUTHKEY, 'qIn', description)
 qOut = CreateQueueServer(HOST, PORT1, AUTHKEY, 'qOut', description)
 qSql = CreateQueueServer(HOST, PORT2, AUTHKEY, 'qSql', description)
@@ -44,7 +44,6 @@ qQuery2 = CreateQueueServer(HOST, PORT6, AUTHKEY, 'qQuery2', description)
 qResult2 = CreateQueueServer(HOST, PORT7, AUTHKEY, 'qResult2', description)
 qLightCommand = CreateQueueServer(HOST, PORT8, AUTHKEY, 'qLightCommand', description)
 qLightResponse = CreateQueueServer(HOST, PORT9, AUTHKEY, 'qLightResponse', description)
-
 
 while True:
 	a=1

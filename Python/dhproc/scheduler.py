@@ -10,8 +10,8 @@ import datetime
 from db import * 
 import sys
 
-def output(x):
-	print(str(datetime.datetime.now().time())[:8]+ " "+ str(x))
+def output(o, x):
+	print(str(str(o) + " " + str(datetime.datetime.now().time())[:8]) + " "+ str(x))
 	sys.stdout.flush()
 	
 # -- DB Connection ---------------------------
@@ -19,13 +19,13 @@ try:
   db = mysql.connector.connect(**config)
 except mysql.connector.Error as err:
   if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-    output("Something is wrong with your user name or password")
+    output("SCHEDULER", "Something is wrong with your user name or password")
   elif err.errno == errorcode.ER_BAD_DB_ERROR:
-    output("Database does not exists")
+    output("SCHEDULER", "Database does not exists")
   else:
     output(err)
 else:
-  output("Start procedure")
+  output("SCHEDULER", "Start procedure")
 # -- END DB Connection ---------------------------
 
 cur = db.cursor()
@@ -42,7 +42,7 @@ while True:
 		cur.callproc(proc)
 		#output ("Procedure executed: " + proc)
 	except mysql.connector.Error as err:
-		output ("database error... " + proc + "- " + str(err))	
+		output ("SCHEDULER", "database error... " + proc + " - " + str(err))	
 	db.commit()	
 	
 

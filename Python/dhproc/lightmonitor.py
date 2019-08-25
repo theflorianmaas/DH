@@ -39,8 +39,8 @@ groupArraySts = []
 groupArrayValue = []
 groupArrayMood = []
 
-def output(x):
-	print(str(datetime.datetime.now().time())[:8] + " "+ str(x))
+def output(o, x):
+	print(str(str(o) + " " + str(datetime.datetime.now().time())[:8]) + " "+ str(x))
 	sys.stdout.flush()
 
 def get_color_temp_idx(color):
@@ -136,7 +136,7 @@ def savelights():
     wfile = open ("files/datafile.json", "w")
     wfile.write(lista)
     wfile.close()
-    output("file salvato")   
+    output("LIGHYMONITOR","file salvato")   
     
 def savegroups():
     i = 0
@@ -155,7 +155,7 @@ def savegroups():
     wfile = open ("files/datafilegroups.json", "w")
     wfile.write(lista)
     wfile.close()
-    output("file salvato")    
+    output("LIGHYMONITOR","file salvato")    
          
     
 def get_index(id, list_):
@@ -239,12 +239,12 @@ def run():
     if lights:
         light = lights[0]
     else:
-        print("No lights found!")
+        output("LIGHYMONITOR","No lights found!")
         light = None
 
     def observe_callback(updated_device):
         light = updated_device.light_control.lights[0]
-        output("Received message for: %s" % light)
+        output("LIGHYMONITOR","Received message for: %s" % light)
         light = updated_device
         x = get_index(light.id, lightArrayId)
         lightArraySts[x] = light.light_control.lights[0].state
@@ -254,7 +254,7 @@ def run():
  
     def observe_callback_2(updated_device):
         #light = updated_device.light_control.lights[0]
-        output("Received message for: %s" % updated_device.path[1])
+        output("LIGHYMONITOR","Received message for: %s" % updated_device.path[1])
         #light = updated_device
         #x = get_index(light.id, lightArrayId)
         #lightArraySts[x] = light.light_control.lights[0].state
@@ -277,7 +277,7 @@ def run():
 	  
 
     def observe_err_callback(err):
-        output('observe error:', err)
+        output("LIGHYMONITOR",'observe error:', err)
 
     for light in lights:
         observe_command = light.observe(observe_callback, observe_err_callback,
@@ -295,10 +295,10 @@ def run():
         # Yield to allow observing to start.
         yield from asyncio.sleep(0)        
 
-    print("Waiting for observation to end (2 mins)")
-    print("Try altering any light in the app, and watch the events!")
+    output("LIGHYMONITOR","Waiting for observation to end (2 mins)")
+    output("LIGHYMONITOR","Try altering any light in the app, and watch the events!")
     while True:
-	    print("restart")
+	    #output("LIGHYMONITOR","restart")
 	    yield from asyncio.sleep(10)
 
     #yield from api.shutdown()

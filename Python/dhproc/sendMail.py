@@ -15,14 +15,13 @@ import sys
 import mysql.connector
 from mysql.connector import errorcode
 from db import * 
-#import datetime
-from datetime import datetime
+import datetime
 
 ti = ['z','z','z','z','z','z','z','z','z','z','z','z','z','z','z','z','z','z','z','z']
 td = ['z','z','z','z','z','z','z','z','z','z','z','z','z','z','z','z','z','z','z','z']
 
-def output(x):
-	print(str(datetime.now().time())[:8]+ " "+ str(x))
+def output(o, x):
+	print(str(str(o) + " " + str(datetime.datetime.now().time())[:8]) + " "+ str(x))
 	sys.stdout.flush()
 	
 # -- DB Connection ---------------------------
@@ -30,19 +29,19 @@ try:
   db = mysql.connector.connect(**config)
 except mysql.connector.Error as err:
   if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-    output("Something is wrong with your user name or password")
+    output("SENDEMAIL","Something is wrong with your user name or password")
   elif err.errno == errorcode.ER_BAD_DB_ERROR:
-    output("Database does not exists")
+    output("SENDEMAIL","Database does not exists")
   else:
-    output(err)
+    output("SENDEMAIL",err)
 else:
-  output("Start procedure")
+  output("SENDEMAIL","Start procedure")
 # -- END DB Connection ---------------------------
 
 cur = db.cursor()
 sql0 = "delete from tbsendemail" 
 cur.execute(sql0)
-cur.execute("commit")
+db.commit()
 
 # Function initSNTP(): #get email data for sending alerts
 def initSNTP():
@@ -55,23 +54,17 @@ def initSNTP():
 	row = cur.fetchone()
 	login = row[0]
 	password = row[1]
-	#print ("Set email paramps for "+password)
-	#cur.execute("commit")
 	sql = "Select user_email from users where user_id = 1"
 	cur.execute(sql)
 	for i in range(cur.rowcount):
 		row = cur.fetchone()
 		recipient = row[0]
-	#print(recipient)
 	cur.close	
 
 def sendemail(n,s,b):
     global login
     global password
     global recipient
-    #print(recipient)
-    #global smtpserver
-    #idx = ti.index(x)
     from_addr    = 'udoo@myHomeMonitoring.it'
     to_addr_list = [recipient]
     cc_addr_list = ['zzz@xxx.cc'],
@@ -88,7 +81,7 @@ def sendemail(n,s,b):
     x = smtpserver.login(login, password)
     problems = smtpserver.sendmail(from_addr, to_addr_list, message) #.encode('utf-8'))
     smtpserver.quit()
-    output (problems)
+    #output ("SENDEMAIL",problems)
     return problems
     
 def stripString(s):
@@ -97,7 +90,6 @@ def stripString(s):
 	s.strip("'")
 	s.strip("(")
 	s.strip(")")
-	print (s)
 	return s    
 
 initSNTP()
@@ -116,14 +108,11 @@ while True:
 		room = row[7]
 		val = row[8]
 		body = "Scattato allarme in " + stripString(str(room)) + " (nodo "+ stripString(str(node)) + ") per "+ stripString(str(event)) + str(" del sensore ") + stripString(str(sensor)) + str(" alle ore ") + stripString(str(datetime)) +str(" valore = ")+ stripString(str(val))
-		#body = MIMEText(body.encode('utf-8'), _charset='utf-8')
-		output (body)
 		ret = sendemail(room,sensor,body)
-		output (ret)
+		output ("SENDEMAIL", "Email sent")
 		if str(ret) == '{}':
 			cur.execute("commit")
 			cur.execute("UPDATE tbsendemail SET sent = 1 WHERE tbTrigger_id = "+str(row[0]))
-			output (body)
-	cur.execute("commit")
+	db.commit()
 	cur.close	
 	time.sleep(5)
