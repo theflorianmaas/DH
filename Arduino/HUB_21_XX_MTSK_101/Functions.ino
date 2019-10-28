@@ -8,15 +8,21 @@ boolean checkSerial() {
   return response;
 }
 //----------------------------------------------------------//
-int getNodeIndex(int node)
+int getNodeIndex(int nodeid)
 {
-  int nodeIndex = NODE_NOT_FOUND;
-  for (int i = 0; i < NUMNODS; i++)
+  int nodeIndex;
+  if (nodeid == NODE_NOT_FOUND) {
+    nodeIndex = NODE_NOT_FOUND;
+  }
+  else
   {
-    if (aNodeTable[i][0] == node)
+    for (int i = 0; i < NUMNODS; i++)
     {
-      nodeIndex = i;
-      break;
+      if (aNodeTable[i][0] == nodeid)
+      {
+        nodeIndex = i;
+        break;
+      }
     }
   }
   return nodeIndex;
@@ -35,7 +41,7 @@ void updateNodeStatus()
 {
   for (int i = 0; i < NUMNODS; i++)
   {
-    if (aNodeTable[i][1] != nLocal) {  
+    if (aNodeTable[i][1] != nLocal) {
       if (aNodeTable[i][0] != INITSTRING)
       {
         if (aNodeLastUpdate[i] + nodeTimeOut >= millis()) {
@@ -149,11 +155,9 @@ int getNodeByAddress(uint32_t Lsb, uint32_t Msb)
 // read data from Serial
 //------------------------
 void readSerialData(int x)  {
-  while (Serial.available() > 0) {
-    for (int i = 0; i < x; i++) {
-      //read all integer available on serial
-      readInt[i] = Serial.parseInt();
-    }
+  for (int i = 0; i < x; i++) {
+    //read all integer available on serial
+    readInt[i] = Serial.parseInt();
   }
 }
 //----------------------------------------------------------//
@@ -173,57 +177,57 @@ void sendCommandOnSerial() {
 
 
 String createString(int node, int16_t aRxData[], int a_size) {
-    String separator = ",";
-    String res = String(node);
-    for(int i = 0; i<a_size; i++) 
-    {
-      res = res + separator;
-      res = res + String(aRxData[i]);
-    }
-    return res;
+  String separator = ",";
+  String res = String(node);
+  for (int i = 0; i < a_size; i++)
+  {
+    res = res + separator;
+    res = res + String(aRxData[i]);
+  }
+  return res;
 }
 
 int parseIntRxCount(String data) {
-    String separator = ",";
-    int index;
-    index = 0;
-    int inc = data.length()-1;
-    for(int i = 0; i<inc; i++) //count the number of occurences
-    {    //Walk through the text one letter at a time
-      if (String(data[i]) == separator)
-        index++;     
-    }
-    return index+1;
- }    
+  String separator = ",";
+  int index;
+  index = 0;
+  int inc = data.length() - 1;
+  for (int i = 0; i < inc; i++) //count the number of occurences
+  { //Walk through the text one letter at a time
+    if (String(data[i]) == separator)
+      index++;
+  }
+  return index + 1;
+}
 
 void parseIntRx(String data, int16_t aRxData[]) {
-    String dataPart;      //variable to hole the return text  
-    String separator = ",";
-    int index;
-    index = 0;
-    int idx = 0;
-    int idxNext = 0;
-    int cnt = 0;
+  String dataPart;      //variable to hole the return text
+  String separator = ",";
+  int index;
+  index = 0;
+  int idx = 0;
+  int idxNext = 0;
+  int cnt = 0;
 
-    idx = 0;
-    idxNext = -1;
-    cnt = 0;  
-    int inc = data.length()-1;  
-    for(int i = 0; i<inc; i++) 
-    {    //Walk through the text one letter at a time
-      idx = idxNext+1;
-      idxNext = data.indexOf(separator, idx);
-      if (idxNext != -1)  {
-        dataPart = data.substring(idx,idxNext);
-        aRxData[cnt] = dataPart.toInt();
-        cnt++;
-        }
-      else {
-        dataPart = data.substring(idx,data.length());
-        aRxData[cnt] = dataPart.toInt();
-        break;
-      }     
+  idx = 0;
+  idxNext = -1;
+  cnt = 0;
+  int inc = data.length() - 1;
+  for (int i = 0; i < inc; i++)
+  { //Walk through the text one letter at a time
+    idx = idxNext + 1;
+    idxNext = data.indexOf(separator, idx);
+    if (idxNext != -1)  {
+      dataPart = data.substring(idx, idxNext);
+      aRxData[cnt] = dataPart.toInt();
+      cnt++;
     }
+    else {
+      dataPart = data.substring(idx, data.length());
+      aRxData[cnt] = dataPart.toInt();
+      break;
+    }
+  }
 }
 
 //-------------------------------------------------
@@ -253,7 +257,6 @@ void initTable(byte x, int cnt) {
   int idx = 0; //row num
   int i = 0;
   int y = 0;
-
   resetTable(x);
   while (i < cnt) {
     y = 0; //reset column counter
@@ -274,7 +277,6 @@ void initTable(byte x, int cnt) {
     }
     idx++;
   }
-
   if (x == 78) procStarted = true; //Enable data transmition on Serial
 
 } // end intTable
@@ -362,7 +364,7 @@ void sendDataOnSerial(int x) {
       }
       else
       {
-        Serial.println("\r\n");
+        Serial.print("\r\n");
         break;
       }
     }
@@ -380,7 +382,7 @@ void sendDataOnSerial(int x) {
       }
       else
       {
-        Serial.println("\r\n");
+        Serial.print("\r\n");
         break;
       }
     }
@@ -411,7 +413,7 @@ void sendDataOnSerial(int x) {
       }
       else
       {
-        Serial.println("\r\n");
+        Serial.print("\r\n");
         break;
       }
     }
@@ -483,8 +485,8 @@ void sendDataOnSerial(int x) {
         break;
       }
     }
-    Serial.print(stringToSend);
-    Serial.println("\r\n");
+    Serial.println(stringToSend);
+    //Serial.println("\r\n");
   }  //end IF = 5
 }// sendDataOnSerial
 
@@ -527,7 +529,7 @@ void getSerialData() {
           readSerialData(intNum);
           initTable(inChar, intNum);
           Serial.println("CX1");
-         }
+        }
         else if (inChar == NODES) {  // N nodes
           procStarted = false; //stop sending data on serial
           intNum = Serial.parseInt();
@@ -755,17 +757,17 @@ void getSerialData() {
           xbeeData[11] = Serial.parseInt(); //mood10
           nodeType = getNodeType(nodeTemp);
         }
-        //COMMON SECTION TO EXECUTE THE COMMAND       
-          if (nodeType == nXbee) {   // If it is a Xbee node
-            qCommands.push(nodeTemp);
-          }
-          else if (nodeType == nLocal) //if it the local node (for sensors and actuator directly connected to th HUB)
-          {
-            //insert code here
-            Serial.println("CX1");  //send on serial to confirm the command is sent
-          }
-          // insert here other node types
- 
+        //COMMON SECTION TO EXECUTE THE COMMAND
+        if (nodeType == nXbee) {   // If it is a Xbee node
+          qCommands.push(nodeTemp);
+        }
+        else if (nodeType == nLocal) //if it the local node (for sensors and actuator directly connected to th HUB)
+        {
+          //insert code here
+          Serial.println("CX1");  //send on serial to confirm the command is sent
+        }
+        // insert here other node types
+
         setLED(SERLed, OFF);
         //END COMMON SECTION
         break;

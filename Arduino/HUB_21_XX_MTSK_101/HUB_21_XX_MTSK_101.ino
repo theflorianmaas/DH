@@ -1,6 +1,6 @@
 /*
   DH HUB
-  Platform: Arduino Due MULTITASKING (Arduino DUE only)
+  Platform: Arduino 101 MULTITASKING
   Purpose: Collect data from/to end nodes and link from/to the main database
            Receive data from end nodes
            Send commands to end nodes
@@ -9,16 +9,11 @@
   Author: Franco Parenti
 
   Rel. 21 XX
-  17/06/2018
-
-  Nextion display support
+  27/10/2019
 
   Before compiling:
   Set the Serial Buffer to 2048 in the Arduino IDE
-  /hardware/arduino/
-  or
-  AppData/Local/Arduino15/
-  /sam/cores/arduino/RingBuffer.h -> #define SERIAL_BUFFER_SIZE 2048
+  /home/user/.arduino15/packages/Intel/hardware/arc32/2.0.4/cores/arduino/RingBuffer.h
 
   Command Examples (on Serial)
   IX2,1,1286656,1085167784,2,1286656,1085167843
@@ -122,10 +117,11 @@ int debug = 0;
 #define nodeStatusNotOk 0
 
 // pins for the service LEDs
-#define STSLed 5
-#define DATLed 4
-#define ERRLed 6
-#define SERLed 13
+#define STSLed 11
+#define DATLed 11
+#define ERRLed 11
+#define SERLed 11
+#define xbeeLed 13
 
 //Service Led status
 #define ON HIGH
@@ -250,6 +246,7 @@ void setup() {
   pinMode(DATLed, OUTPUT);
   pinMode(ERRLed, OUTPUT);
   pinMode(SERLed, OUTPUT);
+  pinMode(xbeeLed, OUTPUT);
 
   for (int i = 20; i < 54; i++) {
     pinMode(i, OUTPUT);
@@ -260,6 +257,7 @@ void setup() {
   setLED(DATLed, OFF);
   setLED(ERRLed, OFF);
   setLED(SERLed, OFF);
+  setLED(xbeeLed, OFF);
   initialize();
 
   t0.every(TIMEt0, sendAllData); //set time interval to read data from remote nodes millis
@@ -269,10 +267,10 @@ void setup() {
   //t0.every(500, updateNodeStatus); //set time interval to read data from remote nodes millis
 
 
-//  Scheduler.startLoop(loop4); //start loop 3. Update status of remote nodes
-//  Scheduler.startLoop(loop3); //start loop 3. Apply data from xbee nodes
-//  Scheduler.startLoop(loop2); //start loop 2. Read data and responses from Xbee nodes
-//  Scheduler.startLoop(loop1); //start loop 1. Execute commands
+  //  Scheduler.startLoop(loop4); //start loop 3. Update status of remote nodes
+  //  Scheduler.startLoop(loop3); //start loop 3. Apply data from xbee nodes
+  //  Scheduler.startLoop(loop2); //start loop 2. Read data and responses from Xbee nodes
+  //  Scheduler.startLoop(loop1); //start loop 1. Execute commands
 
 }
 
@@ -280,31 +278,39 @@ void setup() {
 // ---------- Main loop ------------- //
 // ---------- Main loop ------------- //
 void loop() {
-  getSerialData();
-  t0.update();
-  delay(20);
+  getSerialData(); 
+  if (procStarted) {
+    t0.update();
+    loop1();
+    loop2();
+    loop3();
+    loop4();
+  }
+
+  setLED(xbeeLed, OFF);
+  //delay(20);
 }
 
 void loop1() {
   sendRemoteCommand();
-  setLED(SERLed, OFF);
-  delay(20);
+  //setLED(SERLed, OFF);
+  //delay(20);
 }
 
 void loop2() {
   getXbeeData();
-  setLED(SERLed, OFF);
-  delay(20);
+  //setLED(SERLed, OFF);
+  //delay(20);
 }
 
 void loop3() {
   readXbeeData();
-  delay(20);
+  //delay(20);
 }
 
 void loop4() {
   updateNodeStatus();
-  delay(20);
+  //delay(20);
 }
 
 // -------- End Mail loop ----------- //
@@ -328,21 +334,25 @@ void getXbeeData()
 
   int node = 0;
   //  uint16_t Tx_Id;    //  s of transmitter (MY ID)
-  bool responseFromReadPacket = xbee.readPacket(50);
+  bool responseFromReadPacket = xbee.readPacket(10);
   RXStatusResponse(rx);
   option = rx.getOption();
   dataLength = rx.getDataLength();
   RCV_ADDR = rx.getRemoteAddress64();
   signalStrength = getRssi();
+
   if (responseFromReadPacket)
   {
     int resXbee = getApiId();
     // got a Rx packet
     if (resXbee == RX_RESPONSE)
     {
+
       if (debug == 1) {
+        setLED(xbeeLed, ON);
         Serial.print("RX response available ");
         Serial.println(getApiId(), HEX);
+        Serial.println(dataLength, DEC);
       }
       int16_t RxData[(dataLength / 2) + 1];
       nStatus = receivedOK;
@@ -357,12 +367,14 @@ void getXbeeData()
       }
 
       if (debug == 1) {
-        Serial.println("");
+        Serial.println("Fine loop");
       }
 
       //Look for the node number from an Xbee address
       int nodeid = getNodeByAddress(RCV_ADDR.getLsb(), RCV_ADDR.getMsb());
       node = getNodeIndex(nodeid);
+      node = NODE_NOT_FOUND;
+     /*
       if (debug == 1) {
         Serial.print("NodeX: ");
         Serial.println(nodeid);
@@ -372,7 +384,7 @@ void getXbeeData()
         Serial.print("Node numberX: ");
         Serial.println(getNodeNumber(node));
       }
-
+*/      
       if (node != NODE_NOT_FOUND) //if the node number has been found
       {
         aNodeTable[node][3] = signalStrength;
@@ -380,9 +392,11 @@ void getXbeeData()
         String str = createString(node, RxData, sizeof(RxData) / 2);
         qRXResponse.push(str);
       }
+      
     }
     else if (resXbee == TX_RESPONSE)// if the response in not RX_64_RESPONSE
     {
+      
       if (debug == 1) {
         Serial.print("TX response available ");
         Serial.println(getApiId(), HEX);
@@ -409,7 +423,7 @@ void getXbeeData()
           qTXResponse.pop();
           Serial.println("CX0");
         }
-      }
+      }    
     }
     else
     {
@@ -418,6 +432,7 @@ void getXbeeData()
     }
 
   }
+
 }
 
 //---------------------------------------------------
