@@ -162,6 +162,7 @@ void readSerialData(int x)  {
 }
 //----------------------------------------------------------//
 
+/*
 void sendCommandOnSerial() {
   String stringToSend;
   //-----------------------------------------------------
@@ -174,7 +175,7 @@ void sendCommandOnSerial() {
   Serial.print(stringToSend);
   Serial.println("\r\n");
 }// sendCommandOnSerial
-
+*/
 
 String createString(int node, int16_t aRxData[], int a_size) {
   String separator = ",";

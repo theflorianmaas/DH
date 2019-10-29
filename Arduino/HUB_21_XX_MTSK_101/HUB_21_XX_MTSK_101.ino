@@ -77,7 +77,7 @@ int debug = 0;
 #include <QueueList.h>
 //#include "Nextion.h"
 
-#define SERIAL_BUFFER_SIZE 4096
+//#define SERIAL_BUFFER_SIZE 4096
 #define BAUD_RATE_XBEE 115200  // Baud for Xbee serial
 #define BAUD_RATE 115200       // Baud for serial
 
@@ -141,7 +141,7 @@ int readInt[1024]; //variable to receive data from serial
 
 //define array to store node,sensor,actuators data
 #define NUMCOLS 5 //num column arrays. Don't change this value unless you know what are doing.
-#define NUMROWS 72 //num rows arrays. Supports 72 Sensors and 72 Actuators. This value can be increased if needed
+#define NUMROWS 64 //num rows arrays. Supports 72 Sensors and 72 Actuators. This value can be increased if needed
 #define NUMNODS 16 //num rows arrays, Supports 64 Nodes. This value can be increased if needed
 
 //define the array to store Sensors data values
@@ -158,7 +158,7 @@ long aActuTable[NUMROWS][NUMCOLS];
 int aMethTable[NUMROWS][NUMCOLS];
 
 //array for smartlight received command
-int aSMCommand[5];
+//int aSMCommand[5];
 
 #define INITSTRING 0xFFFE
 #define NODE_NOT_FOUND 9999
@@ -169,29 +169,7 @@ boolean procStarted = false;
 //------------------------------------------------------
 //--- XBee ---------------------------------------------
 //------------------------------------------------------
-//uncomment the Xbee type used (S2 preferred)
-//#define S1 1 //Xbee series 1
-#define S2 1 //Xbee series 2
 
-// portability macro
-#ifdef S1
-#define TX_RESPONSE TX_STATUS_RESPONSE
-#define RX_RESPONSE RX_64_RESPONSE
-#define ZB_TX_UNKNOWN 0xBF
-#define request(addr64, payload, sizeofPayload) Tx64Request tx = Tx64Request(addr64, payload, sizeofPayload)
-#define getStatusTx() txStatus.getStatus()
-#define TXStatusResponse(txStatus) xbee.getResponse().getTxStatusResponse(txStatus)
-TxStatusResponse txStatus = TxStatusResponse();
-Rx64Response rx = Rx64Response();
-#define RXStatusResponse(rx) xbee.getResponse().getRx64Response(rx)
-#define getApiId() xbee.getResponse().getApiId()
-#define getRssi() rx.getRssi()
-ModemStatusResponse msr = ModemStatusResponse();
-#define getModemStatusResponse() xbee.getResponse().getModemStatusResponse(msr)
-#define getStatusModem() msr.getStatus()
-#endif
-
-#ifdef S2
 #define TX_RESPONSE ZB_TX_STATUS_RESPONSE
 #define RX_RESPONSE ZB_RX_RESPONSE
 #define ZB_TX_UNKNOWN 0xBF
@@ -210,7 +188,6 @@ FrameIdResponse frame = FrameIdResponse();
 ModemStatusResponse msr = ModemStatusResponse();
 #define getModemStatusResponse() xbee.getResponse().getModemStatusResponse(msr)
 #define getStatusModem() msr.getStatus()
-#endif
 
 //Xbee object instances
 XBee xbee = XBee();
@@ -230,6 +207,12 @@ QueueList <uint8_t> qTXResponse; //queue to collect the TX responses
 QueueList <int> qCommands; //queue to collect the commands to send out
 
 char buffer[10] = {0};
+
+#include <SoftwareSerial.h>
+
+SoftwareSerial xbeeSerial(2, 3); // RX, TX
+
+
 //------------------------------------------------------
 //------------------------------------------------------
 
@@ -237,6 +220,7 @@ void setup() {
 
   // initialize serial:
   Serial.begin(BAUD_RATE); //serial
+  //xbeeSerial.begin(57600);
   Serial1.begin(BAUD_RATE_XBEE); //xbee serial
   // xbee start serial
   xbee.setSerial(Serial1);
@@ -248,10 +232,12 @@ void setup() {
   pinMode(SERLed, OUTPUT);
   pinMode(xbeeLed, OUTPUT);
 
+/*
   for (int i = 20; i < 54; i++) {
     pinMode(i, OUTPUT);
     digitalWrite(i, LOW);
   }
+*/
 
   setLED(STSLed, OFF);
   setLED(DATLed, OFF);
@@ -260,7 +246,7 @@ void setup() {
   setLED(xbeeLed, OFF);
   initialize();
 
-  t0.every(TIMEt0, sendAllData); //set time interval to read data from remote nodes millis
+  //t0.every(TIMEt0, sendAllData); //set time interval to read data from remote nodes millis
   //t0.every(500, sendRemoteCommand); //set time interval to read data from remote nodes millis
   //t0.every(300, getXbeeData); //set time interval to read data from remote nodes millis
   //t0.every(300, readXbeeData); //set time interval to read data from remote nodes millis
@@ -334,7 +320,7 @@ void getXbeeData()
 
   int node = 0;
   //  uint16_t Tx_Id;    //  s of transmitter (MY ID)
-  bool responseFromReadPacket = xbee.readPacket(10);
+  bool responseFromReadPacket = xbee.readPacket(100);
   RXStatusResponse(rx);
   option = rx.getOption();
   dataLength = rx.getDataLength();
@@ -352,7 +338,6 @@ void getXbeeData()
         setLED(xbeeLed, ON);
         Serial.print("RX response available ");
         Serial.println(getApiId(), HEX);
-        Serial.println(dataLength, DEC);
       }
       int16_t RxData[(dataLength / 2) + 1];
       nStatus = receivedOK;
@@ -373,8 +358,7 @@ void getXbeeData()
       //Look for the node number from an Xbee address
       int nodeid = getNodeByAddress(RCV_ADDR.getLsb(), RCV_ADDR.getMsb());
       node = getNodeIndex(nodeid);
-      node = NODE_NOT_FOUND;
-     /*
+     
       if (debug == 1) {
         Serial.print("NodeX: ");
         Serial.println(nodeid);
@@ -384,7 +368,7 @@ void getXbeeData()
         Serial.print("Node numberX: ");
         Serial.println(getNodeNumber(node));
       }
-*/      
+     
       if (node != NODE_NOT_FOUND) //if the node number has been found
       {
         aNodeTable[node][3] = signalStrength;
@@ -446,7 +430,6 @@ void readXbeeData()  {
     parseIntRx(x, aRxData);
     int node = aRxData[0];
     switch (aRxData[1]) {
-
       case SENSOR: //update the Sensors Array with remote data
         for (int i = 2; i < valueCnt; i = i + NUM_DATA_VAL ) { // loop on received data
           for (int t = 0; t < NUMROWS; t++) { //loop su sensors array
@@ -483,6 +466,7 @@ void readXbeeData()  {
           }
         }
         break;
+        /*
       case SMCMD: //smartlight command
         aSMCommand[0] = getNodeNumber(node);
         aSMCommand[1] = aRxData[2]; //pin
@@ -491,6 +475,7 @@ void readXbeeData()  {
         aSMCommand[4] = aRxData[5]; //color/mood
         sendCommandOnSerial();
         break;
+        */
     }
   } //End while
 }
