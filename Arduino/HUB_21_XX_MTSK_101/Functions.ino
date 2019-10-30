@@ -503,7 +503,7 @@ void getSerialData() {
   setLED(DATLed, OFF);
   // if there's any serial available, read it:
   if (Serial.available() > 0) {
-    setLED(SERLed, ON);
+    setLED(13, ON);
     delay(10);
     inChar = Serial.read();  //read the first byte from the serial buffer
     //------------------------------------------------
@@ -641,7 +641,6 @@ void getSerialData() {
           xbeeData[8] = 0; //not used
           xbeeData[9] = 0; //not used
           xbeeData[10] = 0; //not used
-          xbeeData[11] = 0; //not used
           nodeType = getNodeType(nodeTemp);
         }
         else if (inChar == METEO) {  // M meteo
@@ -660,8 +659,8 @@ void getSerialData() {
           xbeeData[8] = 0; //not used
           xbeeData[9] = 0; //not used
           xbeeData[10] = 0; //not used
-          xbeeData[11] = 0; //not used
-          nodeType = getNodeType(nodeTemp);
+          xbeeData[11] = 0; //not used      
+          nodeType = getNodeType(nodeTemp);    
         }
         else if (inChar == FORECAST) {  // F meteo forecast
           /*

@@ -246,7 +246,7 @@ void setup() {
   setLED(xbeeLed, OFF);
   initialize();
 
-  //t0.every(TIMEt0, sendAllData); //set time interval to read data from remote nodes millis
+  t0.every(TIMEt0, sendAllData); //set time interval to read data from remote nodes millis
   //t0.every(500, sendRemoteCommand); //set time interval to read data from remote nodes millis
   //t0.every(300, getXbeeData); //set time interval to read data from remote nodes millis
   //t0.every(300, readXbeeData); //set time interval to read data from remote nodes millis
@@ -487,7 +487,6 @@ void sendRemoteCommand() // n=node
 {
   if (!qCommands.isEmpty()) { //if there is a command to send
     int node = qCommands.pop(); //get the node id
-
     //boolean readPacketResponse; //store the response of xbee.readPacket(timeout)
     //if the node is inactive returns immediately and not execute the command
     if (getNodeStatus(node) ==  nodeStatusOk) { //if the node is active execute the command
