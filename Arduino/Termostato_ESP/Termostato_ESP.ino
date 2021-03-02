@@ -75,8 +75,8 @@ PubSubClient client(espClient);
 // ---- Wifi section ----*/
 
 #ifdef INIT_WIFI
-char wifiParams_ssid[32]  = {"Astronomy-Domine"};
-char wifiParams_passcode[64]  = {"37F0DE5CFEfrank61"};
+char wifiParams_ssid[32]  = {""};
+char wifiParams_passcode[64]  = {""};
 #else
 char wifiParams_ssid[32];
 char wifiParams_passcode[64];
@@ -117,7 +117,7 @@ FORECAST forecast = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 int meteoIcons[][2] = {{200, 72}, {201, 64}, {202, 64}, {210, 64}, {211, 64}, {212, 64}, {221, 64}, {230, 64}, {231, 64}, {232, 64}, {300, 80}, {301, 80}, {302, 80}, {310, 80}, {311, 80}, {312, 80}, {313, 80}, {314, 80}, {321, 80}, {500, 80}, {501, 63}, {502, 63}, {503, 63}, {504, 63}, {511, 66}, {520, 80}, {521, 63}, {522, 63}, {531, 71}, {600, 69}, {601, 66}, {602, 66}, {611, 66}, {612, 65}, {613, 66}, {615, 81}, {616, 81}, {620, 70}, {621, 66}, {622, 66}, {701, 68}, {711, 68}, {721, 67}, {731, 68}, {741, 68}, {751, 68}, {761, 68}, {762, 68}, {771, 68}, {781, 68}, {800, 57}, {801, 58}, {802, 59}, {803, 60}, {804, 61}};
 
 // OpenWeather API Details, replace x's with your API key
-String api_key = "fb3d3d91b39bfacebbdf5ce445277a38"; // Obtain this from your OpenWeather account
+String api_key = ""; // Obtain this from your OpenWeather account
 
 // Set both your longitude and latitude to at least 4 decimal places
 String latitude =  "43.77925"; // 90.0000 to -90.0000 negative for Southern hemisphere
