@@ -1,6 +1,7 @@
 /*
    SEX MACHINE V1.1
    01-03-2020
+   SEX MACHINE ARDUINO STEPPER MOTOR NEMA 23, CONTROLLER DM556 Driver using TONE command
 */
 
 #include <SoftwareSerial.h>
