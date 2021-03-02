@@ -1,6 +1,23 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+// MQTT ------------------------------------------------------------ //
+#define mqtt_server "192.168.178.44"
+//#define mqtt_user "homeassistant"
+//#define mqtt_password "Saeseetai3kee0Siemeeve7oth2ru3eeQuoh4joo7ohyusaiCh7quoob8tahYieN"
+
+#define mqtt_user "mqtt_user"
+#define mqtt_password "topona"
+
+#define humidity_topic "termostato/intumid"
+#define temperature_topic "termostato/inttemp"
+#define stat_topic "termostato/status"
+#define mode_topic "termostato/mode"
+#define prog_topic "termostato/program"
+#define temp_topic "termostato/settemp"
+#define range_topic "termostato/range"
+#define fire_topic "termostato/fire"
+
 #define SERVER_HOST_NAME "192.168.178.33"
 #define TCP_PORT 90
 #define DNS_PORT 53
@@ -22,8 +39,8 @@
 // Nextion Display
 //-----------------------------------------------------------
 //-----------------------------------------------------------
-#define ON  1
-#define OFF 0
+//#define ON  1
+//#define OFF 0
 #define PAGE_MAIN           0
 #define PAGE_AC             1
 #define PAGE_TV             2
@@ -92,10 +109,43 @@
 #define ACMODEHEAT   2
 #define ACMODEDRY    3
 
-#define ACFANAUTO    0
-#define ACFANLOW     1
-#define ACFANMED     2
-#define ACFANMAX     3
+#define ACCOFF      0
+#define ACCON       1
+#define ACCTEMP     2
+#define ACCMODE     3
+#define ACCFAN      4
+#define ACCSWING    5
 
+//AC methods HVAC
+#define ACFAN1        3
+#define ACFAN2        4
+#define ACFAN3        5
+#define ACFANAUTO     6
+#define ACMODECOOL    7
+#define ACMODEDRY     8
+#define ACMODEHEAT    9
+#define ACMODEAUTO    10
+#define ACTEMPERATURE 11
+#define ACSWING       12
+
+
+#define ACCOFF      0
+#define ACCON       1
+#define ACCTEMP     2
+#define ACCMODE     3
+#define ACCFAN      4
+#define ACCSWING    5
+
+//AC methods HVAC
+#define ACFAN1        3
+#define ACFAN2        4
+#define ACFAN3        5
+#define ACFANAUTO     6
+#define ACMODECOOL    7
+#define ACMODEDRY     8
+#define ACMODEHEAT    9
+#define ACMODEAUTO    10
+#define ACTEMPERATURE 11
+#define ACSWING       12
 
 #endif // CONFIG_H

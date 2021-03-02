@@ -330,7 +330,8 @@ uint8_t* Nextion::listen(unsigned long timeout)//returns generic
 uint8_t Nextion::pageId(void){
   sendCommand("sendme");
   int a = -1;
-  String pagId = listen();
+  uint8_t pagId_ = listen();
+  String pagId = String(pagId_);
   if(pagId != ""){
 	return pagId.toInt();
   }

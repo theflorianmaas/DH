@@ -12,6 +12,7 @@
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
+#include <PubSubClient.h>
 #include <ESPAsyncTCP.h>
 #include "pitches.h"
 #include "config.h"
@@ -20,7 +21,7 @@
 #include <IRsend.h>
 #include <ir_Midea.h>
 
-#include <NeoNextion.h>
+#include <C:\Users\franco\Documents\Arduino\libraries\NeoNextion\Nextion.h>
 #include <NextionPage.h>
 #include <NextionButton.h>
 #include <SoftwareSerial.h>
@@ -34,6 +35,9 @@
 
 SoftwareSerial nextionSerial(NEXTION_RX, NEXTION_TX);// Nextion TX to pin 11 and RX to pin 10 of Arduino
 Nextion nex(nextionSerial); //create a Nextion object named myNextion using the nextion serial port @ 9600bps
+
+WiFiClient espClient;
+PubSubClient client(espClient);
 
 //------Pages---------------------------------------------------
 NextionPage pgMain(nex, 0, 0, "Main");
@@ -213,7 +217,7 @@ char tradfriParams_ip[15] = {"192.168.178.75"};
 char tradfriParams_key[20] = {"FdkbvH1mxUFhb"};
 
 WiFiClient http;    //Declare object of class HTTPClient
-AsyncClient* client = new AsyncClient;
+AsyncClient* clientx = new AsyncClient;
 String line;
 bool loadString = false;
 
@@ -427,13 +431,13 @@ boolean wifiTryConnect() {
     //crea HTTP Client
     nex.poll();
     //connecy TCP client
-    client->onData(&handleData, client);
-    client->onConnect(&onConnect, client);
+    clientx->onData(&handleData, clientx);
+    clientx->onConnect(&onConnect, clientx);
 
-    while (!client->connected()) {
+    while (!clientx->connected()) {
       Serial.print('.');
       delay(500);
-      client->connect(SERVER_HOST_NAME, TCP_PORT);
+      clientx->connect(SERVER_HOST_NAME, TCP_PORT);
       nex.poll();
       wifiCheckConnect();
       return true;
@@ -460,9 +464,9 @@ void wifiCheckConnect() {
     }
   }
   else {
-    if (client->freeable()) {
+    if (clientx->freeable()) {
       wifiRed();
-      client->connect(SERVER_HOST_NAME, TCP_PORT);
+      clientx->connect(SERVER_HOST_NAME, TCP_PORT);
       Serial.println("tentata riconnessione TCP");
       nex.poll();
     }
@@ -1240,25 +1244,6 @@ void _tvret(NextionEventType type, INextionTouchable * widget)
   pTic();
   //tv_remote(TVKEYRETURN, TV_SONY);
 }
-
-#define ACCOFF      0
-#define ACCON       1
-#define ACCTEMP     2
-#define ACCMODE     3
-#define ACCFAN      4
-#define ACCSWING    5
-
-//AC methods HVAC
-#define ACFAN1        3
-#define ACFAN2        4
-#define ACFAN3        5
-#define ACFANAUTO     6
-#define ACMODECOOL    7
-#define ACMODEDRY     8
-#define ACMODEHEAT    9
-#define ACMODEAUTO    10
-#define ACTEMPERATURE 11
-#define ACSWING       12
 
 //------AC--------------------------------------------
 void _acon(NextionEventType type, INextionTouchable * widget)

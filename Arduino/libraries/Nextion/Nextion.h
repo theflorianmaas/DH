@@ -84,8 +84,8 @@ class Nextion{
 
   String getComponentText(String component, uint32_t timeout = 100);
 
-  uint8_t* listen(unsigned long timeout=100);
-  //  String listenNextionGeneric(unsigned long timeout=100);
+  //uint8_t* listen(unsigned long timeout=100);
+  String listenNextionGeneric(unsigned long timeout=100);
 
   void sendCommand(const char* cmd);
 

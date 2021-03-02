@@ -105,7 +105,7 @@ String createUrl(char* ip, char* key, String group, String light, String cmd, in
 }
 
 /* event callbacks */
-static void handleData(void* arg, AsyncClient* client, void *data, size_t len) {
+static void handleData(void* arg, AsyncClient* clientx, void *data, size_t len) {
   uint8_t * d = (uint8_t*)data;
   for (size_t i = 0; i < len; i++) {
     if (d[i] == 167 || d[i]  == 63) {
@@ -139,7 +139,7 @@ Serial.println(line);
   nex.poll();
 }
 
-void onConnect(void* arg, AsyncClient* client) {
+void onConnect(void* arg, AsyncClient* clientx) {
   Serial.printf("\n client has been connected to %s on port %d \n", SERVER_HOST_NAME, TCP_PORT);
   nex.poll();
 }
@@ -147,11 +147,11 @@ void onConnect(void* arg, AsyncClient* client) {
 void execUrl(String url) {
   // This will send the request to the server
 
-  while (client->freeable()) {
+  while (clientx->freeable()) {
     wifiOff();
     Serial.print('.');
     delay(500);
-    client->connect(SERVER_HOST_NAME, TCP_PORT);
+    clientx->connect(SERVER_HOST_NAME, TCP_PORT);
     wifiOn();
     nex.poll();
   }
@@ -164,7 +164,7 @@ void execUrl(String url) {
 
   char message[line.length() + 1];
   strcpy(message, line.c_str());
-  client->write(message);
+  clientx->write(message);
   nex.poll();
 }
 
